@@ -30,6 +30,30 @@
       ],
       "@app/constants/*": [
         "libs/constants/src/*"
+      ],
+      "@app/mongodb": [
+        "libs/mongodb/src"
+      ],
+      "@app/mongodb/*": [
+        "libs/mongodb/src/*"
+      ],
+      "@app/redis": [
+        "libs/redis/src"
+      ],
+      "@app/redis/*": [
+        "libs/redis/src/*"
+      ],
+      "@app/auth": [
+        "libs/auth/src"
+      ],
+      "@app/auth/*": [
+        "libs/auth/src/*"
+      ],
+      "@app/elastic": [
+        "libs/elastic/src"
+      ],
+      "@app/elastic/*": [
+        "libs/elastic/src/*"
       ]
     }
   }
