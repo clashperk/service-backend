@@ -4,6 +4,10 @@ export enum Tokens {
   ELASTIC = 'ELASTIC',
 }
 
+export enum TokenType {
+  ACCESS_TOKEN = 'access_token',
+}
+
 export enum Collections {
   // LOG_CHANNELS
   CLAN_STORES = 'ClanStores',
