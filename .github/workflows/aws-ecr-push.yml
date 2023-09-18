@@ -1,0 +1,68 @@
+name: CD/ECR
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  build:
+    name: ECR
+
+    strategy:
+      matrix:
+        service: [service-app, service-capital, service-clans, service-wars]
+
+    runs-on: buildjet-4vcpu-ubuntu-2204-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get ECR Registry
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Login to ECR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ steps.ecr-login.outputs.registry }}
+
+      - name: Set up Docker Buildkit
+        uses: docker/setup-buildx-action@v2
+        with:
+          buildkitd-flags: --debug
+
+      - name: Get Tags for Image
+        id: metadata
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ steps.ecr-login.outputs.registry }}/${{ matrix.service }}
+          tags: |
+            type=raw,value=latest
+
+      - name: Docker Build, Tag and Push to ECR
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          build-args: GIT_SHA=${{ github.sha }},SERVICE_NAME=${{ matrix.service }}

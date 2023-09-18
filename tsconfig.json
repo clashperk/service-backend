@@ -54,7 +54,13 @@
       ],
       "@app/elastic/*": [
         "libs/elastic/src/*"
-      ]
+      ],
+      "@app/helper": [
+        "libs/helper/src"
+      ],
+      "@app/helper/*": [
+        "libs/helper/src/*"
+      ],
     }
   }
 }

@@ -1,0 +1,55 @@
+version: '3.6'
+
+services:
+  service-app:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-app:latest
+    container_name: service-app
+    restart: always
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    env_file:
+      - .env
+    mem_limit: 1gb
+    environment:
+      - SERVICE_NAME=service-app
+
+  service-capital:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-capital:latest
+    container_name: service-capital
+    restart: always
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    env_file:
+      - .env
+    mem_limit: 1gb
+    environment:
+      - SERVICE_NAME=service-capital
+
+  service-clans:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-clans:latest
+    container_name: service-clans
+    restart: always
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    env_file:
+      - .env
+    mem_limit: 1gb
+    environment:
+      - SERVICE_NAME=service-clans
+
+  service-wars:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-wars:latest
+    container_name: service-wars
+    restart: always
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    env_file:
+      - .env
+    mem_limit: 1gb
+    environment:
+      - SERVICE_NAME=service-app
+

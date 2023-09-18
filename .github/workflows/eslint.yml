@@ -1,0 +1,25 @@
+name: CI/CD
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: ESLint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: NPM Install
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
