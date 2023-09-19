@@ -65,4 +65,6 @@ jobs:
           platforms: linux/arm64
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
-          build-args: GIT_SHA=${{ github.sha }},SERVICE_NAME=${{ matrix.service }}
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            SERVICE_NAME=${{ matrix.service }}
