@@ -1,6 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import { Test, TestingModule } from '@nestjs/testing';
+import request from 'supertest';
 import { ServiceCapitalModule } from './../src/service-capital.module';
 
 describe('ServiceCapitalController (e2e)', () => {

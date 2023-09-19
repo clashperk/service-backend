@@ -1,14 +1,14 @@
 import { Tokens } from '@app/constants';
 import { Module, Provider } from '@nestjs/common';
+import { createClient } from 'redis';
 import { RedisService } from './redis.service';
-import * as Redis from 'redis';
 
-export type RedisClient = ReturnType<typeof Redis.createClient>;
+export type RedisClient = ReturnType<typeof createClient>;
 
 const RedisProvider: Provider = {
   provide: Tokens.REDIS,
   useFactory: async (): Promise<RedisClient> => {
-    const redis = Redis.createClient({
+    const redis = createClient({
       url: process.env.REDIS_URL,
       database: Number(process.env.REDIS_DATABASE || 0),
     });
