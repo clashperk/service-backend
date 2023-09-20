@@ -2,6 +2,7 @@ export enum Tokens {
   MONGODB = 'MONGODB',
   REDIS = 'REDIS',
   ELASTIC = 'ELASTIC',
+  REST = 'REST',
 }
 
 export enum TokenType {

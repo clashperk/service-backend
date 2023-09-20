@@ -112,6 +112,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/helper/tsconfig.lib.json"
       }
+    },
+    "rest": {
+      "type": "library",
+      "root": "libs/rest",
+      "entryFile": "index",
+      "sourceRoot": "libs/rest/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/rest/tsconfig.lib.json"
+      }
     }
   }
 }

@@ -63,6 +63,12 @@
       "@app/helper/*": [
         "libs/helper/src/*"
       ],
+      "@app/rest": [
+        "libs/rest/src"
+      ],
+      "@app/rest/*": [
+        "libs/rest/src/*"
+      ]
     }
   }
 }

@@ -11,8 +11,6 @@ services:
     env_file:
       - .env
     mem_limit: 1gb
-    environment:
-      - SERVICE_NAME=service-app
 
   service-capital:
     image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-capital:latest
@@ -24,8 +22,6 @@ services:
     env_file:
       - .env
     mem_limit: 1gb
-    environment:
-      - SERVICE_NAME=service-capital
 
   service-clans:
     image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-clans:latest
@@ -37,8 +33,6 @@ services:
     env_file:
       - .env
     mem_limit: 1gb
-    environment:
-      - SERVICE_NAME=service-clans
 
   service-wars:
     image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-wars:latest
@@ -50,6 +44,3 @@ services:
     env_file:
       - .env
     mem_limit: 1gb
-    environment:
-      - SERVICE_NAME=service-app
-
