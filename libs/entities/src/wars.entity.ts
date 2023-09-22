@@ -1,9 +1,3 @@
-export class ClanStoresEntity {
-  guildId: string;
+import { APIClanWar } from 'clashofclans.js';
 
-  name: string;
-
-  tag: string;
-
-  createdAt: Date;
-}
+export interface ClanWarsEntity extends APIClanWar {}

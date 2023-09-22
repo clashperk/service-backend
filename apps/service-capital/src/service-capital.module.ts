@@ -1,10 +1,14 @@
+import { MongodbModule } from '@app/mongodb';
+import { RedisModule } from '@app/redis';
+import { RestModule } from '@app/rest';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { ServiceCapitalController } from './service-capital.controller';
-import { ServiceCapitalService } from './service-capital.service';
+import { CapitalService } from './service-capital.service';
 
 @Module({
-  imports: [],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), MongodbModule, RedisModule, RestModule],
   controllers: [ServiceCapitalController],
-  providers: [ServiceCapitalService],
+  providers: [CapitalService],
 })
 export class ServiceCapitalModule {}

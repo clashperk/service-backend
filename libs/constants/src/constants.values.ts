@@ -9,8 +9,15 @@ export enum TokenType {
   ACCESS_TOKEN = 'access_token',
 }
 
+export enum RedisKeyPrefixes {
+  CAPITAL_RAID_SEASON = 'CRS',
+  CAPITAL_RAID_WEEK = 'CR',
+  CLAN = 'C',
+  PLAYER = 'P',
+  LINKED_CLANS = 'LINKED_CLANS',
+}
+
 export enum Collections {
-  // LOG_CHANNELS
   CLAN_STORES = 'ClanStores',
   DONATION_LOGS = 'DonationLogs',
   LAST_SEEN_LOGS = 'LastSeenLogs',
@@ -25,10 +32,8 @@ export enum Collections {
 
   LEGEND_ATTACKS = 'LegendAttacks',
 
-  // FLAGS
   FLAGS = 'Flags',
 
-  // LINKED_DATA
   LINKED_CLANS = 'LinkedClans',
   LINKED_PLAYERS = 'LinkedPlayers',
   LINKED_CHANNELS = 'LinkedChannels',
@@ -36,7 +41,6 @@ export enum Collections {
   REMINDERS = 'Reminders',
   SCHEDULERS = 'Schedulers',
 
-  // LARGE_DATA
   PATRONS = 'Patrons',
   SETTINGS = 'Settings',
   LAST_SEEN = 'LastSeen',
@@ -58,7 +62,6 @@ export enum Collections {
   CAPITAL_RANKS = 'CapitalRanks',
   CLAN_RANKS = 'ClanRanks',
 
-  // BOT_STATS
   BOT_GROWTH = 'BotGrowth',
   BOT_USAGE = 'BotUsage',
   BOT_GUILDS = 'BotGuilds',

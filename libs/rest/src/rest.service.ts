@@ -1,6 +1,6 @@
 import { Tokens } from '@app/constants';
 import { Inject, Injectable } from '@nestjs/common';
-import type { Client } from 'clashofclans.js';
+import { Client } from 'clashofclans.js';
 
 @Injectable()
 export class RestService {
