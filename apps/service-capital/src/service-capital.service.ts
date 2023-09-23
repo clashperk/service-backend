@@ -1,9 +1,9 @@
 import { Collections, RedisKeyPrefixes, Tokens } from '@app/constants';
-import { CapitalRaidSeasonsEntity } from '@app/entities/capital.entity';
 import {
   CapitalRaidRemindersEntity,
   CapitalRaidSchedulesEntity,
-} from '@app/entities/reminders.entity';
+  CapitalRaidSeasonsEntity,
+} from '@app/entities';
 import { formatDate } from '@app/helper';
 import { MongodbService, TrackActivityInput } from '@app/mongodb';
 import {
@@ -129,7 +129,6 @@ export class CapitalService {
 
     const multi = this.redis.multi();
 
-    // might be unnecessary
     for (const member of season.members) {
       multi.json.set(getRedisKey(RedisKeyPrefixes.CAPITAL_RAID_MEMBER, member.tag), '$', {
         name: member.name,
