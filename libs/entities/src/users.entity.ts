@@ -12,3 +12,14 @@ export class UsersEntity {
 
   createdAt: Date;
 }
+
+export class LastSeenEntity {
+  name: string;
+  tag: string;
+  clan: {
+    name: string;
+    tag: string;
+  };
+  lastSeen?: Date;
+  createdAt: Date;
+}

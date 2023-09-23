@@ -1,9 +1,27 @@
 import { Collections, RedisKeyPrefixes, Tokens } from '@app/constants';
 import { CapitalRaidSeasonsEntity } from '@app/entities/capital.entity';
-import { MongodbService } from '@app/mongodb';
-import { RedisClient, RedisService, TrackedClanList, getRedisKey } from '@app/redis';
+import {
+  CapitalRaidRemindersEntity,
+  CapitalRaidSchedulesEntity,
+} from '@app/entities/reminders.entity';
+import { formatDate } from '@app/helper';
+import { MongodbService, TrackActivityInput } from '@app/mongodb';
+import {
+  PartialCapitalRaidSeason,
+  RedisClient,
+  RedisJSON,
+  RedisService,
+  TrackedClanList,
+  getRedisKey,
+} from '@app/redis';
 import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable } from '@nestjs/common';
+import {
+  APICapitalRaidSeason,
+  APIClan,
+  calculateOffensiveRaidMedals,
+  calculateRaidsCompleted,
+} from 'clashofclans.js';
 import moment from 'moment';
 import { Collection, Db } from 'mongodb';
 
@@ -15,8 +33,13 @@ export class CapitalService {
     @Inject(Tokens.REST) private readonly restClient: RestHandler,
     private readonly redisService: RedisService,
     private readonly mongoService: MongodbService,
+
     @Inject(Collections.CAPITAL_RAID_SEASONS)
-    private readonly capitalRaidsCollection: Collection<CapitalRaidSeasonsEntity>,
+    private readonly raidSeasonsCollection: Collection<CapitalRaidSeasonsEntity>,
+    @Inject(Collections.RAID_REMINDERS)
+    private readonly raidRemindersCollection: Collection<CapitalRaidRemindersEntity>,
+    @Inject(Collections.RAID_SCHEDULERS)
+    private readonly raidSchedulesCollection: Collection<CapitalRaidSchedulesEntity>,
   ) {}
 
   private readonly cached = new Map<string, TrackedClanList>();
@@ -38,12 +61,154 @@ export class CapitalService {
     const { weekId } = this.getCapitalRaidWeekendTiming();
     const raidWeekId = this.getCurrentWeekId(season.startTime);
 
-    const isCached = await this.redis.get(
-      getRedisKey(RedisKeyPrefixes.CAPITAL_RAID_WEEK, `${weekId}-${clan.tag}`),
+    const exists = await this.redis.get(
+      getRedisKey(RedisKeyPrefixes.CAPITAL_REMINDER_CURSOR, `${weekId}-${clan.tag}`),
     );
-    if (!isCached && raidWeekId === weekId) {
-      // TODO: push reminders
+
+    if (!exists && raidWeekId === weekId) {
+      await this.createReminders({ clan, season, weekId });
     }
+
+    const cached = await this.redisService.getCapitalRaidSeason(clanTag);
+    if (
+      raidWeekId === weekId &&
+      cached &&
+      (cached.capitalTotalLoot !== season.capitalTotalLoot ||
+        cached.state !== season.state ||
+        cached.members.length !== season.members.length ||
+        cached.defensiveReward !== season.defensiveReward ||
+        cached.clanCapitalPoints !== clan.clanCapitalPoints)
+    ) {
+      await this.raidSeasonsCollection.updateOne(
+        { weekId, tag: clan.tag },
+        {
+          $setOnInsert: {
+            name: clan.name,
+            tag: clan.tag,
+            weekId,
+            clanCapitalPoints: clan.clanCapitalPoints,
+            capitalLeague: clan.capitalLeague,
+            badgeURL: clan.badgeUrls.large,
+            startDate: formatDate(season.startTime),
+            createdAt: new Date(),
+          },
+          $set: {
+            state: season.state,
+            members: season.members ?? [],
+            endDate: formatDate(season.endTime),
+            offensiveReward:
+              season.offensiveReward ||
+              calculateOffensiveRaidMedals(season.attackLog, season.offensiveReward),
+            defensiveReward: season.defensiveReward,
+            capitalTotalLoot: season.capitalTotalLoot,
+            totalAttacks: season.totalAttacks,
+            enemyDistrictsDestroyed: season.enemyDistrictsDestroyed,
+            raidsCompleted: calculateRaidsCompleted(season.attackLog),
+            _clanCapitalPoints: clan.clanCapitalPoints,
+            _capitalLeague: clan.capitalLeague,
+            updatedAt: new Date(),
+          },
+        },
+        { upsert: true },
+      );
+    }
+
+    if (cached && cached.weekId === raidWeekId) {
+      const players: TrackActivityInput[] = [];
+      for (const member of season.members) {
+        const oldMember = cached.members.find((mem) => mem.tag === member.tag);
+        if (oldMember?.attacks === member.attacks) continue;
+        players.push({
+          name: member.name,
+          tag: member.tag,
+          clan: { name: clan.name, tag: clan.tag },
+        });
+      }
+      if (players.length) await this.mongoService.trackActivity(players);
+    }
+
+    const multi = this.redis.multi();
+
+    // might be unnecessary
+    for (const member of season.members) {
+      multi.json.set(getRedisKey(RedisKeyPrefixes.CAPITAL_RAID_MEMBER, member.tag), '$', {
+        name: member.name,
+        tag: member.tag,
+        weekId: raidWeekId,
+        clan: { tag: clan.tag, name: clan.name },
+      });
+      multi.expire(
+        getRedisKey(RedisKeyPrefixes.CAPITAL_RAID_MEMBER, member.tag),
+        60 * 60 * 24 * 10,
+      );
+    }
+
+    const payload = {
+      name: clan.name,
+      tag: clan.tag,
+      state: season.state,
+      defensiveReward: season.defensiveReward,
+      capitalTotalLoot: season.capitalTotalLoot,
+      totalAttacks: season.totalAttacks,
+      clanCapitalPoints: clan.clanCapitalPoints,
+      enemyDistrictsDestroyed: season.enemyDistrictsDestroyed,
+      weekId: raidWeekId,
+      members: season.members!,
+    } satisfies PartialCapitalRaidSeason;
+
+    multi.json.set(
+      getRedisKey(RedisKeyPrefixes.CAPITAL_RAID_SEASON, clanTag),
+      '$',
+      payload as unknown as RedisJSON,
+    );
+    multi.expire(getRedisKey(RedisKeyPrefixes.CAPITAL_RAID_SEASON, clanTag), 60 * 60 * 24 * 10);
+    await multi.exec();
+  }
+
+  private async createReminders({
+    clan,
+    season,
+    weekId,
+  }: {
+    clan: APIClan;
+    season: APICapitalRaidSeason;
+    weekId: string;
+  }) {
+    await this.redis.set(
+      getRedisKey(RedisKeyPrefixes.CAPITAL_REMINDER_CURSOR, `${weekId}-${clan.tag}`),
+      formatDate(season.endTime).toISOString(),
+      {
+        EX: 60 * 60 * 24 * 4.5,
+      },
+    );
+
+    const reminders = await this.raidRemindersCollection.find({ clans: clan.tag }).toArray();
+    if (!reminders.length) return null;
+
+    const newRems: CapitalRaidSchedulesEntity[] = [];
+    for (const reminder of reminders) {
+      const timestamp = new Date(formatDate(season.endTime).getTime() - reminder.duration);
+      if (Date.now() > timestamp.getTime()) continue;
+
+      const schedule: CapitalRaidSchedulesEntity = {
+        guild: reminder.guild,
+        name: clan.name,
+        tag: clan.tag,
+        duration: reminder.duration,
+        reminderId: reminder._id,
+        triggered: false,
+        source: `service-capital-${process.pid}`,
+        timestamp,
+        createdAt: new Date(),
+      };
+
+      if (reminder.clans.includes(clan.tag)) {
+        newRems.push({ ...schedule, name: clan.name, tag: clan.tag });
+      }
+    }
+
+    if (!newRems.length) return null;
+    return this.raidSchedulesCollection.insertMany(newRems);
   }
 
   async loadClans() {
@@ -74,8 +239,8 @@ export class CapitalService {
     };
   }
 
-  private getCurrentWeekId(weekId: string) {
-    return moment(weekId).toDate().toISOString().substring(0, 10);
+  private getCurrentWeekId(startTime: string) {
+    return moment(startTime).toDate().toISOString().substring(0, 10);
   }
 
   getHello(): string {

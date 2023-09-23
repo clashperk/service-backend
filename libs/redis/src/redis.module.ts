@@ -4,6 +4,7 @@ import { createClient } from 'redis';
 import { RedisService } from './redis.service';
 
 export type RedisClient = ReturnType<typeof createClient>;
+export declare type RedisJSON = null | boolean | number | string | Date;
 
 const RedisProvider: Provider = {
   provide: Tokens.REDIS,

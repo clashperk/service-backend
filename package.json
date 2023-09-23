@@ -28,7 +28,7 @@
     "@nestjs/microservices": "^10.2.6",
     "@nestjs/passport": "^10.0.2",
     "@nestjs/platform-express": "^10.0.0",
-    "clashofclans.js": "^3.1.5-dev.6c2a144",
+    "clashofclans.js": "^3.1.5-dev.46123c0",
     "moment": "^2.29.4",
     "mongodb": "^6.1.0",
     "passport-jwt": "^4.0.1",
