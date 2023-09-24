@@ -16,11 +16,11 @@ class ReqHandler extends RequestHandler {
     const result = await super.request<T>(path, options);
     if (
       !result.res.ok &&
-      // @ts-expect-error ---
+      // @ts-expect-error it exists;
       !(!result.body?.message && result.res.status === 403) &&
       !(path.includes('war') && result.res.status === 404)
     ) {
-      this.logger.log(`${result.res.status} ${path}`);
+      this.logger.warn(`${result.res.status} ${path}`);
     }
     return result;
   }

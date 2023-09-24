@@ -4,7 +4,7 @@ import { APICapitalRaidSeason, APIClan } from 'clashofclans.js';
 import { RedisClient } from './redis.module';
 
 export const getRedisKey = (prefix: RedisKeyPrefixes, key: string): string => {
-  return `${prefix}:${key}`;
+  return `${prefix}-${key}`;
 };
 
 @Injectable()

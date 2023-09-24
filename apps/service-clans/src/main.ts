@@ -1,8 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { ServiceClansModule } from './service-clans.module';
+import { Logger } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(ServiceClansModule);
-  await app.listen(3000);
+  const logger = new Logger('NestApplication');
+
+  const port = process.env.PORT || 8082;
+  await app.listen(port);
+
+  logger.log(`Service-Clans: http://localhost:${port}`);
 }
 bootstrap();

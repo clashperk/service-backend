@@ -1,9 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { ServiceWarsService } from './service-wars.service';
+import { WarsService } from './service-wars.service';
 
 @Controller()
 export class ServiceWarsController {
-  constructor(private readonly serviceWarsService: ServiceWarsService) {}
+  constructor(private readonly serviceWarsService: WarsService) {}
 
   @Get()
   getHello(): string {

@@ -15,7 +15,7 @@ import {
   getRedisKey,
 } from '@app/redis';
 import RestHandler from '@app/rest/rest.module';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
   APICapitalRaidSeason,
   APIClan,
@@ -64,8 +64,8 @@ export class CapitalService {
     const season = body.items.at(0)!;
     if (!Array.isArray(season.members)) return null;
 
-    const { weekId } = this.getCapitalRaidWeekendTiming();
-    const raidWeekId = this.getCurrentWeekId(season.startTime);
+    const { weekId } = this.getRaidWeekendTiming();
+    const raidWeekId = this.parseRaidWeekendId(season.startTime);
 
     const exists = await this.redis.get(
       getRedisKey(RedisKeyPrefixes.CAPITAL_REMINDER_CURSOR, `${weekId}-${clan.tag}`),
@@ -233,7 +233,7 @@ export class CapitalService {
     }
   }
 
-  private getCapitalRaidWeekendTiming() {
+  private getRaidWeekendTiming() {
     const start = moment();
     const day = start.day();
     const hours = start.hours();
@@ -250,19 +250,16 @@ export class CapitalService {
     };
   }
 
-  private getCurrentWeekId(startTime: string) {
-    return moment(startTime).toDate().toISOString().substring(0, 10);
+  private parseRaidWeekendId(startTime: string | Date) {
+    return moment(startTime).format('YYYY-MM-DD');
   }
 
-  public ping() {
-    const used = process.memoryUsage();
-    return {
-      service: 'service-capital',
-      memoryUsage: {
-        rss: `${(used.rss / 1024 / 1024).toFixed(2)} MB`, // Resident Set Size
-        heapTotal: `${(used.heapTotal / 1024 / 1024).toFixed(2)} MB`, // Total Heap Size
-        heapUsed: `${(used.heapUsed / 1024 / 1024).toFixed(2)} MB`, // Heap actually used
-      },
-    };
+  public async getCapitalRaidWeekend(clanTag: string, weekId?: string) {
+    if (!weekId) weekId = this.getRaidWeekendTiming().weekId;
+
+    const season = await this.raidSeasonsCollection.findOne({ tag: clanTag, weekId });
+    if (!season) throw new NotFoundException();
+
+    return season;
   }
 }
