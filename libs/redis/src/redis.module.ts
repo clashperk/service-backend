@@ -17,8 +17,24 @@ const RedisProvider: Provider = {
   },
 };
 
+const RedisPubProvider: Provider = {
+  provide: Tokens.REDIS_PUB,
+  useFactory: async (redis: RedisClient): Promise<RedisClient> => {
+    return redis.duplicate();
+  },
+  inject: [Tokens.REDIS],
+};
+
+const RedisSubProvider: Provider = {
+  provide: Tokens.REDIS_SUB,
+  useFactory: async (redis: RedisClient): Promise<RedisClient> => {
+    return redis.duplicate();
+  },
+  inject: [Tokens.REDIS],
+};
+
 @Module({
-  providers: [RedisProvider, RedisService],
-  exports: [RedisProvider, RedisService],
+  providers: [RedisProvider, RedisPubProvider, RedisSubProvider, RedisService],
+  exports: [RedisProvider, RedisPubProvider, RedisSubProvider, RedisService],
 })
 export class RedisModule {}
