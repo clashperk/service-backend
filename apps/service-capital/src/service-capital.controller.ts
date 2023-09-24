@@ -3,10 +3,10 @@ import { CapitalService } from './service-capital.service';
 
 @Controller()
 export class ServiceCapitalController {
-  constructor(private readonly serviceCapitalService: CapitalService) {}
+  constructor(private readonly capitalService: CapitalService) {}
 
   @Get()
-  getHello(): string {
-    return this.serviceCapitalService.getHello();
+  ping() {
+    return this.capitalService.ping();
   }
 }

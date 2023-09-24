@@ -15,7 +15,7 @@ import {
   getRedisKey,
 } from '@app/redis';
 import RestHandler from '@app/rest/rest.module';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   APICapitalRaidSeason,
   APIClan,
@@ -28,27 +28,33 @@ import { Collection, Db } from 'mongodb';
 @Injectable()
 export class CapitalService {
   constructor(
-    @Inject(Tokens.MONGODB) private readonly db: Db,
-    @Inject(Tokens.REDIS) private readonly redis: RedisClient,
-    @Inject(Tokens.REST) private readonly restClient: RestHandler,
-    private readonly redisService: RedisService,
-    private readonly mongoService: MongodbService,
+    @Inject(Tokens.MONGODB) private db: Db,
+    @Inject(Tokens.REDIS) private redis: RedisClient,
+    @Inject(Tokens.REST) private restClient: RestHandler,
+    private redisService: RedisService,
+    private mongoService: MongodbService,
 
     @Inject(Collections.CAPITAL_RAID_SEASONS)
-    private readonly raidSeasonsCollection: Collection<CapitalRaidSeasonsEntity>,
+    private raidSeasonsCollection: Collection<CapitalRaidSeasonsEntity>,
     @Inject(Collections.RAID_REMINDERS)
-    private readonly raidRemindersCollection: Collection<CapitalRaidRemindersEntity>,
+    private raidRemindersCollection: Collection<CapitalRaidRemindersEntity>,
     @Inject(Collections.RAID_SCHEDULERS)
-    private readonly raidSchedulesCollection: Collection<CapitalRaidSchedulesEntity>,
+    private raidSchedulesCollection: Collection<CapitalRaidSchedulesEntity>,
   ) {}
 
-  private readonly cached = new Map<string, TrackedClanList>();
+  private logger = new Logger(CapitalService.name);
+  private cached = new Map<string, TrackedClanList>();
+  private pollingInterval = 1 * 60 * 1000; // 1 minute
 
-  async onModuleInit() {
+  private async onModuleInit() {
+    this.logger.debug('Loading clans...');
     await this.loadClans();
+
+    this.logger.debug('Start polling...');
+    await this.startPolling();
   }
 
-  async fetchCapitalRaidWeekend(clanTag: string) {
+  private async fetchCapitalRaidWeekend(clanTag: string) {
     const clan = await this.redisService.getClan(clanTag);
     if (!clan) return null;
 
@@ -162,6 +168,8 @@ export class CapitalService {
     );
     multi.expire(getRedisKey(RedisKeyPrefixes.CAPITAL_RAID_SEASON, clanTag), 60 * 60 * 24 * 10);
     await multi.exec();
+
+    return season;
   }
 
   private async createReminders({
@@ -210,18 +218,22 @@ export class CapitalService {
     return this.raidSchedulesCollection.insertMany(newRems);
   }
 
-  async loadClans() {
+  private async loadClans() {
     const clans = await this.redisService.getTrackedClans();
     for (const clan of clans) this.cached.set(clan.tag, clan);
   }
 
-  async startPolling() {
-    for (const clanTag of this.cached.keys()) {
-      await this.fetchCapitalRaidWeekend(clanTag);
+  private async startPolling() {
+    try {
+      for (const clanTag of this.cached.keys()) {
+        await this.fetchCapitalRaidWeekend(clanTag);
+      }
+    } finally {
+      setTimeout(() => this.startPolling.bind(this), this.pollingInterval).unref();
     }
   }
 
-  public getCapitalRaidWeekendTiming() {
+  private getCapitalRaidWeekendTiming() {
     const start = moment();
     const day = start.day();
     const hours = start.hours();
@@ -242,7 +254,15 @@ export class CapitalService {
     return moment(startTime).toDate().toISOString().substring(0, 10);
   }
 
-  getHello(): string {
-    return 'Hello World!';
+  public ping() {
+    const used = process.memoryUsage();
+    return {
+      service: 'service-capital',
+      memoryUsage: {
+        rss: `${(used.rss / 1024 / 1024).toFixed(2)} MB`, // Resident Set Size
+        heapTotal: `${(used.heapTotal / 1024 / 1024).toFixed(2)} MB`, // Total Heap Size
+        heapUsed: `${(used.heapUsed / 1024 / 1024).toFixed(2)} MB`, // Heap actually used
+      },
+    };
   }
 }
