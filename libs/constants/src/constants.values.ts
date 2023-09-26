@@ -14,11 +14,11 @@ export enum TokenType {
 // some names don't make any sense; let's change them later
 export enum RedisKeyPrefixes {
   CAPITAL_RAID_SEASON = 'CRS',
-  CAPITAL_REMINDER_CURSOR = 'CR',
+  CAPITAL_REMINDER_CURSOR = 'CR-',
   CAPITAL_RAID_MEMBER = 'CRM',
   CLAN = 'C',
   PLAYER = 'P',
-  LINKED_CLANS = 'LINKED_CLANS',
+  LINKED_CLANS = 'LINKED_CLANS:',
 }
 
 export enum Collections {
