@@ -1,9 +1,9 @@
 version: '3.6'
 
 services:
-  service-app:
-    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-app:latest
-    container_name: service-app
+  service-auth:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-auth:latest
+    container_name: service-auth
     restart: always
     # build:
     #   context: .
