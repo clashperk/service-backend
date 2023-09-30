@@ -10,7 +10,7 @@ export class AuthService {
   constructor(
     @Inject(Tokens.MONGODB) private readonly db: Db,
     @Inject(Tokens.REDIS) private readonly redis: RedisClient,
-    @Inject(Tokens.REST) private readonly restClient: RestHandler,
+    @Inject(Tokens.REST) private readonly restHandler: RestHandler,
     private readonly redisService: RedisService,
     private readonly mongoService: MongodbService,
   ) {}

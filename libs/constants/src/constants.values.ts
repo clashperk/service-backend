@@ -18,7 +18,6 @@ export enum RedisKeyPrefixes {
   CAPITAL_RAID_MEMBER = 'CRM',
   CLAN = 'C',
   PLAYER = 'P',
-  LINKED_CLANS = 'LINKED_CLANS:',
 }
 
 export enum Collections {

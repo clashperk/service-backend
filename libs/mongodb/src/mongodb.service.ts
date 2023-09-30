@@ -1,4 +1,5 @@
 import { Collections, Tokens } from '@app/constants';
+import { ClanStoresEntity } from '@app/entities';
 import { LastSeenEntity } from '@app/entities/users.entity';
 import { Inject, Injectable } from '@nestjs/common';
 import { Util } from 'clashofclans.js';
@@ -12,7 +13,54 @@ export class MongodbService {
 
     @Inject(Collections.LAST_SEEN)
     private readonly lastSeenCollection: Collection<LastSeenEntity>,
+    @Inject(Collections.CLAN_STORES)
+    private readonly clanStoresCollection: Collection<ClanStoresEntity>,
   ) {}
+
+  async getTrackedClans() {
+    const result = await this.clanStoresCollection
+      .aggregate<TrackedClanList>([
+        {
+          $match: {
+            paused: false,
+          },
+        },
+        {
+          $group: {
+            _id: '$tag',
+            patron: {
+              $addToSet: '$patron',
+            },
+            uniqueId: {
+              $max: '$uniqueId',
+            },
+            flags: {
+              $addToSet: '$flag',
+            },
+            lastRan: {
+              $max: '$lastRan',
+            },
+            guildIds: {
+              $addToSet: '$guild',
+            },
+          },
+        },
+        {
+          $set: {
+            tag: '$_id',
+            mod: {
+              $mod: ['$uniqueId', 1],
+            },
+            isPatron: {
+              $in: [true, '$patron'],
+            },
+          },
+        },
+      ])
+      .toArray();
+
+    return result;
+  }
 
   async trackActivity(players: TrackActivityInput[]) {
     const currentTime = moment().minutes(0).seconds(0).milliseconds(0).toDate();
@@ -49,6 +97,16 @@ export class MongodbService {
       }
     }
   }
+
+  private bitWiseOr(flags: number[]) {
+    return flags.reduce((acc, curr) => acc | curr, 0);
+  }
+}
+
+export interface TrackedClanList {
+  tag: string;
+  isPatron: boolean;
+  guildIds: string[];
 }
 
 export interface TrackActivityInput {

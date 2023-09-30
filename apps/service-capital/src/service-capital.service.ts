@@ -5,15 +5,15 @@ import {
   CapitalRaidSeasonsEntity,
 } from '@app/entities';
 import { formatDate } from '@app/helper';
-import { MongodbService, TrackActivityInput } from '@app/mongodb';
+import { MongodbService, TrackActivityInput, TrackedClanList } from '@app/mongodb';
 import {
   PartialCapitalRaidSeason,
   RedisClient,
   RedisJSON,
   RedisService,
-  TrackedClanList,
   getRedisKey,
 } from '@app/redis';
+import { RestService } from '@app/rest';
 import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import {
@@ -30,7 +30,8 @@ export class CapitalService {
   constructor(
     @Inject(Tokens.MONGODB) private db: Db,
     @Inject(Tokens.REDIS) private redis: RedisClient,
-    @Inject(Tokens.REST) private restClient: RestHandler,
+    @Inject(Tokens.REST) private restHandler: RestHandler,
+    private restService: RestService,
     private redisService: RedisService,
     private mongoService: MongodbService,
 
@@ -55,10 +56,10 @@ export class CapitalService {
   }
 
   private async fetchCapitalRaidWeekend(clanTag: string) {
-    const clan = await this.redisService.getClan(clanTag);
+    const clan = await this.restService.getClan(clanTag);
     if (!clan) return null;
 
-    const { body, res } = await this.restClient.getCapitalRaidSeasons(clanTag, { limit: 1 });
+    const { body, res } = await this.restHandler.getCapitalRaidSeasons(clanTag, { limit: 1 });
     if (!res.ok || !body.items.length) return null;
 
     const season = body.items.at(0)!;
@@ -165,48 +166,53 @@ export class CapitalService {
     cached: PartialCapitalRaidSeason | null;
     clan: APIClan;
   }) {
+    if (raidWeekId !== weekId) return null;
     if (
-      raidWeekId === weekId &&
       cached &&
-      (cached.capitalTotalLoot !== season.capitalTotalLoot ||
+      !(
+        cached.capitalTotalLoot !== season.capitalTotalLoot ||
+        cached.totalAttacks !== season.totalAttacks ||
         cached.state !== season.state ||
         cached.members.length !== season.members!.length ||
         cached.defensiveReward !== season.defensiveReward ||
-        cached.clanCapitalPoints !== clan.clanCapitalPoints)
+        cached.clanCapitalPoints !== clan.clanCapitalPoints
+      )
     ) {
-      await this.raidSeasonsCollection.updateOne(
-        { weekId, tag: clan.tag },
-        {
-          $setOnInsert: {
-            name: clan.name,
-            tag: clan.tag,
-            weekId,
-            clanCapitalPoints: clan.clanCapitalPoints,
-            capitalLeague: clan.capitalLeague,
-            badgeURL: clan.badgeUrls.large,
-            startDate: formatDate(season.startTime),
-            createdAt: new Date(),
-          },
-          $set: {
-            state: season.state,
-            members: season.members ?? [],
-            endDate: formatDate(season.endTime),
-            offensiveReward:
-              season.offensiveReward ||
-              calculateOffensiveRaidMedals(season.attackLog, season.offensiveReward),
-            defensiveReward: season.defensiveReward,
-            capitalTotalLoot: season.capitalTotalLoot,
-            totalAttacks: season.totalAttacks,
-            enemyDistrictsDestroyed: season.enemyDistrictsDestroyed,
-            raidsCompleted: calculateRaidsCompleted(season.attackLog),
-            _clanCapitalPoints: clan.clanCapitalPoints,
-            _capitalLeague: clan.capitalLeague,
-            updatedAt: new Date(),
-          },
-        },
-        { upsert: true },
-      );
+      return null;
     }
+
+    await this.raidSeasonsCollection.updateOne(
+      { weekId, tag: clan.tag },
+      {
+        $setOnInsert: {
+          name: clan.name,
+          tag: clan.tag,
+          weekId,
+          clanCapitalPoints: clan.clanCapitalPoints,
+          capitalLeague: clan.capitalLeague,
+          badgeURL: clan.badgeUrls.large,
+          startDate: formatDate(season.startTime),
+          createdAt: new Date(),
+        },
+        $set: {
+          state: season.state,
+          members: season.members ?? [],
+          endDate: formatDate(season.endTime),
+          offensiveReward:
+            season.offensiveReward ||
+            calculateOffensiveRaidMedals(season.attackLog, season.offensiveReward),
+          defensiveReward: season.defensiveReward,
+          capitalTotalLoot: season.capitalTotalLoot,
+          totalAttacks: season.totalAttacks,
+          enemyDistrictsDestroyed: season.enemyDistrictsDestroyed,
+          raidsCompleted: calculateRaidsCompleted(season.attackLog),
+          _clanCapitalPoints: clan.clanCapitalPoints,
+          _capitalLeague: clan.capitalLeague,
+          updatedAt: new Date(),
+        },
+      },
+      { upsert: true },
+    );
   }
 
   private async createReminders({
@@ -264,7 +270,7 @@ export class CapitalService {
   }
 
   private async loadClans() {
-    const clans = await this.redisService.getTrackedClans();
+    const clans = await this.mongoService.getTrackedClans();
     for (const clan of clans) this.cached.set(clan.tag, clan);
   }
 

@@ -1,4 +1,5 @@
 import { Tokens } from '@app/constants';
+import { RedisModule } from '@app/redis';
 import { Logger, Module, Provider } from '@nestjs/common';
 import {
   QueueThrottler,
@@ -51,6 +52,7 @@ const RestProvider: Provider = {
 };
 
 @Module({
+  imports: [RedisModule],
   providers: [RestService, RestProvider],
   exports: [RestService, RestProvider],
 })
