@@ -121,6 +121,24 @@
       "compilerOptions": {
         "tsConfigPath": "libs/rest/tsconfig.lib.json"
       }
+    },
+    "service-players": {
+      "type": "application",
+      "root": "apps/service-players",
+      "entryFile": "main",
+      "sourceRoot": "apps/service-players/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/service-players/tsconfig.app.json"
+      }
+    },
+    "service-ranking": {
+      "type": "application",
+      "root": "apps/service-ranking",
+      "entryFile": "main",
+      "sourceRoot": "apps/service-ranking/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/service-ranking/tsconfig.app.json"
+      }
     }
   }
 }
