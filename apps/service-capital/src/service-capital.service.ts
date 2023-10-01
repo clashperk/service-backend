@@ -16,6 +16,7 @@ import {
 import { RestService } from '@app/rest';
 import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   APICapitalRaidSeason,
   APIClan,
@@ -28,6 +29,7 @@ import { Collection, Db } from 'mongodb';
 @Injectable()
 export class CapitalService {
   constructor(
+    private configService: ConfigService,
     @Inject(Tokens.MONGODB) private db: Db,
     @Inject(Tokens.REDIS) private redis: RedisClient,
     @Inject(Tokens.REST) private restHandler: RestHandler,
@@ -47,12 +49,32 @@ export class CapitalService {
   private cached = new Map<string, TrackedClanList>();
   private pollingInterval = 1 * 60 * 1000; // 1 minute
 
-  private async onModuleInit() {
+  protected onApplicationBootstrap() {
+    const disabled = this.configService.get('SERVICE_CAPITAL_DISABLED');
+    if (!disabled) this.init(); // Start polling from the API
+  }
+
+  private async init() {
     this.logger.debug('Loading clans...');
     await this.loadClans();
 
     this.logger.debug('Start polling...');
     await this.startPolling();
+  }
+
+  private async loadClans() {
+    const clans = await this.mongoService.getTrackedClans();
+    for (const clan of clans) this.cached.set(clan.tag, clan);
+  }
+
+  private async startPolling() {
+    try {
+      for (const clanTag of this.cached.keys()) {
+        await this.fetchCapitalRaidWeekend(clanTag);
+      }
+    } finally {
+      setTimeout(() => this.startPolling.bind(this), this.pollingInterval).unref();
+    }
   }
 
   private async fetchCapitalRaidWeekend(clanTag: string) {
@@ -267,21 +289,6 @@ export class CapitalService {
         EX: 60 * 60 * 24 * 4.5,
       },
     );
-  }
-
-  private async loadClans() {
-    const clans = await this.mongoService.getTrackedClans();
-    for (const clan of clans) this.cached.set(clan.tag, clan);
-  }
-
-  private async startPolling() {
-    try {
-      for (const clanTag of this.cached.keys()) {
-        await this.fetchCapitalRaidWeekend(clanTag);
-      }
-    } finally {
-      setTimeout(() => this.startPolling.bind(this), this.pollingInterval).unref();
-    }
   }
 
   private getRaidWeekendTiming() {
