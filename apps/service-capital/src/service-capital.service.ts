@@ -5,7 +5,7 @@ import {
   CapitalRaidSeasonsEntity,
 } from '@app/entities';
 import { formatDate } from '@app/helper';
-import { MongodbService, TrackActivityInput, TrackedClanList } from '@app/mongodb';
+import { MongoDbService, TrackActivityInput, TrackedClanList } from '@app/mongodb';
 import {
   PartialCapitalRaidSeason,
   RedisClient,
@@ -35,7 +35,7 @@ export class CapitalService {
     @Inject(Tokens.REST) private restHandler: RestHandler,
     private restService: RestService,
     private redisService: RedisService,
-    private mongoService: MongodbService,
+    private mongoService: MongoDbService,
 
     @Inject(Collections.CAPITAL_RAID_SEASONS)
     private raidSeasonsCollection: Collection<CapitalRaidSeasonsEntity>,

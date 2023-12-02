@@ -11,7 +11,7 @@ export enum TokenType {
   ACCESS_TOKEN = 'access_token',
 }
 
-// some names don't make any sense; let's change them later
+// TODO: Some names don't make any sense. Let's change them later.
 export enum RedisKeyPrefixes {
   CAPITAL_RAID_SEASON = 'CRS',
   CAPITAL_REMINDER_CURSOR = 'CR-',

@@ -1,12 +1,30 @@
-import { Controller, Get } from '@nestjs/common';
+import { CurrentUser, JwtAuthGuard, JwtUser } from '@app/auth';
+import { getAppHealth } from '@app/helper';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
-@Controller()
+@Controller('/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
   @Get()
-  getHello(): string {
-    return this.authService.getHello();
+  ack() {
+    return { message: `Hello from ${AuthController.name}` };
+  }
+
+  @Get('/health')
+  stats() {
+    return getAppHealth(AuthController.name);
+  }
+
+  @Post('/login')
+  async login(@Body('password') password: string) {
+    return this.authService.login(password);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/status')
+  getStatus(@CurrentUser() user: JwtUser) {
+    return user;
   }
 }

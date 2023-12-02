@@ -1,6 +1,7 @@
 import { Tokens } from '@app/constants';
 import { RedisModule } from '@app/redis';
 import { Logger, Module, Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   QueueThrottler,
   RESTManager,
@@ -28,7 +29,15 @@ class ReqHandler extends RequestHandler {
 }
 
 export default class RestHandler extends RESTManager {
-  public constructor(rateLimit: number) {
+  public constructor({
+    rateLimit,
+    baseURL,
+    keys,
+  }: {
+    rateLimit: number;
+    baseURL: string;
+    keys: string[];
+  }) {
     super();
     this.requestHandler = new ReqHandler({
       cache: false,
@@ -37,8 +46,8 @@ export default class RestHandler extends RESTManager {
       retryLimit: 0,
       connections: 50,
       pipelining: 10,
-      baseURL: process.env.CLASH_API_BASE_URL,
-      keys: process.env.CLASH_API_TOKENS?.split(',') ?? [],
+      baseURL,
+      keys,
       throttler: rateLimit ? new QueueThrottler(rateLimit) : null,
     });
   }
@@ -46,9 +55,14 @@ export default class RestHandler extends RESTManager {
 
 const RestProvider: Provider = {
   provide: Tokens.REST,
-  useFactory: (): RestHandler => {
-    return new RestHandler(0);
+  useFactory: (configService: ConfigService): RestHandler => {
+    return new RestHandler({
+      rateLimit: 0,
+      baseURL: configService.getOrThrow('CLASH_API_BASE_URL'),
+      keys: configService.getOrThrow<string>('CLASH_API_TOKENS').split(','),
+    });
   },
+  inject: [ConfigService],
 };
 
 @Module({

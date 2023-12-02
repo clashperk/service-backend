@@ -1,14 +1,27 @@
-import { MongodbModule } from '@app/mongodb';
+import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { RestModule } from '@app/rest';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { JwtStrategy } from './strategies';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), MongodbModule, RedisModule, RestModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongoDbModule,
+    RedisModule,
+    RestModule,
+    JwtModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.getOrThrow('JWT_SECRET'),
+      }),
+      inject: [ConfigService],
+    }),
+  ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule {}

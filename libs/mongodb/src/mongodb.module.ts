@@ -1,14 +1,16 @@
 import { Collections, Tokens } from '@app/constants';
 import { Module, Provider } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Db, MongoClient } from 'mongodb';
-import { MongodbService } from './mongodb.service';
+import { MongoDbService } from './mongodb.service';
 
-const MongodbProvider: Provider = {
+const MongoDbProvider: Provider = {
   provide: Tokens.MONGODB,
-  useFactory: async (): Promise<Db> => {
-    const client = await MongoClient.connect(process.env.MONGODB_URL!);
-    return client.db(process.env.MONGODB_DB_NAME);
+  useFactory: async (configService: ConfigService): Promise<Db> => {
+    const client = await MongoClient.connect(configService.getOrThrow('MONGODB_URL'));
+    return client.db(configService.getOrThrow('MONGODB_DB_NAME'));
   },
+  inject: [ConfigService],
 };
 
 export const collectionProviders: Provider[] = Object.values(Collections).map((collection) => ({
@@ -20,7 +22,7 @@ export const collectionProviders: Provider[] = Object.values(Collections).map((c
 }));
 
 @Module({
-  providers: [MongodbProvider, MongodbService, ...collectionProviders],
-  exports: [MongodbProvider, MongodbService, ...collectionProviders],
+  providers: [MongoDbProvider, MongoDbService, ...collectionProviders],
+  exports: [MongoDbProvider, MongoDbService, ...collectionProviders],
 })
-export class MongodbModule {}
+export class MongoDbModule {}

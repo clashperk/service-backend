@@ -8,12 +8,12 @@ export class ServiceCapitalController {
 
   @Get()
   ack() {
-    return { message: 'Hello from service-capital' };
+    return { message: `Hello from ${ServiceCapitalController.name}` };
   }
 
   @Get('/health')
   stats() {
-    return getAppHealth('service-capital');
+    return getAppHealth(ServiceCapitalController.name);
   }
 
   @Get('/clans/:clanTag')

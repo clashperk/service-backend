@@ -10,8 +10,9 @@ export interface JwtUser {
   exp: number;
 }
 
-export const CurrentUser = createParamDecorator((data: unknown, context: ExecutionContext) => {
-  return context.switchToHttp().getRequest<Request>().user!.sub;
+export const CurrentUser = createParamDecorator((_: unknown, context: ExecutionContext) => {
+  const req = context.switchToHttp().getRequest<Request>();
+  return req.user;
 });
 
 declare module 'express' {

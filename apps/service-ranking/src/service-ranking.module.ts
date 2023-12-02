@@ -1,4 +1,4 @@
-import { MongodbModule } from '@app/mongodb';
+import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { RestModule } from '@app/rest';
 import { Module } from '@nestjs/common';
@@ -7,7 +7,7 @@ import { ServiceRankingController } from './service-ranking.controller';
 import { RankingService } from './service-ranking.service';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), MongodbModule, RedisModule, RestModule],
+  imports: [ConfigModule.forRoot({ isGlobal: true }), MongoDbModule, RedisModule, RestModule],
   controllers: [ServiceRankingController],
   providers: [RankingService],
 })

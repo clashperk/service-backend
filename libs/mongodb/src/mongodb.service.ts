@@ -7,7 +7,7 @@ import moment from 'moment';
 import { Collection, Db } from 'mongodb';
 
 @Injectable()
-export class MongodbService {
+export class MongoDbService {
   constructor(
     @Inject(Tokens.MONGODB) private readonly db: Db,
 

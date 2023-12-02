@@ -1,9 +1,12 @@
+import { JwtUser } from '@app/auth';
 import { Tokens } from '@app/constants';
-import { MongodbService } from '@app/mongodb';
+import { MongoDbService } from '@app/mongodb';
 import { RedisClient, RedisService } from '@app/redis';
 import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Db } from 'mongodb';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -12,10 +15,18 @@ export class AuthService {
     @Inject(Tokens.REDIS) private readonly redis: RedisClient,
     @Inject(Tokens.REST) private readonly restHandler: RestHandler,
     private readonly redisService: RedisService,
-    private readonly mongoService: MongodbService,
+    private readonly mongoService: MongoDbService,
+    private readonly jwtService: JwtService,
   ) {}
 
-  getHello(): string {
-    return 'Hello World!';
+  async login(userId: string) {
+    const payload = { sub: userId, jti: uuid() } satisfies Partial<JwtUser>;
+    return {
+      accessToken: this.jwtService.sign(payload, { expiresIn: '30d' }),
+    };
+  }
+
+  async validateJwt(jwtUser: JwtUser) {
+    return jwtUser;
   }
 }

@@ -1,6 +1,6 @@
 import { Collections, Tokens } from '@app/constants';
 import { LastSeenEntity } from '@app/entities';
-import { MongodbService, TrackedClanList } from '@app/mongodb';
+import { MongoDbService, TrackedClanList } from '@app/mongodb';
 import { RedisClient, RedisService } from '@app/redis';
 import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable, Logger } from '@nestjs/common';
@@ -15,7 +15,7 @@ export class WarsService {
     @Inject(Tokens.REDIS) private redis: RedisClient,
     @Inject(Tokens.REST) private restHandler: RestHandler,
     private redisService: RedisService,
-    private mongoService: MongodbService,
+    private mongoService: MongoDbService,
 
     @Inject(Collections.LAST_SEEN)
     private lastSeenCollection: Collection<LastSeenEntity>,
