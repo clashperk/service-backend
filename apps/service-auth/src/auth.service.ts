@@ -15,7 +15,7 @@ export class AuthService {
     @Inject(Tokens.REDIS) private readonly redis: RedisClient,
     @Inject(Tokens.REST) private readonly restHandler: RestHandler,
     private readonly redisService: RedisService,
-    private readonly mongoService: MongoDbService,
+    private readonly mongoDbService: MongoDbService,
     private readonly jwtService: JwtService,
   ) {}
 

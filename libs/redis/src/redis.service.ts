@@ -7,6 +7,43 @@ export const getRedisKey = (prefix: RedisKeyPrefixes, key: string): string => {
   return `${prefix}${key}`;
 };
 
+export class SerializedPlayer {
+  name: string;
+  tag: string;
+  townHallLevel: number;
+  townHallWeaponLevel: number;
+  trophies: number;
+  attackWins: number;
+  defenseWins: number;
+  donations: number;
+  donationsReceived: number;
+
+  leagueId: string;
+
+  clan: {
+    tag: string;
+    name: string;
+  };
+
+  troops: {
+    //
+  };
+
+  spells: {
+    //
+  };
+
+  heroes: {
+    //
+  };
+
+  achievements: {
+    //
+  };
+
+  lastSeen: Date;
+}
+
 @Injectable()
 export class RedisService {
   constructor(@Inject(Tokens.REDIS) private readonly redis: RedisClient) {}

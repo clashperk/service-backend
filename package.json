@@ -90,7 +90,8 @@
       "^@app/auth(|/.*)$": "<rootDir>/libs/auth/src/$1",
       "^@app/elastic(|/.*)$": "<rootDir>/libs/elastic/src/$1",
       "^@app/helper(|/.*)$": "<rootDir>/libs/helper/src/$1",
-      "^@app/rest(|/.*)$": "<rootDir>/libs/rest/src/$1"
+      "^@app/rest(|/.*)$": "<rootDir>/libs/rest/src/$1",
+      "^@app/repositories(|/.*)$": "<rootDir>/libs/repositories/src/$1"
     }
   }
 }

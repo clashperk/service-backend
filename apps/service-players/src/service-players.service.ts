@@ -15,7 +15,7 @@ export class PlayersService {
     @Inject(Tokens.REDIS) private redis: RedisClient,
     @Inject(Tokens.REST) private restHandler: RestHandler,
     private redisService: RedisService,
-    private mongoService: MongoDbService,
+    private mongoDbService: MongoDbService,
 
     @Inject(Collections.LAST_SEEN)
     private lastSeenCollection: Collection<LastSeenEntity>,
@@ -43,7 +43,7 @@ export class PlayersService {
   }
 
   private async loadClans() {
-    const clans = await this.mongoService.getTrackedClans();
+    const clans = await this.mongoDbService.getTrackedClans();
     for (const clan of clans) this.cached.set(clan.tag, clan);
   }
 

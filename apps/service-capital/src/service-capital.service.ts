@@ -35,7 +35,7 @@ export class CapitalService {
     @Inject(Tokens.REST) private restHandler: RestHandler,
     private restService: RestService,
     private redisService: RedisService,
-    private mongoService: MongoDbService,
+    private mongoDbService: MongoDbService,
 
     @Inject(Collections.CAPITAL_RAID_SEASONS)
     private raidSeasonsCollection: Collection<CapitalRaidSeasonsEntity>,
@@ -63,7 +63,7 @@ export class CapitalService {
   }
 
   private async loadClans() {
-    const clans = await this.mongoService.getTrackedClans();
+    const clans = await this.mongoDbService.getTrackedClans();
     for (const clan of clans) this.cached.set(clan.tag, clan);
   }
 
@@ -170,7 +170,7 @@ export class CapitalService {
       }
 
       if (players.length) {
-        await this.mongoService.trackActivity(players);
+        await this.mongoDbService.trackActivity(players);
       }
     }
   }

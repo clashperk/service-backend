@@ -1,21 +1,15 @@
-import { Collections, Tokens } from '@app/constants';
+import { Collections } from '@app/constants';
 import { LastSeenEntity } from '@app/entities';
 import { MongoDbService, TrackedClanList } from '@app/mongodb';
-import { RedisClient, RedisService } from '@app/redis';
-import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Collection, Db } from 'mongodb';
+import { Collection } from 'mongodb';
 
 @Injectable()
 export class WarsService {
   constructor(
     private configService: ConfigService,
-    @Inject(Tokens.MONGODB) private db: Db,
-    @Inject(Tokens.REDIS) private redis: RedisClient,
-    @Inject(Tokens.REST) private restHandler: RestHandler,
-    private redisService: RedisService,
-    private mongoService: MongoDbService,
+    private mongoDbService: MongoDbService,
 
     @Inject(Collections.LAST_SEEN)
     private lastSeenCollection: Collection<LastSeenEntity>,
@@ -43,7 +37,7 @@ export class WarsService {
   }
 
   private async loadClans() {
-    const clans = await this.mongoService.getTrackedClans();
+    const clans = await this.mongoDbService.getTrackedClans();
     for (const clan of clans) this.cached.set(clan.tag, clan);
   }
 
