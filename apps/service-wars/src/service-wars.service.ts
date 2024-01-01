@@ -1,18 +1,14 @@
-import { Collections } from '@app/constants';
-import { LastSeenEntity } from '@app/entities';
 import { MongoDbService, TrackedClanList } from '@app/mongodb';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { PlayersRepository } from '@app/repositories';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Collection } from 'mongodb';
 
 @Injectable()
 export class WarsService {
   constructor(
     private configService: ConfigService,
     private mongoDbService: MongoDbService,
-
-    @Inject(Collections.LAST_SEEN)
-    private lastSeenCollection: Collection<LastSeenEntity>,
+    private playersRepository: PlayersRepository,
   ) {}
 
   getHello(): string {

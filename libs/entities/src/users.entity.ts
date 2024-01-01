@@ -13,13 +13,13 @@ export class UsersEntity {
   createdAt: Date;
 }
 
-export class LastSeenEntity {
+export class PlayersEntity {
   name: string;
   tag: string;
   clan: {
     name: string;
     tag: string;
   };
-  lastSeen?: Date;
+  lastSeen: Date | null;
   createdAt: Date;
 }

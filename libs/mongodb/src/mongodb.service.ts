@@ -1,6 +1,6 @@
 import { Collections, Tokens } from '@app/constants';
 import { ClanStoresEntity } from '@app/entities';
-import { LastSeenEntity } from '@app/entities/users.entity';
+import { PlayersEntity } from '@app/entities/users.entity';
 import { Inject, Injectable } from '@nestjs/common';
 import { Util } from 'clashofclans.js';
 import moment from 'moment';
@@ -11,8 +11,8 @@ export class MongoDbService {
   constructor(
     @Inject(Tokens.MONGODB) private readonly db: Db,
 
-    @Inject(Collections.LAST_SEEN)
-    private readonly lastSeenCollection: Collection<LastSeenEntity>,
+    @Inject(Collections.PLAYERS)
+    private readonly lastSeenCollection: Collection<PlayersEntity>,
     @Inject(Collections.CLAN_STORES)
     private readonly clanStoresCollection: Collection<ClanStoresEntity>,
   ) {}

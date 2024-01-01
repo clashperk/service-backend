@@ -46,7 +46,6 @@ export enum Collections {
 
   PATRONS = 'Patrons',
   SETTINGS = 'Settings',
-  LAST_SEEN = 'LastSeen',
   CLAN_WARS = 'ClanWars',
   CLAN_GAMES = 'ClanGames',
   CWL_WAR_TAGS = 'CWLWarTags',
@@ -57,9 +56,12 @@ export enum Collections {
   CAPITAL_RAID_SEASONS = 'CapitalRaidSeasons',
   CLAN_GAMES_POINTS = 'ClanGamesPoints',
 
-  PLAYERS = 'Players',
+  /** a.k.a LAST_SEEN */
+  PLAYERS = 'LastSeen',
   CLANS = 'Clans',
   WARS = 'Wars',
+
+  PLAYER_ACTIVITIES = 'PlayerActivities',
 
   PLAYER_RANKS = 'PlayerRanks',
   CAPITAL_RANKS = 'CapitalRanks',

@@ -3,3 +3,4 @@ export * from './clans.entity';
 export * from './reminders.entity';
 export * from './users.entity';
 export * from './wars.entity';
+export * from './players.entity';

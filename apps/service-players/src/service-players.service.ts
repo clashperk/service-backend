@@ -1,5 +1,5 @@
 import { Collections, Tokens } from '@app/constants';
-import { LastSeenEntity } from '@app/entities';
+import { PlayersEntity } from '@app/entities';
 import { MongoDbService, TrackedClanList } from '@app/mongodb';
 import { RedisClient, RedisService } from '@app/redis';
 import RestHandler from '@app/rest/rest.module';
@@ -17,8 +17,8 @@ export class PlayersService {
     private redisService: RedisService,
     private mongoDbService: MongoDbService,
 
-    @Inject(Collections.LAST_SEEN)
-    private lastSeenCollection: Collection<LastSeenEntity>,
+    @Inject(Collections.PLAYERS)
+    private lastSeenCollection: Collection<PlayersEntity>,
   ) {}
 
   getHello(): string {
