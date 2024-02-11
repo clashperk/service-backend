@@ -63,17 +63,17 @@
       "@app/helper/*": [
         "libs/helper/src/*"
       ],
-      "@app/rest": [
-        "libs/rest/src"
-      ],
-      "@app/rest/*": [
-        "libs/rest/src/*"
-      ],
       "@app/repositories": [
         "libs/repositories/src"
       ],
       "@app/repositories/*": [
         "libs/repositories/src/*"
+      ],
+      "@app/clash-client": [
+        "libs/clash-client/src"
+      ],
+      "@app/clash-client/*": [
+        "libs/clash-client/src/*"
       ]
     }
   }

@@ -1,3 +1,4 @@
+import { ClashClient, ClashClientService } from '@app/clash-client';
 import { Collections, RedisKeyPrefixes, Tokens } from '@app/constants';
 import {
   CapitalRaidRemindersEntity,
@@ -13,8 +14,6 @@ import {
   RedisService,
   getRedisKey,
 } from '@app/redis';
-import { RestService } from '@app/rest';
-import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -32,11 +31,10 @@ export class CapitalService {
     private configService: ConfigService,
     @Inject(Tokens.MONGODB) private db: Db,
     @Inject(Tokens.REDIS) private redis: RedisClient,
-    @Inject(Tokens.REST) private restHandler: RestHandler,
-    private restService: RestService,
     private redisService: RedisService,
     private mongoDbService: MongoDbService,
-
+    private clashClientService: ClashClientService,
+    @Inject(Tokens.CLASH_CLIENT) private clashClient: ClashClient,
     @Inject(Collections.CAPITAL_RAID_SEASONS)
     private raidSeasonsCollection: Collection<CapitalRaidSeasonsEntity>,
     @Inject(Collections.RAID_REMINDERS)
@@ -78,10 +76,10 @@ export class CapitalService {
   }
 
   private async fetchCapitalRaidWeekend(clanTag: string) {
-    const clan = await this.restService.getClan(clanTag);
+    const clan = await this.clashClientService.getClan(clanTag);
     if (!clan) return null;
 
-    const { body, res } = await this.restHandler.getCapitalRaidSeasons(clanTag, { limit: 1 });
+    const { body, res } = await this.clashClient.getCapitalRaidSeasons(clanTag, { limit: 1 });
     if (!res.ok || !body.items.length) return null;
 
     const season = body.items.at(0)!;

@@ -1,12 +1,12 @@
 import { Tokens } from '@app/constants';
 import { RedisService } from '@app/redis';
 import { Inject, Injectable } from '@nestjs/common';
-import RestHandler from './rest.module';
+import { ClashClient } from './clash-client.module';
 
 @Injectable()
-export class RestService {
+export class ClashClientService {
   constructor(
-    @Inject(Tokens.REST) private readonly restHandler: RestHandler,
+    @Inject(Tokens.CLASH_CLIENT) private readonly clashClient: ClashClient,
     private redisService: RedisService,
   ) {}
 
@@ -14,7 +14,7 @@ export class RestService {
     const cached = await this.redisService.getClan(clanTag);
     if (cached) return cached;
 
-    const { body, res } = await this.restHandler.getClan(clanTag);
+    const { body, res } = await this.clashClient.getClan(clanTag);
     if (!res.ok) return null;
 
     return body;

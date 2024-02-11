@@ -113,15 +113,6 @@
         "tsConfigPath": "libs/helper/tsconfig.lib.json"
       }
     },
-    "rest": {
-      "type": "library",
-      "root": "libs/rest",
-      "entryFile": "index",
-      "sourceRoot": "libs/rest/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/rest/tsconfig.lib.json"
-      }
-    },
     "service-players": {
       "type": "application",
       "root": "apps/service-players",
@@ -147,6 +138,15 @@
       "sourceRoot": "libs/repositories/src",
       "compilerOptions": {
         "tsConfigPath": "libs/repositories/tsconfig.lib.json"
+      }
+    },
+    "clash-client": {
+      "type": "library",
+      "root": "libs/clash-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/clash-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/clash-client/tsconfig.lib.json"
       }
     }
   }

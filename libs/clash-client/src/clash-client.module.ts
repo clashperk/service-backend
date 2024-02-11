@@ -9,7 +9,7 @@ import {
   RequestOptions,
   Result,
 } from 'clashofclans.js';
-import { RestService } from './rest.service';
+import { ClashClientService } from './clash-client.service';
 
 class ReqHandler extends RequestHandler {
   private readonly logger = new Logger('ClashApiRest');
@@ -28,7 +28,7 @@ class ReqHandler extends RequestHandler {
   }
 }
 
-export default class RestHandler extends RESTManager {
+export class ClashClient extends RESTManager {
   public constructor({
     rateLimit,
     baseURL,
@@ -53,10 +53,10 @@ export default class RestHandler extends RESTManager {
   }
 }
 
-const RestProvider: Provider = {
-  provide: Tokens.REST,
-  useFactory: (configService: ConfigService): RestHandler => {
-    return new RestHandler({
+const ClashClientProvider: Provider = {
+  provide: Tokens.CLASH_CLIENT,
+  useFactory: (configService: ConfigService): ClashClient => {
+    return new ClashClient({
       rateLimit: 0,
       baseURL: configService.getOrThrow('CLASH_API_BASE_URL'),
       keys: configService.getOrThrow<string>('CLASH_API_TOKENS').split(','),
@@ -67,7 +67,7 @@ const RestProvider: Provider = {
 
 @Module({
   imports: [RedisModule],
-  providers: [RestService, RestProvider],
-  exports: [RestService, RestProvider],
+  providers: [ClashClientService, ClashClientProvider],
+  exports: [ClashClientService, ClashClientProvider],
 })
-export class RestModule {}
+export class ClashClientModule {}

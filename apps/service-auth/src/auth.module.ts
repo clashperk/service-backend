@@ -1,6 +1,5 @@
 import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
-import { RestModule } from '@app/rest';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
@@ -13,7 +12,6 @@ import { JwtStrategy } from './strategies';
     ConfigModule.forRoot({ isGlobal: true }),
     MongoDbModule,
     RedisModule,
-    RestModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET'),

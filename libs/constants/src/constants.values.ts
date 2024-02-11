@@ -4,7 +4,7 @@ export enum Tokens {
   REDIS_PUB = 'REDIS_PUB',
   REDIS_SUB = 'REDIS_SUB',
   ELASTIC = 'ELASTIC',
-  REST = 'REST',
+  CLASH_CLIENT = 'CLASH_CLIENT',
 }
 
 export enum TokenType {

@@ -1,8 +1,8 @@
+import { ClashClient } from '@app/clash-client';
 import { Collections, Tokens } from '@app/constants';
 import { PlayersEntity } from '@app/entities';
 import { MongoDbService, TrackedClanList } from '@app/mongodb';
 import { RedisClient, RedisService } from '@app/redis';
-import RestHandler from '@app/rest/rest.module';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Collection, Db } from 'mongodb';
@@ -13,10 +13,9 @@ export class ClansService {
     private configService: ConfigService,
     @Inject(Tokens.MONGODB) private db: Db,
     @Inject(Tokens.REDIS) private redis: RedisClient,
-    @Inject(Tokens.REST) private restHandler: RestHandler,
+    @Inject(Tokens.CLASH_CLIENT) private clashClient: ClashClient,
     private redisService: RedisService,
     private mongoDbService: MongoDbService,
-
     @Inject(Collections.PLAYERS)
     private lastSeenCollection: Collection<PlayersEntity>,
   ) {}
