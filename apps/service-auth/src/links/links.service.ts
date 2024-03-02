@@ -17,6 +17,6 @@ export class LinksService {
   }
 
   getLinks(playerTags: string[]) {
-    return [playerTags];
+    return playerTags;
   }
 }

@@ -1,5 +1,5 @@
 import { CurrentUser, JwtAuthGuard, JwtUser } from '@app/auth';
-import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { BulkLinksDto } from './dto/bulk-links.dto';
 import { CreateLinkInput } from './dto/create-links.dto';
@@ -29,6 +29,7 @@ export class LinksController {
   }
 
   @Post('/bulk')
+  @HttpCode(200)
   getLinks(@Body() body: BulkLinksDto) {
     return this.linksService.getLinks(body.input);
   }
