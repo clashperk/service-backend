@@ -3,6 +3,9 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "apps/service-auth/src",
   "compilerOptions": {
+    "plugins": [
+      "@nestjs/swagger"
+    ],
     "deleteOutDir": true,
     "webpack": true,
     "tsConfigPath": "apps/service-auth/tsconfig.app.json"
