@@ -1,5 +1,5 @@
 import { Collections, Tokens } from '@app/constants';
-import { Module, Provider } from '@nestjs/common';
+import { Global, Module, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Db, MongoClient } from 'mongodb';
 import { MongoDbService } from './mongodb.service';
@@ -21,6 +21,7 @@ export const collectionProviders: Provider[] = Object.values(Collections).map((c
   inject: [Tokens.MONGODB],
 }));
 
+@Global()
 @Module({
   providers: [MongoDbProvider, MongoDbService, ...collectionProviders],
   exports: [MongoDbProvider, MongoDbService, ...collectionProviders],

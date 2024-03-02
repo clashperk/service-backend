@@ -56,8 +56,7 @@ export enum Collections {
   CAPITAL_RAID_SEASONS = 'CapitalRaidSeasons',
   CLAN_GAMES_POINTS = 'ClanGamesPoints',
 
-  /** a.k.a LAST_SEEN */
-  PLAYERS = 'LastSeen',
+  LAST_SEEN = 'LastSeen',
   CLANS = 'Clans',
   WARS = 'Wars',
 

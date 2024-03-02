@@ -11,7 +11,7 @@ export class MongoDbService {
   constructor(
     @Inject(Tokens.MONGODB) private readonly db: Db,
 
-    @Inject(Collections.PLAYERS)
+    @Inject(Collections.LAST_SEEN)
     private readonly lastSeenCollection: Collection<PlayersEntity>,
     @Inject(Collections.CLAN_STORES)
     private readonly clanStoresCollection: Collection<ClanStoresEntity>,

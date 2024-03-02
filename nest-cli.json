@@ -9,7 +9,7 @@
   },
   "generateOptions": {
     "spec": false,
-    "flat": true
+    "flat": false
   },
   "monorepo": true,
   "root": "apps/service-auth",

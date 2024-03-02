@@ -6,7 +6,7 @@ import { Collection } from 'mongodb';
 @Injectable()
 export class PlayersRepository {
   constructor(
-    @Inject(Collections.PLAYERS)
+    @Inject(Collections.LAST_SEEN)
     public collection: Collection<PlayersEntity>,
   ) {}
 }

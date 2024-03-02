@@ -16,7 +16,7 @@ export class ClansService {
     @Inject(Tokens.CLASH_CLIENT) private clashClient: ClashClient,
     private redisService: RedisService,
     private mongoDbService: MongoDbService,
-    @Inject(Collections.PLAYERS)
+    @Inject(Collections.LAST_SEEN)
     private lastSeenCollection: Collection<PlayersEntity>,
   ) {}
 

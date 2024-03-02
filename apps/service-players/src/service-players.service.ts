@@ -17,7 +17,7 @@ export class PlayersService {
     private redisService: RedisService,
     private mongoDbService: MongoDbService,
 
-    @Inject(Collections.PLAYERS)
+    @Inject(Collections.LAST_SEEN)
     private lastSeenCollection: Collection<PlayersEntity>,
   ) {}
 

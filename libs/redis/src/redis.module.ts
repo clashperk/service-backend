@@ -1,5 +1,5 @@
 import { Tokens } from '@app/constants';
-import { Module, Provider } from '@nestjs/common';
+import { Global, Module, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
 import { RedisService } from './redis.service';
@@ -35,6 +35,7 @@ const RedisSubProvider: Provider = {
   inject: [Tokens.REDIS],
 };
 
+@Global()
 @Module({
   providers: [RedisProvider, RedisPubProvider, RedisSubProvider, RedisService],
   exports: [RedisProvider, RedisPubProvider, RedisSubProvider, RedisService],
