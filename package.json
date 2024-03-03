@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./apps/service-auth/test/jest-e2e.json"
   },
   "dependencies": {
+    "@discordjs/rest": "^2.2.0",
     "@elastic/elasticsearch": "^8.9.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.1.1",
@@ -32,6 +33,7 @@
     "clashofclans.js": "^3.1.5-dev.46123c0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "discord-api-types": "^0.37.71",
     "moment": "^2.29.4",
     "mongodb": "^6.1.0",
     "passport-jwt": "^4.0.1",
@@ -94,7 +96,8 @@
       "^@app/elastic(|/.*)$": "<rootDir>/libs/elastic/src/$1",
       "^@app/helper(|/.*)$": "<rootDir>/libs/helper/src/$1",
       "^@app/repositories(|/.*)$": "<rootDir>/libs/repositories/src/$1",
-      "^@app/clash-client(|/.*)$": "<rootDir>/libs/clash-client/src/$1"
+      "^@app/clash-client(|/.*)$": "<rootDir>/libs/clash-client/src/$1",
+      "^@app/discord-client(|/.*)$": "<rootDir>/libs/discord-client/src/$1"
     }
   }
 }

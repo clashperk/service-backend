@@ -27,49 +27,59 @@ export enum Collections {
   CLAN_GAMES_LOGS = 'ClanGamesLogs',
   CLAN_EMBED_LOGS = 'ClanEmbedLogs',
   CLAN_FEED_LOGS = 'ClanFeedLogs',
+  JOIN_LEAVE_LOGS = 'JoinLeaveLogs',
   CLAN_WAR_LOGS = 'ClanWarLogs',
-  RAID_REMINDERS = 'RaidReminders',
-  RAID_SCHEDULERS = 'RaidSchedulers',
+  LEGEND_LOGS = 'LegendLogs',
+  LEGEND_ATTACKS = 'LegendAttacks',
+
+  CAPITAL_LOGS = 'CapitalLogs',
 
   EVENT_LOGS = 'EventLogs',
 
-  LEGEND_ATTACKS = 'LegendAttacks',
-
   FLAGS = 'Flags',
 
-  LINKED_CLANS = 'LinkedClans',
-  LINKED_PLAYERS = 'LinkedPlayers',
-  LINKED_CHANNELS = 'LinkedChannels',
-  TIME_ZONES = 'TimeZones',
+  PLAYER_LINKS = 'PlayerLinks',
+  USERS = 'Users',
+
   REMINDERS = 'Reminders',
   SCHEDULERS = 'Schedulers',
+  RAID_REMINDERS = 'RaidReminders',
+  CG_REMINDERS = 'ClanGamesReminders',
+  CG_SCHEDULERS = 'ClanGamesSchedulers',
+  RAID_SCHEDULERS = 'RaidSchedulers',
+
+  WAR_BASE_CALLS = 'WarBaseCalls',
 
   PATRONS = 'Patrons',
   SETTINGS = 'Settings',
+  LAST_SEEN = 'LastSeen',
   CLAN_WARS = 'ClanWars',
   CLAN_GAMES = 'ClanGames',
-  CWL_WAR_TAGS = 'CWLWarTags',
   CWL_GROUPS = 'CWLGroups',
-  CLAN_MEMBERS = 'ClanMembers',
-  PLAYER_SEASONS = 'PlayerSeasons',
-  CAPITAL_CONTRIBUTIONS = 'CapitalContributions',
-  CAPITAL_RAID_SEASONS = 'CapitalRaidSeasons',
-  CLAN_GAMES_POINTS = 'ClanGamesPoints',
-
-  LAST_SEEN = 'LastSeen',
-  CLANS = 'Clans',
-  WARS = 'Wars',
-
-  PLAYER_ACTIVITIES = 'PlayerActivities',
 
   PLAYER_RANKS = 'PlayerRanks',
   CAPITAL_RANKS = 'CapitalRanks',
   CLAN_RANKS = 'ClanRanks',
+  CLAN_CATEGORIES = 'ClanCategories',
+
+  GUILD_EVENTS = 'GuildEvents',
+
+  CUSTOM_BOTS = 'CustomBots',
+
+  ROSTERS = 'Rosters',
+  ROSTER_CATEGORIES = 'RosterCategories',
+
+  CLAN_MEMBERS = 'ClanMembers',
+  CLAN_GAMES_POINTS = 'ClanGamesPoints',
+  PLAYER_SEASONS = 'PlayerSeasons',
+  CAPITAL_CONTRIBUTIONS = 'CapitalContributions',
+  CAPITAL_RAID_SEASONS = 'CapitalRaidSeasons',
 
   BOT_GROWTH = 'BotGrowth',
   BOT_USAGE = 'BotUsage',
   BOT_GUILDS = 'BotGuilds',
   BOT_USERS = 'BotUsers',
   BOT_STATS = 'BotStats',
+  BOT_COMMANDS = 'BotCommands',
   BOT_INTERACTIONS = 'BotInteractions',
 }

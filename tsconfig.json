@@ -74,6 +74,12 @@
       ],
       "@app/clash-client/*": [
         "libs/clash-client/src/*"
+      ],
+      "@app/discord-client": [
+        "libs/discord-client/src"
+      ],
+      "@app/discord-client/*": [
+        "libs/discord-client/src/*"
       ]
     }
   }

@@ -8,8 +8,8 @@ async function bootstrap() {
   const logger = new Logger(AppModule.name);
 
   const config = new DocumentBuilder()
-    .setTitle('Service Auth API')
-    .setDescription('Public and private routes for the Service Auth')
+    .setTitle('Service Backend API')
+    .setDescription('Public and Private Routes for the Service Backend API')
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('AUTH')
@@ -17,7 +17,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   const port = process.env.PORT || 8081;
   await app.listen(port);

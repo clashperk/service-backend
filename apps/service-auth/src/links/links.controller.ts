@@ -25,7 +25,7 @@ export class LinksController {
 
   @Get('/:userIdOrTag')
   getLink(@Param('userIdOrTag') userIdOrTag: string) {
-    return this.linksService.getLink(userIdOrTag);
+    return this.linksService.getLinksById(userIdOrTag);
   }
 
   @Post('/bulk')

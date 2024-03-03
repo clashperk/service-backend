@@ -11,7 +11,7 @@ import { GuildsService } from './guilds.service';
 export class GuildsController {
   constructor(private guildsService: GuildsService) {}
 
-  @Get('/:guildId/clans')
+  @Get('/:guildId/members')
   getGuildMembers(@Param('guildId') guildId: string, @Query('q') q: string) {
     return this.guildsService.getMembers(guildId, q);
   }

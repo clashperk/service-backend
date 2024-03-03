@@ -151,6 +151,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/clash-client/tsconfig.lib.json"
       }
+    },
+    "discord-client": {
+      "type": "library",
+      "root": "libs/discord-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/discord-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/discord-client/tsconfig.lib.json"
+      }
     }
   }
 }
