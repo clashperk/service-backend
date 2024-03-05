@@ -13,6 +13,10 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('AUTH')
+    .addTag('LINKS')
+    .addTag('PLAYERS')
+    .addTag('CLANS')
+    .addTag('GUILDS')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);
