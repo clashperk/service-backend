@@ -4,8 +4,7 @@ import { DiscordClientService } from '@app/discord-client';
 import { PlayerLinksEntity } from '@app/entities';
 import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Collection } from 'mongodb';
-import { CreateLinkInput } from './dto/create-links.dto';
-import { DeleteLinkInput } from './dto/delete-link.dto';
+import { CreateLinkInput, DeleteLinkInput } from './dto';
 
 @Injectable()
 export class LinksService {

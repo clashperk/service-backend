@@ -1,15 +1,13 @@
-import { CurrentUser, JwtAuthGuard, JwtUser } from '@app/auth';
+import { CurrentUser, JwtAuthGuard, Role, Roles, RolesGuard } from '@app/auth';
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { BulkLinksDto } from './dto/bulk-links.dto';
-import { CreateLinkInput } from './dto/create-links.dto';
-import { DeleteLinkInput } from './dto/delete-link.dto';
+import { BulkLinksDto, CreateLinkInput, DeleteLinkInput } from './dto';
 import { LinksService } from './links.service';
 
 @ApiTags('LINKS')
 @Controller('/links')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class LinksController {
   constructor(private linksService: LinksService) {}
 
@@ -25,14 +23,16 @@ export class LinksController {
   }
 
   @Post('/')
+  @Roles(Role.USER)
   @ApiOperation({ summary: '(Internal)' })
   async createLink(@Body() body: CreateLinkInput) {
     return this.linksService.createLink(body);
   }
 
   @Delete('/')
+  @Roles(Role.USER)
   @ApiOperation({ summary: '(Internal)' })
-  async deleteLink(@CurrentUser() user: JwtUser, @Body() body: DeleteLinkInput) {
-    return this.linksService.deleteLink(user.sub, body);
+  async deleteLink(@CurrentUser() userId: string, @Body() body: DeleteLinkInput) {
+    return this.linksService.deleteLink(userId, body);
   }
 }

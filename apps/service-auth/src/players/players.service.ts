@@ -3,8 +3,7 @@ import { ClanWarsEntity } from '@app/entities';
 import { Inject, Injectable } from '@nestjs/common';
 import moment from 'moment';
 import { Collection } from 'mongodb';
-import { AttackHistoryAggregated, AttackHistoryOutput } from './dto/attack-history-output.dto';
-import { CWLAttackSummaryOutput } from './dto/attack-summary-output.dto';
+import { AttackHistoryAggregated, AttackHistoryOutput, CWLAttackSummaryOutput } from './dto';
 
 @Injectable()
 export class PlayersService {
@@ -142,8 +141,7 @@ export class PlayersService {
     for (const war of history) {
       const attacker = war.members.at(0)!;
       const attacks = (attacker.attacks ?? []).map((attack) => {
-        const defender =
-          war.defenders.find((defender) => defender.tag === attack.defenderTag) ?? null;
+        const defender = war.defenders.find((defender) => defender.tag === attack.defenderTag)!;
         return { ...attack, defender };
       });
 

@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from '@app/auth';
+import { JwtAuthGuard, RolesGuard } from '@app/auth';
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ClansService } from './clans.service';
@@ -6,7 +6,7 @@ import { ClansService } from './clans.service';
 @ApiTags('CLANS')
 @ApiBearerAuth()
 @Controller('/clans')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ClansController {
   constructor(private clansService: ClansService) {}
 

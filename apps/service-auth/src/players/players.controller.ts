@@ -1,14 +1,14 @@
+import { JwtAuthGuard, RolesGuard } from '@app/auth';
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AttackHistoryQueryInput } from './dto/attack-history-input.dto';
 import { AttackHistoryOutput } from './dto/attack-history-output.dto';
 import { CWLAttackSummaryOutput } from './dto/attack-summary-output.dto';
 import { PlayersService } from './players.service';
-import { JwtAuthGuard } from '@app/auth';
 
 @ApiTags('PLAYERS')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('/players')
 export class PlayersController {
   constructor(private playersService: PlayersService) {}

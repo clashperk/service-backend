@@ -36,12 +36,12 @@ export class AttackRecord {
   defenderTag: string;
   destructionPercentage: number;
 
-  @ApiProperty({ nullable: true })
+  @ApiProperty()
   defender: {
     tag: string;
     townhallLevel: number;
     mapPosition: number;
-  } | null;
+  };
 }
 
 export class AttackHistoryOutput {

@@ -75,6 +75,8 @@ export enum Collections {
   CAPITAL_CONTRIBUTIONS = 'CapitalContributions',
   CAPITAL_RAID_SEASONS = 'CapitalRaidSeasons',
 
+  PORTAL_USERS = 'PortalUsers',
+
   BOT_GROWTH = 'BotGrowth',
   BOT_USAGE = 'BotUsage',
   BOT_GUILDS = 'BotGuilds',

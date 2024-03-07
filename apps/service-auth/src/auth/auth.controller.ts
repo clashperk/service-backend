@@ -1,9 +1,9 @@
-import { CurrentUser, JwtAuthGuard, JwtUser } from '@app/auth';
+import { CurrentUserExpanded, JwtAuthGuard, JwtUser } from '@app/auth';
 import { getAppHealth } from '@app/helper';
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { LoginInput } from './dto/login.dto';
+import { LoginInput } from './dto';
 
 @ApiTags('AUTH')
 @Controller('/auth')
@@ -30,7 +30,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get('/status')
-  getStatus(@CurrentUser() user: JwtUser) {
+  getStatus(@CurrentUserExpanded() user: JwtUser) {
     return user;
   }
 }

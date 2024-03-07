@@ -1,5 +1,6 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
 import { ROLES_KEY, Role } from '../decorators/roles.decorator';
 
 @Injectable()
@@ -11,11 +12,16 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    if (!requiredRoles) return true;
+    if (!requiredRoles?.length) return true;
 
-    const { user } = context.switchToHttp().getRequest();
-    if (!user.roles) return true;
+    const { user } = context.switchToHttp().getRequest<Request>();
+    if (!user?.roles) throw new ForbiddenException('Insufficient Access or Malformed JWT');
 
-    return requiredRoles.some((role) => user.roles?.includes(role));
+    if (user.roles.includes(Role.ADMIN)) return true;
+
+    const isOk = requiredRoles.some((role) => user.roles.includes(role));
+    if (!isOk) throw new ForbiddenException('Insufficient Access');
+
+    return isOk;
   }
 }
