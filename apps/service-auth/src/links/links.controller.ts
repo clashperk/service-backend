@@ -1,7 +1,7 @@
 import { CurrentUser, JwtAuthGuard, Role, Roles, RolesGuard } from '@app/auth';
 import { Body, Controller, Delete, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { BulkLinksDto, CreateLinkInput, DeleteLinkInput } from './dto';
+import { BulkLinksInput, CreateLinkInput, DeleteLinkInput } from './dto';
 import { LinksService } from './links.service';
 
 @ApiTags('LINKS')
@@ -18,7 +18,7 @@ export class LinksController {
 
   @Post('/bulk')
   @HttpCode(200)
-  getLinks(@Body() body: BulkLinksDto) {
+  getLinks(@Body() body: BulkLinksInput) {
     return this.linksService.getLinks(body.input);
   }
 

@@ -2,41 +2,38 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import yargs from 'yargs';
 
 const INDEX_FILE_NAME = 'index.ts';
 
-const argv = yargs(process.argv.slice(2))
-  .scriptName('make-index')
-  .option('d', {
-    alias: 'directory',
-    demandOption: true,
-    describe: 'Directory to make an index in',
-    type: 'string',
-  })
-  .help().argv;
+const makeIndex = async (directory: string) => {
+  const dirPath = path.join(__dirname, '..', directory);
+  console.log(`Making index file in: ${directory}`);
 
-const main = (): void => {
-  if ('then' in argv) {
-    throw new Error('Expected argv to be an object but got Promise instead, exiting');
-  }
-
-  const dirPath = path.join(__dirname, '..', argv.d);
-  console.log(`Making index file in: ${dirPath}`);
-
-  const files = fs.readdirSync(dirPath).filter((f) => f !== INDEX_FILE_NAME);
+  const files = fs.readdirSync(dirPath).filter((file) => file !== INDEX_FILE_NAME);
   console.log(`Found ${files.length} files`);
+
+  if (!files.length) return;
 
   const indexFileContent = files
     .map((file) => `export * from './${file.replace(/\.ts$/g, '')}';`)
-    .join('\n')
-    .concat('\n');
+    .join('\n');
 
-  const indexPath = path.join(__dirname, '..', argv.d, INDEX_FILE_NAME);
-  console.log(`Writing to: ${indexPath}`);
+  const indexPath = path.join(__dirname, '..', directory, INDEX_FILE_NAME);
+  console.log(`Writing to: ${directory}/index.ts`);
 
-  fs.writeFileSync(indexPath, indexFileContent, { flag: 'w' });
-  console.log('Successfully updated');
+  fs.writeFileSync(indexPath, indexFileContent.concat('\n'), { flag: 'w' });
 };
 
-main();
+const paths = [
+  'libs/entities/src',
+  'libs/repositories/src',
+  'apps/service-auth/src/auth/dto',
+  'apps/service-auth/src/guilds/dto',
+  'apps/service-auth/src/clans/dto',
+  'apps/service-auth/src/links/dto',
+  'apps/service-auth/src/players/dto',
+];
+
+(async () => {
+  for (const path of paths) await makeIndex(path);
+})();
