@@ -3,6 +3,7 @@ export * from './capital-contributions.entity';
 export * from './capital-raid-seasons.entity';
 export * from './clan-categories.entity';
 export * from './clan-stores.entity';
+export * from './custom-bots.entity';
 export * from './cwl-groups.entity';
 export * from './player-links.entity';
 export * from './players.entity';

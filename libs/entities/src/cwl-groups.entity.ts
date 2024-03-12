@@ -3,7 +3,8 @@ export class CWLGroupsEntity {
   clans: {
     name: string;
     tag: string;
-  };
+    leagueId: number;
+  }[];
   rounds: { warTags: string[] }[];
   warTags: Record<string, string[]>;
 }

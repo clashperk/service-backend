@@ -4,6 +4,7 @@ import {
   BotGuildsEntity,
   ClanCategoriesEntity,
   ClanStoresEntity,
+  CustomBotsEntity,
   SettingsEntity,
 } from '@app/entities';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -21,10 +22,13 @@ export class GuildsService {
     private botGuildsCollection: Collection<BotGuildsEntity>,
     @Inject(Collections.SETTINGS)
     private settingsCollection: Collection<SettingsEntity>,
+    @Inject(Collections.CUSTOM_BOTS)
+    private customBotsCollection: Collection<CustomBotsEntity>,
   ) {}
 
-  getMembers(guildId: string, q: string) {
-    return this.discordClientService.listMembers(guildId, q);
+  async getMembers(guildId: string, query: string) {
+    const bot = await this.customBotsCollection.findOne({ guildIds: guildId });
+    return this.discordClientService.listMembers({ query, guildId, token: bot?.token ?? null });
   }
 
   async getGuild(guildId: string): Promise<GuildOutput> {

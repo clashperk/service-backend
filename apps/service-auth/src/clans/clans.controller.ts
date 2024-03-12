@@ -1,7 +1,8 @@
 import { CurrentUser, JwtAuthGuard, RolesGuard } from '@app/auth';
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ClansService } from './clans.service';
+import { CWLStatsOutput } from './dto/cwl-stats.dto';
 
 @ApiTags('CLANS')
 @ApiBearerAuth()
@@ -15,7 +16,7 @@ export class ClansController {
     return this.clansService.getCapitalContributions(clanTag);
   }
 
-  @Get('/:clanTag/linked-members')
+  @Get('/:clanTag/links')
   getLinkedMembers(@CurrentUser() userId: string, @Param('clanTag') clanTag: string) {
     return this.clansService.getLinkedMembers(userId, clanTag);
   }
@@ -26,6 +27,7 @@ export class ClansController {
   }
 
   @Get('/:clanTag/cwl-stats')
+  @ApiResponse({ type: CWLStatsOutput, status: 200 })
   getCwlStats(@Param('clanTag') clanTag: string) {
     return this.clansService.getCWLStats(clanTag);
   }

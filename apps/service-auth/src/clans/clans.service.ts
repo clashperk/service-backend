@@ -9,6 +9,7 @@ import {
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { APIClanWarAttack, APIWarClan } from 'clashofclans.js';
 import { Collection } from 'mongodb';
+import { CWLMemberStatsOutput, CWLStatsOutput } from './dto/cwl-stats.dto';
 
 @Injectable()
 export class ClansService {
@@ -211,33 +212,14 @@ export class ClansService {
     };
   }
 
-  public async getCWLStats(clanTag: string) {
+  public async getCWLStats(clanTag: string): Promise<CWLStatsOutput> {
     const body = await this.cwlGroupsCollection.findOne(
       { 'clans.tag': clanTag },
       { sort: { _id: -1 } },
     );
     if (!body) throw new NotFoundException('Clan war league group not found');
 
-    const members: Record<
-      string,
-      {
-        name: string;
-        tag: string;
-        participated: number;
-        attacks: number;
-        stars: number;
-        destruction: number;
-        trueStars: number;
-        threeStars: number;
-        twoStars: number;
-        oneStar: number;
-        zeroStars: number;
-        missedAttacks: number;
-        defenseStars: number;
-        defenseDestruction: number;
-        defenseCount: number;
-      }
-    > = {};
+    const members: Record<string, CWLMemberStatsOutput> = {};
 
     const wars = await this.clanWarsCollection
       .find({ warTag: { $in: body.warTags[clanTag] } })
@@ -299,7 +281,11 @@ export class ClansService {
       }
     }
 
-    return Object.values(members);
+    return {
+      season: body.season,
+      clans: body.clans,
+      members: Object.values(members),
+    };
   }
 
   private getWarResult(clan: APIWarClan, opponent: APIWarClan) {

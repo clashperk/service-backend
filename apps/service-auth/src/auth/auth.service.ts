@@ -1,6 +1,7 @@
 import { JwtUser } from '@app/auth';
 import { Collections } from '@app/constants';
-import { PortalUsersEntity } from '@app/entities';
+import { CustomBotsEntity, PortalUsersEntity } from '@app/entities';
+import { encrypt } from '@app/helper';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import moment from 'moment';
@@ -14,6 +15,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     @Inject(Collections.PORTAL_USERS) private portalUsersCollection: Collection<PortalUsersEntity>,
+    @Inject(Collections.CUSTOM_BOTS) private customBotsCollection: Collection<CustomBotsEntity>,
   ) {}
 
   async login(passKey: string) {
@@ -30,13 +32,29 @@ export class AuthService {
     return {
       userId: user.userId,
       roles: user.roles,
-      expiresIn: moment().add(30, 'days').toDate().getTime(),
-      accessToken: this.jwtService.sign(payload, { expiresIn: '30d' }),
+      expiresIn: moment().add(2, 'hours').toDate().getTime(),
+      accessToken: this.jwtService.sign(payload, { expiresIn: '2h' }),
     };
   }
 
   async validateJwt(jwtUser: JwtUser) {
     if (jwtUser.version !== jwtVersion) throw new UnauthorizedException();
     return jwtUser;
+  }
+
+  async getCustomBots() {
+    const bots = await this.customBotsCollection
+      .find()
+      .project({
+        name: 0,
+        serviceId: 0,
+        patronId: 0,
+        userId: 0,
+        updatedAt: 0,
+        createdAt: 0,
+      })
+      .toArray();
+
+    return { payload: await encrypt(JSON.stringify(bots)) };
   }
 }

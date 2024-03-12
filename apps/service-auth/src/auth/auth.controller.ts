@@ -1,4 +1,4 @@
-import { CurrentUserExpanded, JwtAuthGuard, JwtUser } from '@app/auth';
+import { CurrentUserExpanded, JwtAuthGuard, JwtUser, Role, Roles, RolesGuard } from '@app/auth';
 import { getAppHealth } from '@app/helper';
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
@@ -32,5 +32,13 @@ export class AuthController {
   @Get('/status')
   getStatus(@CurrentUserExpanded() user: JwtUser) {
     return user;
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiExcludeEndpoint()
+  @Get('/applications')
+  getCustomBots() {
+    return this.authService.getCustomBots();
   }
 }

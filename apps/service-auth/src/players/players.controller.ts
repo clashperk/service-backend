@@ -13,7 +13,7 @@ import { PlayersService } from './players.service';
 export class PlayersController {
   constructor(private playersService: PlayersService) {}
 
-  @Get('/:playerTag/clan-wars')
+  @Get('/:playerTag/wars')
   getWarHistory(
     @Param('playerTag') playerTag: string,
     @Query() query: AttackHistoryQueryInput,
@@ -21,7 +21,7 @@ export class PlayersController {
     return this.playersService.getClanWarHistory(playerTag, query.months);
   }
 
-  @Get('/:playerTag/clan-war-league-stats')
+  @Get('/:playerTag/cwl-stats')
   getClanWarLeagueStats(
     @Param('playerTag') playerTag: string,
     @Query() query: AttackHistoryQueryInput,
