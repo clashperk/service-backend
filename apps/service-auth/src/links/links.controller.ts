@@ -1,13 +1,23 @@
 import { CurrentUser, JwtAuthGuard, Role, Roles, RolesGuard } from '@app/auth';
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  UseGuards,
+  VERSION_NEUTRAL,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { BulkLinksInput, CreateLinkInput, DeleteLinkInput } from './dto';
 import { LinksService } from './links.service';
 
-@ApiTags('LINKS')
-@Controller('/links')
 @ApiBearerAuth()
+@ApiTags('LINKS')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@Controller({ path: '/links', version: ['1', VERSION_NEUTRAL] })
 export class LinksController {
   constructor(private linksService: LinksService) {}
 

@@ -11,13 +11,12 @@ export enum TokenType {
   ACCESS_TOKEN = 'access_token',
 }
 
-// TODO: Some names don't make any sense. Let's change them later.
 export enum RedisKeyPrefixes {
-  CAPITAL_RAID_SEASON = 'CRS',
-  CAPITAL_REMINDER_CURSOR = 'CR-',
-  CAPITAL_RAID_MEMBER = 'CRM',
-  CLAN = 'C',
-  PLAYER = 'P',
+  CAPITAL_RAID_SEASON = 'RAID_SEASON',
+  CAPITAL_REMINDER_CURSOR = 'RAID_WEEK',
+  CAPITAL_RAID_MEMBER = 'RAID_MEMBER',
+  CLAN = 'CLAN',
+  PLAYER = 'PLAYER',
 }
 
 export enum Collections {
