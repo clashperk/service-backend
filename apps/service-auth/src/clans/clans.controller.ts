@@ -1,8 +1,9 @@
 import { CurrentUser, JwtAuthGuard, RolesGuard } from '@app/auth';
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ClansService } from './clans.service';
 import { CWLStatsOutput } from './dto/cwl-stats.dto';
+import { PaginationInput } from './dto/pagination.dto';
 
 @ApiTags('CLANS')
 @ApiBearerAuth()
@@ -10,6 +11,11 @@ import { CWLStatsOutput } from './dto/cwl-stats.dto';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClansController {
   constructor(private clansService: ClansService) {}
+
+  @Get('/:clanTag/capital-raids')
+  getCapitalRaids(@Param('clanTag') clanTag: string, @Query() pagination: PaginationInput) {
+    return this.clansService.getCapitalRaids(clanTag, pagination.limit);
+  }
 
   @Get('/:clanTag/capital-contribution')
   getCapitalContribution(@Param('clanTag') clanTag: string) {

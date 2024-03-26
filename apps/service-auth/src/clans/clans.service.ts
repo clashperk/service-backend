@@ -3,6 +3,7 @@ import { Collections } from '@app/constants';
 import {
   CWLGroupsEntity,
   CapitalContributionsEntity,
+  CapitalRaidSeasonsEntity,
   ClanWarsEntity,
   PlayerLinksEntity,
 } from '@app/entities';
@@ -21,10 +22,31 @@ export class ClansService {
     @Inject(Collections.CWL_GROUPS) private cwlGroupsCollection: Collection<CWLGroupsEntity>,
     @Inject(Collections.CAPITAL_CONTRIBUTIONS)
     private capitalContributionsCollection: Collection<CapitalContributionsEntity>,
+    @Inject(Collections.CAPITAL_RAID_SEASONS)
+    private capitalRaidsCollection: Collection<CapitalRaidSeasonsEntity>,
   ) {}
 
+  getCapitalRaids(clanTag: string, limit: number) {
+    return this.capitalRaidsCollection
+      .find({ tag: clanTag })
+      .sort({ _id: -1 })
+      .project({
+        _clanCapitalPoints: 0,
+        clanCapitalPoints: 0,
+        _capitalLeague: 0,
+        capitalLeague: 0,
+        updatedAt: 0,
+        createdAt: 0,
+        badgeURL: 0,
+        weekId: 0,
+        _id: 0,
+      })
+      .limit(limit)
+      .toArray();
+  }
+
   getCapitalContributions(clanTag: string) {
-    const createdAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 3);
+    const createdAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 10);
     return this.capitalContributionsCollection
       .find({ 'clan.tag': clanTag, createdAt: { $gte: createdAt } })
       .sort({ _id: -1 })

@@ -2,10 +2,14 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { morganLogger } from '@app/helper';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   const logger = new Logger(AppModule.name);
+
+  app.use(morganLogger(logger));
+  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   const config = new DocumentBuilder()
     .setTitle('Service Backend API')
@@ -16,12 +20,10 @@ async function bootstrap() {
     .addTag('PLAYERS')
     .addTag('CLANS')
     .addTag('GUILDS')
-    .addServer('/v1')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('/', app, document);
 
-  app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
   app.enableVersioning({ type: VersioningType.URI });
 
   const port = process.env.PORT || 8081;
