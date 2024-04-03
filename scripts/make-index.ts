@@ -32,6 +32,8 @@ const paths = [
   'apps/service-auth/src/clans/dto',
   'apps/service-auth/src/links/dto',
   'apps/service-auth/src/players/dto',
+
+  'apps/service-clans/src/dto',
 ];
 
 (async () => {

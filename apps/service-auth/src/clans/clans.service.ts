@@ -241,10 +241,23 @@ export class ClansService {
     );
     if (!body) throw new NotFoundException('Clan war league group not found');
 
-    const members: Record<string, CWLMemberStatsOutput> = {};
+    const membersMap: Record<string, CWLMemberStatsOutput> = {};
 
     const wars = await this.clanWarsCollection
-      .find({ warTag: { $in: body.warTags[clanTag] } })
+      .find(
+        { warTag: { $in: body.warTags[clanTag] } },
+        {
+          projection: {
+            _id: 0,
+            id: 0,
+            uid: 0,
+            leagueGroupId: 0,
+            warType: 0,
+            updatedAt: 0,
+            season: 0,
+          },
+        },
+      )
       .toArray();
 
     for (const data of wars) {
@@ -258,13 +271,13 @@ export class ClansService {
 
       const __attacks = clan.members.flatMap((m) => m.attacks ?? []);
       for (const m of clan.members) {
-        members[m.tag] ??= {
+        membersMap[m.tag] ??= {
           name: m.name,
           tag: m.tag,
           participated: 0,
           attacks: 0,
           stars: 0,
-          trueStars: 0,
+          newStars: 0,
           destruction: 0,
           threeStars: 0,
           twoStars: 0,
@@ -276,14 +289,14 @@ export class ClansService {
           defenseCount: 0,
         };
 
-        const member = members[m.tag]!;
+        const member = membersMap[m.tag]!;
         member.participated += 1;
 
         for (const atk of m.attacks ?? []) {
           const previousBestAttack = this.getPreviousBestAttack(__attacks, opponent, atk);
           member.attacks += 1;
           member.stars += atk.stars;
-          member.trueStars += previousBestAttack
+          member.newStars += previousBestAttack
             ? Math.max(0, atk.stars - previousBestAttack.stars)
             : atk.stars;
           member.destruction += atk.destructionPercentage;
@@ -303,10 +316,16 @@ export class ClansService {
       }
     }
 
+    const members = Object.values(membersMap);
+    members.sort((a, b) => b.stars - a.stars);
+
     return {
       season: body.season,
       clans: body.clans,
-      members: Object.values(members),
+      rounds: body.rounds,
+      warTags: body.warTags[clanTag] ?? [],
+      members,
+      wars,
     };
   }
 

@@ -1,3 +1,4 @@
+import { ClanWarsEntity } from '@app/entities';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CWLMemberStatsOutput {
@@ -6,8 +7,8 @@ export class CWLMemberStatsOutput {
   participated: number;
   attacks: number;
   stars: number;
+  newStars: number;
   destruction: number;
-  trueStars: number;
   threeStars: number;
   twoStars: number;
   oneStar: number;
@@ -32,4 +33,12 @@ export class CWLStatsOutput {
 
   @ApiProperty({ isArray: true, type: CWLMemberStatsOutput })
   members: CWLMemberStatsOutput[];
+
+  warTags: string[];
+
+  @ApiProperty({ isArray: true })
+  rounds: { warTags: string[] }[];
+
+  @ApiProperty({ isArray: true })
+  wars: ClanWarsEntity[];
 }
