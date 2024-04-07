@@ -7,7 +7,6 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APIClan } from 'clashofclans.js';
 import { Producer } from 'kafkajs';
-import { Db } from 'mongodb';
 import { ClanChangesOutput, ClanMemberChangesOutput } from './dto';
 
 enum LogType {
@@ -21,9 +20,7 @@ enum LogType {
 export class ClansService {
   constructor(
     private configService: ConfigService,
-    @Inject(Tokens.MONGODB) private db: Db,
     @Inject(Tokens.REDIS) private redis: RedisClient,
-    @Inject(Tokens.REDIS_PUB) private publisher: RedisClient,
     @Inject(Tokens.CLASH_CLIENT) private clashClient: ClashClient,
     private redisService: RedisService,
     private mongoDbService: MongoDbService,
@@ -53,15 +50,19 @@ export class ClansService {
 
   private async loadClans() {
     const clans = await this.mongoDbService.getTrackedClans();
+    this.logger.debug(`${clans.length} clans loaded`);
+
     for (const clan of clans) this.cached.set(clan.tag, clan);
   }
 
   private async startPolling() {
+    const _start = Date.now();
     try {
-      for (const _clanTag of this.cached.keys()) {
-        // await this.fetchClan(clanTag);
+      for (const clanTag of this.cached.keys()) {
+        await this.fetchClan(clanTag);
       }
     } finally {
+      this.logger.debug(`Time Elapsed: ${Date.now() - _start}ms`);
       setTimeout(() => this.startPolling.bind(this), this.pollingInterval).unref();
     }
   }
