@@ -80,6 +80,12 @@
       ],
       "@app/discord-client/*": [
         "libs/discord-client/src/*"
+      ],
+      "@app/kafka": [
+        "libs/kafka/src"
+      ],
+      "@app/kafka/*": [
+        "libs/kafka/src/*"
       ]
     }
   }

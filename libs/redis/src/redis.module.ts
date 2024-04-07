@@ -1,5 +1,12 @@
 import { Tokens } from '@app/constants';
-import { Global, Module, Provider } from '@nestjs/common';
+import {
+  Global,
+  Inject,
+  Module,
+  OnApplicationShutdown,
+  OnModuleInit,
+  Provider,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createClient } from 'redis';
 import { RedisService } from './redis.service';
@@ -10,11 +17,10 @@ export declare type RedisJSON = null | boolean | number | string | Date;
 const RedisProvider: Provider = {
   provide: Tokens.REDIS,
   useFactory: async (configService: ConfigService): Promise<RedisClient> => {
-    const redis = createClient({
+    return createClient({
       url: configService.getOrThrow('REDIS_URL'),
       database: Number(configService.getOrThrow('REDIS_DATABASE') || 0),
     });
-    return redis.connect().then(() => redis);
   },
   inject: [ConfigService],
 };
@@ -40,4 +46,14 @@ const RedisSubProvider: Provider = {
   providers: [RedisProvider, RedisPubProvider, RedisSubProvider, RedisService],
   exports: [RedisProvider, RedisPubProvider, RedisSubProvider, RedisService],
 })
-export class RedisModule {}
+export class RedisModule implements OnModuleInit, OnApplicationShutdown {
+  constructor(@Inject(Tokens.REDIS) private redis: RedisClient) {}
+
+  onModuleInit() {
+    return this.redis.connect();
+  }
+
+  onApplicationShutdown() {
+    return this.redis.disconnect();
+  }
+}

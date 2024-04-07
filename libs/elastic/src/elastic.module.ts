@@ -1,6 +1,6 @@
 import { Tokens } from '@app/constants';
 import { Client as ElasticClient } from '@elastic/elasticsearch';
-import { Module, Provider } from '@nestjs/common';
+import { Inject, Module, OnApplicationShutdown, Provider } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ElasticService } from './elastic.service';
 
@@ -9,7 +9,7 @@ export type { ElasticClient };
 const ElasticProvider: Provider = {
   provide: Tokens.ELASTIC,
   useFactory: async (configService: ConfigService): Promise<ElasticClient> => {
-    const elastic = new ElasticClient({
+    const client = new ElasticClient({
       node: configService.getOrThrow('ES_HOST'),
       auth: {
         username: 'elastic',
@@ -20,7 +20,7 @@ const ElasticProvider: Provider = {
         rejectUnauthorized: false,
       },
     });
-    return elastic;
+    return client;
   },
   inject: [ConfigService],
 };
@@ -29,4 +29,10 @@ const ElasticProvider: Provider = {
   providers: [ElasticProvider, ElasticService],
   exports: [ElasticProvider, ElasticService],
 })
-export class ElasticModule {}
+export class ElasticModule implements OnApplicationShutdown {
+  constructor(@Inject(Tokens.ELASTIC) private client: ElasticClient) {}
+
+  onApplicationShutdown() {
+    return this.client.close();
+  }
+}

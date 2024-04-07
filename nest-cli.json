@@ -160,6 +160,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/discord-client/tsconfig.lib.json"
       }
+    },
+    "kafka": {
+      "type": "library",
+      "root": "libs/kafka",
+      "entryFile": "index",
+      "sourceRoot": "libs/kafka/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/kafka/tsconfig.lib.json"
+      }
     }
   }
 }

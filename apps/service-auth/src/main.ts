@@ -8,6 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   const logger = new Logger(AppModule.name);
 
+  app.enableShutdownHooks();
   app.use(morganLogger(logger));
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 

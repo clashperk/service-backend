@@ -1,6 +1,7 @@
 export enum Tokens {
   MONGODB = 'MONGODB',
   REDIS = 'REDIS',
+  KAFKA = 'KAFKA',
   REDIS_PUB = 'REDIS_PUB',
   REDIS_SUB = 'REDIS_SUB',
   ELASTIC = 'ELASTIC',

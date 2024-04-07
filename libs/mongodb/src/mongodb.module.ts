@@ -1,16 +1,32 @@
 import { Collections, Tokens } from '@app/constants';
-import { Global, Module, Provider } from '@nestjs/common';
+import {
+  Global,
+  Inject,
+  Module,
+  OnApplicationShutdown,
+  OnModuleInit,
+  Provider,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Db, MongoClient } from 'mongodb';
 import { MongoDbService } from './mongodb.service';
 
-const MongoDbProvider: Provider = {
-  provide: Tokens.MONGODB,
-  useFactory: async (configService: ConfigService): Promise<Db> => {
-    const client = await MongoClient.connect(configService.getOrThrow('MONGODB_URL'));
-    return client.db(configService.getOrThrow('MONGODB_DB_NAME'));
+export const MONGO_CLIENT = 'MONGO_CLIENT';
+
+const MongoClientProvider: Provider = {
+  provide: MONGO_CLIENT,
+  useFactory: async (configService: ConfigService): Promise<MongoClient> => {
+    return new MongoClient(configService.getOrThrow('MONGODB_URL'));
   },
   inject: [ConfigService],
+};
+
+const MongoDbProvider: Provider = {
+  provide: Tokens.MONGODB,
+  useFactory: async (client: MongoClient, configService: ConfigService): Promise<Db> => {
+    return client.db(configService.getOrThrow('MONGODB_DB_NAME'));
+  },
+  inject: [MONGO_CLIENT, ConfigService],
 };
 
 export const collectionProviders: Provider[] = Object.values(Collections).map((collection) => ({
@@ -23,7 +39,17 @@ export const collectionProviders: Provider[] = Object.values(Collections).map((c
 
 @Global()
 @Module({
-  providers: [MongoDbProvider, MongoDbService, ...collectionProviders],
+  providers: [MongoClientProvider, MongoDbProvider, MongoDbService, ...collectionProviders],
   exports: [MongoDbProvider, MongoDbService, ...collectionProviders],
 })
-export class MongoDbModule {}
+export class MongoDbModule implements OnModuleInit, OnApplicationShutdown {
+  constructor(@Inject(MONGO_CLIENT) private client: MongoClient) {}
+
+  onModuleInit() {
+    return this.client.connect();
+  }
+
+  onApplicationShutdown() {
+    return this.client.close();
+  }
+}
