@@ -3,7 +3,6 @@ import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { logLevel } from 'kafkajs';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
 import { ConsumerModule } from './consumer/consumer.module';
@@ -27,7 +26,6 @@ import { PlayersModule } from './players/players.module';
           kafkaConfig: {
             clientId: 'kafka-client-id',
             brokers: [configService.getOrThrow('KAFKA_BROKER')],
-            logLevel: logLevel.NOTHING,
           },
           producerConfig: {},
         };
@@ -40,7 +38,6 @@ import { PlayersModule } from './players/players.module';
           kafkaConfig: {
             clientId: 'kafka-client-id',
             brokers: [configService.getOrThrow('KAFKA_BROKER')],
-            logLevel: logLevel.NOTHING,
           },
           consumerConfig: { groupId: 'kafka-consumer-group' },
         };
