@@ -14,7 +14,7 @@ export class ConsumerService {
   constructor(@Inject(KAFKA_CONSUMER) private consumer: Consumer) {}
 
   async onModuleInit() {
-    this.consumer.subscribe({ topics: Object.values(LogType), fromBeginning: true });
+    await this.consumer.subscribe({ topics: Object.values(LogType), fromBeginning: true });
 
     await this.consumer.run({
       eachMessage: async ({ message, topic }) => {

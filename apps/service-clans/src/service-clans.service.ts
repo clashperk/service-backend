@@ -262,6 +262,20 @@ export class ClansService {
       });
     }
 
+    if (
+      payload.donationsLog.length ||
+      payload.donationsReceivedLog ||
+      payload.leagueChangeLog ||
+      payload.memberJoinedLog ||
+      payload.memberLeftLog ||
+      payload.reJoinedLog ||
+      payload.nameChangeLog ||
+      payload.townHallChangeLog ||
+      payload.roleChangeLog
+    ) {
+      this.publish(LogType.CLAN_MEMBER_CHANGE, payload);
+    }
+
     return payload;
   }
 
