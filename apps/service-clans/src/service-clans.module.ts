@@ -1,12 +1,12 @@
 import { ClashClientModule } from '@app/clash-client';
+import { KafkaProducerModule } from '@app/kafka';
 import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { logLevel } from 'kafkajs';
 import { ServiceClansController } from './service-clans.controller';
 import { ClansService } from './service-clans.service';
-import { KafkaProducerModule } from '@app/kafka';
-import { logLevel } from 'kafkajs';
 
 @Module({
   imports: [
@@ -15,17 +15,17 @@ import { logLevel } from 'kafkajs';
     RedisModule,
     ClashClientModule,
     KafkaProducerModule.forRootAsync({
-      useFactory() {
+      useFactory: (configService: ConfigService) => {
         return {
           kafkaConfig: {
             clientId: 'kafka-client-id',
-            brokers: ['localhost:9092'],
+            brokers: [configService.getOrThrow('KAFKA_BROKER')],
             logLevel: logLevel.NOTHING,
           },
           producerConfig: {},
         };
       },
-      inject: [],
+      inject: [ConfigService],
     }),
   ],
   controllers: [ServiceClansController],

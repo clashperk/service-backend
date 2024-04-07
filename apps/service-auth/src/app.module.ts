@@ -2,10 +2,11 @@ import { KafkaConsumerModule, KafkaProducerModule } from '@app/kafka';
 import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { logLevel } from 'kafkajs';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
+import { ConsumerModule } from './consumer/consumer.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
@@ -21,31 +22,32 @@ import { PlayersModule } from './players/players.module';
     LinksModule,
     PlayersModule,
     KafkaProducerModule.forRootAsync({
-      useFactory() {
+      useFactory: (configService: ConfigService) => {
         return {
           kafkaConfig: {
             clientId: 'kafka-client-id',
-            brokers: ['localhost:9092'],
+            brokers: [configService.getOrThrow('KAFKA_BROKER')],
             logLevel: logLevel.NOTHING,
           },
           producerConfig: {},
         };
       },
-      inject: [],
+      inject: [ConfigService],
     }),
     KafkaConsumerModule.forRootAsync({
-      useFactory() {
+      useFactory: (configService: ConfigService) => {
         return {
           kafkaConfig: {
             clientId: 'kafka-client-id',
-            brokers: ['localhost:9092'],
+            brokers: [configService.getOrThrow('KAFKA_BROKER')],
             logLevel: logLevel.NOTHING,
           },
           consumerConfig: { groupId: 'kafka-consumer-group' },
         };
       },
-      inject: [],
+      inject: [ConfigService],
     }),
+    ConsumerModule,
   ],
   controllers: [],
   providers: [],

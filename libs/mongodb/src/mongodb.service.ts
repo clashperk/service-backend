@@ -22,6 +22,7 @@ export class MongoDbService {
       .aggregate<TrackedClanList>([
         {
           $match: {
+            active: true,
             paused: false,
           },
         },
