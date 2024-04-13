@@ -6,6 +6,8 @@ async function bootstrap() {
   const app = await NestFactory.create(ServiceClansModule);
   const logger = new Logger('NestApplication');
 
+  app.enableShutdownHooks();
+
   const port = process.env.PORT || 8082;
   await app.listen(port);
 

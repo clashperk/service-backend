@@ -4,7 +4,6 @@ import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { logLevel } from 'kafkajs';
 import { ServiceClansController } from './service-clans.controller';
 import { ClansService } from './service-clans.service';
 
@@ -20,9 +19,8 @@ import { ClansService } from './service-clans.service';
           kafkaConfig: {
             clientId: 'kafka-client-id',
             brokers: [configService.getOrThrow('KAFKA_BROKER')],
-            logLevel: logLevel.NOTHING,
           },
-          producerConfig: {},
+          producerConfig: { allowAutoTopicCreation: true },
         };
       },
       inject: [ConfigService],

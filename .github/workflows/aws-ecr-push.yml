@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [service-auth, service-capital, service-clans, service-wars]
+        service: [service-auth, service-clans]
 
     runs-on: buildjet-4vcpu-ubuntu-2204-arm
 

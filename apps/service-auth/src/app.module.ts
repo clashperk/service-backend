@@ -1,11 +1,9 @@
-import { KafkaConsumerModule, KafkaProducerModule } from '@app/kafka';
 import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
-import { ConsumerModule } from './consumer/consumer.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
@@ -20,31 +18,31 @@ import { PlayersModule } from './players/players.module';
     GuildsModule,
     LinksModule,
     PlayersModule,
-    KafkaProducerModule.forRootAsync({
-      useFactory: (configService: ConfigService) => {
-        return {
-          kafkaConfig: {
-            clientId: 'kafka-client-id',
-            brokers: [configService.getOrThrow('KAFKA_BROKER')],
-          },
-          producerConfig: {},
-        };
-      },
-      inject: [ConfigService],
-    }),
-    KafkaConsumerModule.forRootAsync({
-      useFactory: (configService: ConfigService) => {
-        return {
-          kafkaConfig: {
-            clientId: 'kafka-client-id',
-            brokers: [configService.getOrThrow('KAFKA_BROKER')],
-          },
-          consumerConfig: { groupId: 'kafka-consumer-group' },
-        };
-      },
-      inject: [ConfigService],
-    }),
-    ConsumerModule,
+    // KafkaProducerModule.forRootAsync({
+    //   useFactory: (configService: ConfigService) => {
+    //     return {
+    //       kafkaConfig: {
+    //         clientId: 'kafka-client-id',
+    //         brokers: [configService.getOrThrow('KAFKA_BROKER')],
+    //       },
+    //       producerConfig: {},
+    //     };
+    //   },
+    //   inject: [ConfigService],
+    // }),
+    // KafkaConsumerModule.forRootAsync({
+    //   useFactory: (configService: ConfigService) => {
+    //     return {
+    //       kafkaConfig: {
+    //         clientId: 'kafka-client-id',
+    //         brokers: [configService.getOrThrow('KAFKA_BROKER')],
+    //       },
+    //       consumerConfig: { groupId: 'kafka-consumer-group' },
+    //     };
+    //   },
+    //   inject: [ConfigService],
+    // }),
+    // ConsumerModule,
   ],
   controllers: [],
   providers: [],

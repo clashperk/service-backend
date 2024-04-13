@@ -1,9 +1,10 @@
 import { Collections } from '@app/constants';
 import { ClanWarsEntity } from '@app/entities';
+import { getPreviousBestAttack } from '@app/helper';
 import { Inject, Injectable } from '@nestjs/common';
 import moment from 'moment';
 import { Collection } from 'mongodb';
-import { AttackHistoryAggregated, AttackHistoryOutput, CWLAttackSummaryOutput } from './dto';
+import { AttackHistoryOutput, CWLAttackSummaryOutput } from './dto';
 
 @Injectable()
 export class PlayersService {
@@ -13,17 +14,10 @@ export class PlayersService {
   ) {}
 
   async getClanWarHistory(playerTag: string, months: number) {
-    const cursor = this.clanWarsCollection.aggregate<AttackHistoryAggregated>([
+    const cursor = this.clanWarsCollection.aggregate<ClanWarsEntity>([
       {
         $match: {
-          $or: [
-            {
-              'clan.members.tag': playerTag,
-            },
-            {
-              'opponent.members.tag': playerTag,
-            },
-          ],
+          $or: [{ 'clan.members.tag': playerTag }, { 'opponent.members.tag': playerTag }],
           preparationStartTime: {
             $gte: moment().startOf('month').subtract(months, 'month').toDate(),
           },
@@ -37,127 +31,43 @@ export class PlayersService {
           _id: -1,
         },
       },
-      {
-        $set: {
-          members: {
-            $filter: {
-              input: {
-                $concatArrays: ['$opponent.members', '$clan.members'],
-              },
-              as: 'member',
-              cond: {
-                $eq: ['$$member.tag', playerTag],
-              },
-            },
-          },
-        },
-      },
-      {
-        $set: {
-          defenderTags: {
-            $arrayElemAt: ['$members.attacks.defenderTag', 0],
-          },
-        },
-      },
-      {
-        $set: {
-          defenders: {
-            $filter: {
-              input: {
-                $concatArrays: ['$opponent.members', '$clan.members'],
-              },
-              as: 'member',
-              cond: {
-                $in: [
-                  '$$member.tag',
-                  {
-                    $cond: [{ $anyElementTrue: [['$defenderTags']] }, '$defenderTags', []],
-                  },
-                ],
-              },
-            },
-          },
-        },
-      },
-      {
-        $project: {
-          id: 1,
-          warType: 1,
-          startTime: '$preparationStartTime',
-          endTime: '$preparationStartTime',
-          clan: {
-            $cond: [
-              {
-                $in: [playerTag, '$clan.members.tag'],
-              },
-              {
-                name: '$clan.name',
-                tag: '$clan.tag',
-              },
-              {
-                name: '$opponent.name',
-                tag: '$opponent.tag',
-              },
-            ],
-          },
-          opponent: {
-            $cond: [
-              {
-                $in: [playerTag, '$clan.members.tag'],
-              },
-              {
-                name: '$opponent.name',
-                tag: '$opponent.tag',
-              },
-              {
-                name: '$clan.name',
-                tag: '$clan.tag',
-              },
-            ],
-          },
-          members: {
-            tag: 1,
-            name: 1,
-            townhallLevel: 1,
-            mapPosition: 1,
-            attacks: {
-              stars: 1,
-              defenderTag: 1,
-              destructionPercentage: 1,
-            },
-          },
-          defenders: {
-            tag: 1,
-            townhallLevel: 1,
-            mapPosition: 1,
-          },
-        },
-      },
     ]);
 
-    const history = await cursor.toArray();
-
     const wars: AttackHistoryOutput[] = [];
-    for (const war of history) {
-      const attacker = war.members.at(0)!;
-      const attacks = (attacker.attacks ?? []).map((attack) => {
-        const defender = war.defenders.find((defender) => defender.tag === attack.defenderTag)!;
-        return { ...attack, defender };
+
+    for await (const war of cursor) {
+      const isPlayerInClan = war.clan.members.find((mem) => mem.tag === playerTag);
+      const clan = isPlayerInClan ? war.clan : war.opponent;
+      const opponent = isPlayerInClan ? war.opponent : war.clan;
+
+      clan.members.sort((a, b) => a.mapPosition - b.mapPosition);
+      opponent.members.sort((a, b) => a.mapPosition - b.mapPosition);
+
+      const __attacks = clan.members.map((mem) => mem.attacks ?? []).flat();
+      const attacker = clan.members.find((mem) => mem.tag === playerTag)!;
+
+      const attacks = (attacker.attacks ?? []).map((atk) => {
+        const previousBestAttack = getPreviousBestAttack(__attacks, opponent, atk);
+        const defender = opponent.members.find((mem) => mem.tag === atk.defenderTag)!;
+
+        return {
+          ...atk,
+          newStars: previousBestAttack
+            ? Math.max(0, atk.stars - previousBestAttack.stars)
+            : atk.stars,
+          oldStars: previousBestAttack?.stars ?? 0,
+          defender,
+        };
       });
 
       wars.push({
         id: war.id,
-        warType: war.warType,
-        startTime: war.startTime,
+        clan,
+        opponent,
         endTime: war.endTime,
-        clan: war.clan,
-        opponent: war.opponent,
-        attacker: {
-          name: attacker.name,
-          tag: attacker.tag,
-          townhallLevel: attacker.townhallLevel,
-          mapPosition: attacker.mapPosition,
-        },
+        startTime: war.startTime,
+        warType: war.warType,
+        attacker,
         attacks,
       });
     }
