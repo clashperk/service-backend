@@ -5,6 +5,8 @@ import {
   ClanCategoriesEntity,
   ClanStoresEntity,
   CustomBotsEntity,
+  RosterCategoriesEntity,
+  RostersEntity,
   SettingsEntity,
 } from '@app/entities';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -24,6 +26,10 @@ export class GuildsService {
     private settingsCollection: Collection<SettingsEntity>,
     @Inject(Collections.CUSTOM_BOTS)
     private customBotsCollection: Collection<CustomBotsEntity>,
+    @Inject(Collections.ROSTERS)
+    private rostersCollection: Collection<RostersEntity>,
+    @Inject(Collections.ROSTER_CATEGORIES)
+    private rosterCategoriesCollection: Collection<RosterCategoriesEntity>,
   ) {}
 
   async getMembers(guildId: string, query: string) {
@@ -177,5 +183,13 @@ export class GuildsService {
     await this.settingsCollection.updateOne({ guildId }, { $set: { clansSortingKey: 'order' } });
 
     return this.getGuild(guildId);
+  }
+
+  async getRosters(guildId: string) {
+    return this.rostersCollection.find({ guildId }, { sort: { _id: -1 } }).toArray();
+  }
+
+  async getRosterMemberGroups(guildId: string) {
+    return this.rosterCategoriesCollection.find({ guildId }, { sort: { _id: -1 } }).toArray();
   }
 }

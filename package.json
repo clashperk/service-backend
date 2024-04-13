@@ -37,7 +37,7 @@
     "discord-api-types": "^0.37.71",
     "kafkajs": "^2.2.4",
     "moment": "^2.29.4",
-    "mongodb": "^6.1.0",
+    "mongodb": "^6.5.0",
     "morgan": "^1.10.0",
     "passport-jwt": "^4.0.1",
     "radash": "^12.1.0",
@@ -105,7 +105,8 @@
       "^@app/repositories(|/.*)$": "<rootDir>/libs/repositories/src/$1",
       "^@app/clash-client(|/.*)$": "<rootDir>/libs/clash-client/src/$1",
       "^@app/discord-client(|/.*)$": "<rootDir>/libs/discord-client/src/$1",
-      "^@app/kafka(|/.*)$": "<rootDir>/libs/kafka/src/$1"
+      "^@app/kafka(|/.*)$": "<rootDir>/libs/kafka/src/$1",
+      "^@app/validators(|/.*)$": "<rootDir>/libs/validators/src/$1"
     }
   }
 }

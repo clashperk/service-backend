@@ -7,6 +7,7 @@ import { ClansModule } from './clans/clans.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
+import { RostersModule } from './rosters/rosters.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { PlayersModule } from './players/players.module';
     GuildsModule,
     LinksModule,
     PlayersModule,
+    RostersModule,
     // KafkaProducerModule.forRootAsync({
     //   useFactory: (configService: ConfigService) => {
     //     return {
