@@ -1,14 +1,16 @@
+import { morganLogger } from '@app/helper';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { morganLogger } from '@app/helper';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = new Logger(AppModule.name);
 
   app.enableShutdownHooks();
+  app.enableCors();
   app.use(morganLogger(logger));
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 

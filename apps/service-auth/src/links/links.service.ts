@@ -4,6 +4,7 @@ import { DiscordClientService } from '@app/discord-client';
 import { PlayerLinksEntity } from '@app/entities';
 import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Collection } from 'mongodb';
+import { DiscordLinkService } from './discord-link.service';
 import { CreateLinkInput, DeleteLinkInput } from './dto';
 
 @Injectable()
@@ -13,7 +14,7 @@ export class LinksService {
   constructor(
     private discordClientService: DiscordClientService,
     private clashClientService: ClashClientService,
-
+    private discordLinkService: DiscordLinkService,
     @Inject(Collections.PLAYER_LINKS)
     private playerLinksCollection: Collection<PlayerLinksEntity>,
   ) {}
@@ -80,6 +81,10 @@ export class LinksService {
   async deleteLink(userId: string, input: DeleteLinkInput) {
     await this.postUnlinkActions(userId, input.playerTag);
     await this.playerLinksCollection.deleteOne({ tag: input.playerTag });
+    await this.discordLinkService.unlinkPlayerTag(input.playerTag);
+
+    this.logger.log(`Link ${input.playerTag} deleted by ${userId}`);
+
     return { message: 'OK' };
   }
 
