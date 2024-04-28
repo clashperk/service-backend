@@ -10,6 +10,7 @@ async function bootstrap() {
   const logger = new Logger(AppModule.name);
 
   app.enableShutdownHooks();
+  app.set('trust proxy', true);
   app.enableCors();
   app.use(morganLogger(logger));
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));

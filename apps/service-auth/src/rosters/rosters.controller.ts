@@ -6,7 +6,7 @@ import { SwapCategoryInput, SwapRosterInput } from './dto';
 import { RostersService } from './rosters.service';
 
 @Controller('/rosters')
-@ApiTags('GUILDS')
+@ApiTags('ROSTERS')
 @ApiBearerAuth()
 @Roles(Role.USER)
 @UseGuards(JwtAuthGuard, RolesGuard)

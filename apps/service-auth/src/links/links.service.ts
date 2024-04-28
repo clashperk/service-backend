@@ -32,7 +32,7 @@ export class LinksService {
       username: user.username,
       displayName: user.global_name ?? user.username,
       discriminator: user.discriminator,
-      order: links.length ? Math.max(...links.map((link) => link.order)) + 1 : 0,
+      order: Math.max(...links.map((link) => link.order), 0) + 1,
       source: 'web',
       verified: false,
       createdAt: new Date(),

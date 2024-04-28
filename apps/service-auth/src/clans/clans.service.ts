@@ -10,7 +10,7 @@ import {
 import { getPreviousBestAttack } from '@app/helper';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { APIClanWarAttack, APIWarClan } from 'clashofclans.js';
-import { Collection } from 'mongodb';
+import { Collection, Filter } from 'mongodb';
 import { CWLMemberStatsOutput, CWLStatsOutput } from './dto/cwl-stats.dto';
 
 @Injectable()
@@ -46,10 +46,15 @@ export class ClansService {
       .toArray();
   }
 
-  getCapitalContributions(clanTag: string) {
+  getCapitalContributions(clanTag: string, seasonId?: string) {
     const createdAt = new Date(Date.now() - 1000 * 60 * 60 * 24 * 10);
+
+    const filter: Filter<CapitalContributionsEntity> = {};
+    if (seasonId) filter.season = seasonId;
+    else filter.createdAt = { $gt: createdAt };
+
     return this.capitalContributionsCollection
-      .find({ 'clan.tag': clanTag, createdAt: { $gte: createdAt } })
+      .find({ 'clan.tag': clanTag, ...filter })
       .sort({ _id: -1 })
       .toArray();
   }

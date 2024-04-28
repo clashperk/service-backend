@@ -33,8 +33,15 @@ export class GuildsService {
   ) {}
 
   async getMembers(guildId: string, query: string) {
-    const bot = await this.customBotsCollection.findOne({ guildIds: guildId });
-    return this.discordClientService.listMembers({ query, guildId, token: bot?.token ?? null });
+    const [bot, settings] = await Promise.all([
+      this.customBotsCollection.findOne({ guildIds: guildId }),
+      this.settingsCollection.findOne({ guildId }),
+    ]);
+    return this.discordClientService.listMembers({
+      query,
+      guildId,
+      token: settings?.hasCustomBot ? bot?.token ?? null : null,
+    });
   }
 
   async getGuild(guildId: string): Promise<GuildOutput> {

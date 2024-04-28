@@ -4,6 +4,7 @@ import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ClansService } from './clans.service';
 import { CWLStatsOutput } from './dto/cwl-stats.dto';
 import { PaginationInput } from './dto/pagination.dto';
+import { SeasonInput } from './dto/season-input.dto';
 
 @ApiTags('CLANS')
 @ApiBearerAuth()
@@ -18,8 +19,8 @@ export class ClansController {
   }
 
   @Get('/:clanTag/capital-contribution')
-  getCapitalContribution(@Param('clanTag') clanTag: string) {
-    return this.clansService.getCapitalContributions(clanTag);
+  getCapitalContribution(@Param('clanTag') clanTag: string, @Query() filter: SeasonInput) {
+    return this.clansService.getCapitalContributions(clanTag, filter.season);
   }
 
   @Get('/:clanTag/links')
