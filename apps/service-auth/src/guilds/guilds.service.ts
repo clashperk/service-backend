@@ -32,15 +32,13 @@ export class GuildsService {
     private rosterCategoriesCollection: Collection<RosterCategoriesEntity>,
   ) {}
 
-  async getMembers(guildId: string, query: string) {
-    const [bot, settings] = await Promise.all([
-      this.customBotsCollection.findOne({ guildIds: guildId }),
-      this.settingsCollection.findOne({ guildId }),
-    ]);
+  async getMembers(guildId: string, query: string, isCustomBot: boolean) {
+    const bot = isCustomBot ? await this.customBotsCollection.findOne({ guildIds: guildId }) : null;
+
     return this.discordClientService.listMembers({
       query,
       guildId,
-      token: settings?.hasCustomBot ? bot?.token ?? null : null,
+      token: bot?.token ?? null,
     });
   }
 

@@ -9,9 +9,7 @@ const rest = new REST({ version: '10' });
 
 @Injectable()
 export class DiscordClientService {
-  constructor(private configService: ConfigService) {
-    rest.setToken(configService.getOrThrow('DISCORD_TOKEN'));
-  }
+  constructor(private configService: ConfigService) {}
 
   async getUser(userId: string): Promise<APIUser> {
     const payload = await rest.get(Routes.user(userId));
@@ -28,6 +26,7 @@ export class DiscordClientService {
     token: string | null;
   }): Promise<APIGuildMember[]> {
     token ??= this.configService.getOrThrow('DISCORD_TOKEN');
+    if (token) rest.setToken(token);
 
     const payload = await rest.get(Routes.guildMembersSearch(guildId), {
       query: new URLSearchParams({ query, limit: '50' }),

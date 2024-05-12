@@ -1,5 +1,5 @@
 import { JwtAuthGuard, Role, Roles, RolesGuard } from '@app/auth';
-import { Body, Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseBoolPipe, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GuildOutput, GuildRostersOutput, ReorderClanCategoriesInput } from './dto';
 import { GuildsService } from './guilds.service';
@@ -33,8 +33,12 @@ export class GuildsController {
 
   @Get('/:guildId/members')
   @ApiOperation({ summary: '(Internal)' })
-  getGuildMembers(@Param('guildId') guildId: string, @Query('q') q: string) {
-    return this.guildsService.getMembers(guildId, q);
+  getGuildMembers(
+    @Param('guildId') guildId: string,
+    @Query('q') queryString: string,
+    @Query('isPublicBot', ParseBoolPipe) isPublicBot: boolean,
+  ) {
+    return this.guildsService.getMembers(guildId, queryString, !isPublicBot);
   }
 
   @Put('/:guildId/clans/reorder')
