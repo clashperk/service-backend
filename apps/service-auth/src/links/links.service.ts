@@ -19,7 +19,7 @@ export class LinksService {
     private playerLinksCollection: Collection<PlayerLinksEntity>,
   ) {}
 
-  async createLink(input: CreateLinkInput) {
+  async createLink(linkedBy: string, input: CreateLinkInput) {
     const player = await this.clashClientService.getPlayerOrThrow(input.playerTag);
     const user = await this.discordClientService.getUser(input.userId);
 
@@ -35,6 +35,7 @@ export class LinksService {
       order: Math.max(...links.map((link) => link.order), 0) + 1,
       source: 'web',
       verified: false,
+      linkedBy,
       createdAt: new Date(),
     });
 
@@ -56,7 +57,7 @@ export class LinksService {
       throw new ForbiddenException('You cannot unlink an account that is verified.');
     }
 
-    if (target.userId === authUserId) return;
+    if (target.userId === authUserId || target.linkedBy === authUserId) return;
 
     const player = await this.clashClientService.getPlayer(playerTag);
     if (player?.clan) {

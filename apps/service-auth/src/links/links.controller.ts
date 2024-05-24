@@ -35,8 +35,8 @@ export class LinksController {
   @Post('/')
   @Roles(Role.USER, Role.MANAGE_LINKS)
   @ApiOperation({ summary: '(Internal)' })
-  async createLink(@Body() body: CreateLinkInput) {
-    return this.linksService.createLink(body);
+  async createLink(@CurrentUser() userId: string, @Body() body: CreateLinkInput) {
+    return this.linksService.createLink(userId, body);
   }
 
   @Delete('/')
