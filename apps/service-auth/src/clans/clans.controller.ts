@@ -1,5 +1,6 @@
-import { CurrentUser } from '@app/auth';
-import { Controller, Get, Param, Query, Res } from '@nestjs/common';
+import { CurrentUser, JwtAuthGuard, RolesGuard } from '@app/auth';
+import { Public } from '@app/auth/decorators';
+import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ClansService } from './clans.service';
@@ -10,7 +11,7 @@ import { SeasonInput } from './dto/season-input.dto';
 @ApiTags('CLANS')
 @ApiBearerAuth()
 @Controller('/clans')
-// @UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class ClansController {
   constructor(private clansService: ClansService) {}
 
@@ -40,6 +41,7 @@ export class ClansController {
     return this.clansService.getCWLStats(clanTag);
   }
 
+  @Public()
   @Get('/:clanTag/badges/:size')
   @ApiResponse({ type: CWLStatsOutput, status: 200 })
   async getClanBadges(

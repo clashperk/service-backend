@@ -347,7 +347,6 @@ export class ClansService {
 
   public async getClanBadges(clanTag: string, size: string) {
     const clan = await this.clashClientService.getClanOrThrow(clanTag);
-    console.log(clan.badgeUrls[size]);
     return fetch(clan.badgeUrls[size]).then((res) => res.arrayBuffer());
   }
 }
