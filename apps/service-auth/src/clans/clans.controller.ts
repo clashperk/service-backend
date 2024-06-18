@@ -1,6 +1,6 @@
 import { CurrentUser, JwtAuthGuard, RolesGuard } from '@app/auth';
 import { Public } from '@app/auth/decorators';
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Header, Param, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ClansService } from './clans.service';
@@ -43,13 +43,10 @@ export class ClansController {
 
   @Public()
   @Get('/:clanTag/badges/:size')
+  @Header('Cache-Control', 'max-age=600')
   @ApiResponse({ type: CWLStatsOutput, status: 200 })
-  async getClanBadges(
-    @Param('clanTag') clanTag: string,
-    @Param('size') size: string,
-    @Res() res: Response,
-  ) {
-    const buffer = await this.clansService.getClanBadges(clanTag, size);
+  async getClanBadges(@Param('clanTag') clanTag: string, @Res() res: Response) {
+    const buffer = await this.clansService.getClanBadges(clanTag);
     res.setHeader('Content-Type', 'image/png');
     return res.send(Buffer.from(buffer));
   }
