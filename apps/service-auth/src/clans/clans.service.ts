@@ -42,6 +42,7 @@ export class ClansService {
         weekId: 0,
         _id: 0,
       })
+      .allowDiskUse(true)
       .limit(limit)
       .toArray();
   }
@@ -342,5 +343,11 @@ export class ClansService {
     }
     if (clan.stars > opponent.stars) return 'won';
     return 'lost';
+  }
+
+  public async getClanBadges(clanTag: string, size: string) {
+    const clan = await this.clashClientService.getClanOrThrow(clanTag);
+    console.log(clan.badgeUrls[size]);
+    return fetch(clan.badgeUrls[size]).then((res) => res.arrayBuffer());
   }
 }

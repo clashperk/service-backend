@@ -1,46 +1,22 @@
-version: '3.6'
-
 services:
-  service-auth:
+  api:
     image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-auth:latest
-    container_name: service-auth
+    container_name: api
     restart: always
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
     env_file:
       - .env
-    mem_limit: 1gb
+    ports:
+      - '8080:8080'
+    hostname: api
+    mem_limit: 1g
 
-  service-capital:
-    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-capital:latest
-    container_name: service-capital
+  api-02:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-auth:latest
+    container_name: api-02
     restart: always
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
     env_file:
       - .env
-    mem_limit: 1gb
-
-  service-clans:
-    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-clans:latest
-    container_name: service-clans
-    restart: always
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    env_file:
-      - .env
-    mem_limit: 1gb
-
-  service-wars:
-    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-wars:latest
-    container_name: service-wars
-    restart: always
-    # build:
-    #   context: .
-    #   dockerfile: Dockerfile
-    env_file:
-      - .env
-    mem_limit: 1gb
+    ports:
+      - '8081:8080'
+    hostname: api-02
+    mem_limit: 1g

@@ -29,7 +29,7 @@ export class ClashClientService {
 
   async getClanOrThrow(clanTag: string) {
     const { body, res } = await this.clashClient.getClan(clanTag);
-    if (!res.ok) throw new NotFoundException(`Player ${clanTag} not found.`);
+    if (!res.ok) throw new NotFoundException(`Clan ${clanTag} not found.`);
 
     return body;
   }
