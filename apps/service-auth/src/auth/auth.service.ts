@@ -4,7 +4,6 @@ import { CustomBotsEntity, PortalUsersEntity } from '@app/entities';
 import { encrypt } from '@app/helper';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import moment from 'moment';
 import { Collection } from 'mongodb';
 import { v4 as uuid } from 'uuid';
 
@@ -32,8 +31,8 @@ export class AuthService {
     return {
       userId: user.userId,
       roles: user.roles,
-      expiresIn: moment().add(2, 'hours').toDate().getTime(),
-      accessToken: this.jwtService.sign(payload, { expiresIn: '2h' }),
+      // expiresIn: moment().add(2, 'hours').toDate().getTime(),
+      accessToken: this.jwtService.sign(payload),
     };
   }
 

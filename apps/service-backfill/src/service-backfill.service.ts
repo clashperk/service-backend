@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { Collection, Db } from 'mongodb';
 
 @Injectable()
-export class PlayersService {
+export class BackfillService {
   constructor(
     private configService: ConfigService,
     @Inject(Tokens.MONGODB) private db: Db,
@@ -25,12 +25,12 @@ export class PlayersService {
     return 'Hello World!';
   }
 
-  private logger = new Logger(PlayersService.name);
+  private logger = new Logger(BackfillService.name);
   private cached = new Map<string, TrackedClanList>();
   private pollingInterval = 1 * 60 * 1000; // 1 minute
 
   protected onApplicationBootstrap() {
-    const disabled = this.configService.get('SERVICE_PLAYERS_DISABLED');
+    const disabled = this.configService.get('SERVICE_RANKING_DISABLED');
     if (!disabled) this.init(); // Start polling from the API
   }
 

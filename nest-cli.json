@@ -125,13 +125,13 @@
         "tsConfigPath": "apps/service-players/tsconfig.app.json"
       }
     },
-    "service-ranking": {
+    "service-backfill": {
       "type": "application",
-      "root": "apps/service-ranking",
+      "root": "apps/service-backfill",
       "entryFile": "main",
-      "sourceRoot": "apps/service-ranking/src",
+      "sourceRoot": "apps/service-backfill/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/service-ranking/tsconfig.app.json"
+        "tsConfigPath": "apps/service-backfill/tsconfig.app.json"
       }
     },
     "repositories": {

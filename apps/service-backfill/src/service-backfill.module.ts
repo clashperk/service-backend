@@ -3,8 +3,8 @@ import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ServiceCapitalController } from './service-capital.controller';
-import { CapitalService } from './service-capital.service';
+import { ServiceBackfillController } from './service-backfill.controller';
+import { BackfillService } from './service-backfill.service';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import { CapitalService } from './service-capital.service';
     RedisModule,
     ClashClientModule,
   ],
-  controllers: [ServiceCapitalController],
-  providers: [CapitalService],
+  controllers: [ServiceBackfillController],
+  providers: [BackfillService],
 })
-export class ServiceCapitalModule {}
+export class ServiceBackfillModule {}
