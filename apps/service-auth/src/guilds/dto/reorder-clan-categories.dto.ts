@@ -1,7 +1,9 @@
+import { Type } from 'class-transformer';
 import { ArrayMinSize, IsArray, IsInt, IsNotEmpty, ValidateNested } from 'class-validator';
 
 export class ReorderClanCategoriesInput {
   @ValidateNested({ each: true })
+  @Type(() => ReorderCategoriesInput)
   @IsArray()
   @ArrayMinSize(1)
   categories: ReorderCategoriesInput[];
@@ -15,8 +17,8 @@ export class ReorderCategoriesInput {
   order: number;
 
   @ValidateNested({ each: true })
+  @Type(() => ReorderClansInput)
   @IsArray()
-  @ArrayMinSize(1)
   clans: ReorderClansInput[];
 }
 
