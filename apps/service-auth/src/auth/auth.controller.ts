@@ -7,6 +7,7 @@ import {
   Headers,
   HttpCode,
   Post,
+  Query,
   RawBodyRequest,
   Req,
   UnauthorizedException,
@@ -74,6 +75,7 @@ export class AuthController {
     @Body() body: Record<string, string | number>,
     @Headers('X-Signature-Ed25519') signature: string,
     @Headers('X-Signature-Timestamp') timestamp: string,
+    @Query('message') message: string,
   ) {
     const isValidRequest = verifyKey(
       req.rawBody as Buffer,
@@ -93,7 +95,7 @@ export class AuthController {
         data: {
           choices: [
             {
-              name: 'The application is currently rebooting, please try again later.',
+              name: message || 'The application is currently rebooting, please try again later.',
               value: '0',
             },
           ],
@@ -104,7 +106,9 @@ export class AuthController {
     return {
       type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
       data: {
-        content: 'The application is currently rebooting, please try again later in a few minutes.',
+        content:
+          message ||
+          'The application is currently rebooting, please try again later in a few minutes.',
         flags: InteractionResponseFlags.EPHEMERAL,
       },
     };
