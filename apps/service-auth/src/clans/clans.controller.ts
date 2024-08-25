@@ -42,7 +42,7 @@ export class ClansController {
   }
 
   @Public()
-  @Get('/:clanTag/badges/:size')
+  @Get('/:clanTag/badges')
   @Header('Cache-Control', 'max-age=600')
   @ApiResponse({ type: CWLStatsOutput, status: 200 })
   async getClanBadges(@Param('clanTag') clanTag: string, @Res() res: Response) {

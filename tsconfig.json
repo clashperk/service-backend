@@ -92,6 +92,12 @@
       ],
       "@app/validators/*": [
         "libs/validators/src/*"
+      ],
+      "@app/discord-oauth": [
+        "libs/discord-oauth/src"
+      ],
+      "@app/discord-oauth/*": [
+        "libs/discord-oauth/src/*"
       ]
     }
   }

@@ -1,14 +1,17 @@
+import { DiscordOAuthModule } from '@app/discord-oauth';
 import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
 import { RostersModule } from './rosters/rosters.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { ClashClientModule } from '@app/clash-client';
 
 @Module({
   imports: [
@@ -22,6 +25,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     LinksModule,
     PlayersModule,
     RostersModule,
+    ClashClientModule,
+    DiscordOAuthModule,
     // KafkaProducerModule.forRootAsync({
     //   useFactory: (configService: ConfigService) => {
     //     return {
@@ -48,7 +53,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     // }),
     // ConsumerModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

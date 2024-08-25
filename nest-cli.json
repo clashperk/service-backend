@@ -178,6 +178,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/validators/tsconfig.lib.json"
       }
+    },
+    "discord-oauth": {
+      "type": "library",
+      "root": "libs/discord-oauth",
+      "entryFile": "index",
+      "sourceRoot": "libs/discord-oauth/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/discord-oauth/tsconfig.lib.json"
+      }
     }
   }
 }

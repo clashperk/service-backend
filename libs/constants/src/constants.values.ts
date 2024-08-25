@@ -84,4 +84,6 @@ export enum Collections {
   BOT_STATS = 'BotStats',
   BOT_COMMANDS = 'BotCommands',
   BOT_INTERACTIONS = 'BotInteractions',
+
+  DISCORD_OAUTH_USERS = 'DiscordOAuthUsers',
 }
