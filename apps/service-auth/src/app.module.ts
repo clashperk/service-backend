@@ -12,6 +12,7 @@ import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
 import { RostersModule } from './rosters/rosters.module';
 import { ClashClientModule } from '@app/clash-client';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ClashClientModule } from '@app/clash-client';
     RostersModule,
     ClashClientModule,
     DiscordOAuthModule,
+    TasksModule,
     // KafkaProducerModule.forRootAsync({
     //   useFactory: (configService: ConfigService) => {
     //     return {
