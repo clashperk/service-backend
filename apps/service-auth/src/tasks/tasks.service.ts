@@ -16,13 +16,55 @@ export class TasksService {
 
   public async backfillLegendTrophyThreshold() {
     const thresholds = await this.getTrophyThresholds();
-    await this.redis.set('RAW:LEGEND-TROPHY-THRESHOLD', JSON.stringify(thresholds), {
-      EX: 60 * 60 * 24,
-    });
-    return thresholds; // legend-trophy-threshold
+    const timestamp = new Date().toISOString();
+    const keyPrefix = 'RAW:LEGEND-TROPHY-THRESHOLD';
+    const key = `${keyPrefix}:${timestamp.slice(0, 10)}`;
+    const payload = JSON.stringify({ timestamp: new Date().toISOString(), thresholds });
+
+    await this.redis
+      .multi()
+      .set(keyPrefix, payload, {
+        EX: 60 * 60 * 24 + 60 * 5, // 1 day + 5 minutes
+      })
+      .set(key, payload, {
+        EX: 30 * 60 * 60 * 24 + 60 * 5, // 30 days + 5 minutes
+      })
+      .exec();
+
+    return thresholds;
   }
 
   public async getTrophyThresholds() {
+    const key = 'CACHED:LEGEND-TROPHY-THRESHOLD';
+    const cached = await this.getCachedTrophyThresholds(key);
+    if (cached) return cached;
+
+    const result = await this.aggregateTrophyThreshold();
+
+    await this.redis.set(key, JSON.stringify(result), {
+      EX: 60 * 10, // 10 minutes
+    });
+
+    return result;
+  }
+
+  private async getCachedTrophyThresholds(key: string) {
+    try {
+      const result = await this.redis.get(key);
+      if (!result) return null;
+
+      return JSON.parse(result) as { rank: number; minTrophies: number }[];
+    } catch {
+      return null;
+    }
+  }
+
+  private async aggregateTrophyThreshold() {
+    const limit = 50000;
+    const ranks = [1, 3, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000].filter(
+      (rank) => rank <= limit,
+    );
+
     const seasonId = this.clashClient.util.getSeasonId();
     const [result] = await this.legendAttacksCollection
       .aggregate<Record<string, number>>([
@@ -37,7 +79,7 @@ export class TasksService {
           },
         },
         {
-          $limit: 1000,
+          $limit: limit,
         },
         {
           $group: {
@@ -50,33 +92,12 @@ export class TasksService {
         {
           $project: {
             _id: 0,
-            '1': {
-              $arrayElemAt: ['$trophies', 0],
-            },
-            '3': {
-              $arrayElemAt: ['$trophies', 2],
-            },
-            '10': {
-              $arrayElemAt: ['$trophies', 9],
-            },
-            '20': {
-              $arrayElemAt: ['$trophies', 19],
-            },
-            '50': {
-              $arrayElemAt: ['$trophies', 49],
-            },
-            '100': {
-              $arrayElemAt: ['$trophies', 99],
-            },
-            '200': {
-              $arrayElemAt: ['$trophies', 199],
-            },
-            '500': {
-              $arrayElemAt: ['$trophies', 499],
-            },
-            '1000': {
-              $arrayElemAt: ['$trophies', 999],
-            },
+            ...ranks.reduce((acc, rank) => {
+              acc[rank.toString()] = {
+                $arrayElemAt: ['$trophies', rank - 1],
+              };
+              return acc;
+            }, {}),
           },
         },
       ])
