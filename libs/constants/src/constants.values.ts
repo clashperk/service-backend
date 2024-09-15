@@ -35,6 +35,7 @@ export enum Collections {
   CAPITAL_LOGS = 'CapitalLogs',
 
   EVENT_LOGS = 'EventLogs',
+  CLAN_LOGS = 'ClanLogs',
 
   FLAGS = 'Flags',
 

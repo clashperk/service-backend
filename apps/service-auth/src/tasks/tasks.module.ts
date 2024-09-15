@@ -1,11 +1,12 @@
 import { ClashClientModule } from '@app/clash-client';
 import { Module } from '@nestjs/common';
+import { CleanupTasksService } from './cleanup.tasks.service';
+import { LegendTasksService } from './legend.tasks.service';
 import { TasksController } from './tasks.controller';
-import { TasksService } from './tasks.service';
 
 @Module({
   imports: [ClashClientModule],
-  providers: [TasksService],
+  providers: [LegendTasksService, CleanupTasksService],
   controllers: [TasksController],
 })
 export class TasksModule {}

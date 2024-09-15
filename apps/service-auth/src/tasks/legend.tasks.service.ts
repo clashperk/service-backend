@@ -6,7 +6,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Collection } from 'mongodb';
 
 @Injectable()
-export class TasksService {
+export class LegendTasksService {
   constructor(
     @Inject(Collections.LEGEND_ATTACKS)
     private readonly legendAttacksCollection: Collection<LegendAttacksEntity>,
