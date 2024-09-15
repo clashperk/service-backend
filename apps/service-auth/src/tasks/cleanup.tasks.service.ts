@@ -21,20 +21,41 @@ export class CleanupTasksService {
     @Inject(Tokens.REDIS) private readonly redis: RedisClient,
   ) {}
 
-  public async cleanupClans() {
+  public cleanupClans() {
+    this._cleanupClans();
+    return { status: 'processing' };
+  }
+
+  private async _cleanupClans() {
     const isProcessing = await this.redis.get('cleanup:clans');
     if (isProcessing) return { status: 'processing' };
 
     await this.redis.set('cleanup:clans', 'true', { EX: 60 * 60 * 24 });
     try {
       const clanTags = await this.clanStoresEntity.distinct('tag');
+      console.log(`Processing ${clanTags.length} clans`);
 
-      for (const tag of clanTags) {
-        const { res, body } = await this.clashClient.getClan(tag);
-        if (res.status === 404 || (res.ok && body?.members === 0)) {
-          await this.redis.sAdd('deleted:clans', tag);
-          await this.clanStoresEntity.updateMany({ tag }, { $set: { deleted: true } });
+      let count = 0;
+      for (const chunk of cluster(clanTags, 50)) {
+        const responses = await Promise.all(
+          chunk.map(async (tag) => {
+            const { res } = await this.clashClient.getClan(tag);
+            return {
+              tag,
+              status: res.status,
+            };
+          }),
+        );
+
+        for (const res of responses) {
+          if (res.status === 404) {
+            await this.clanStoresEntity.updateOne({ tag: res.tag }, { $set: { deleted: true } });
+            await this.redis.sAdd('deleted:clans', res.tag);
+          }
         }
+
+        count += chunk.length;
+        console.log(`Processed ${count} clans`);
       }
     } finally {
       await this.redis.del('cleanup:clans');
@@ -44,14 +65,21 @@ export class CleanupTasksService {
     return { status: 'success' };
   }
 
-  public async linksCleanup() {
+  public linksCleanup() {
+    this._linksCleanup();
+    return { status: 'processing' };
+  }
+
+  private async _linksCleanup() {
     const isProcessing = await this.redis.get('cleanup:links');
     if (isProcessing) return { status: 'processing' };
 
     await this.redis.set('cleanup:links', 'true', { EX: 60 * 60 * 24 });
     try {
       const playerTags = await this.linksEntity.distinct('tag');
+      console.log(`Found ${playerTags.length} links`);
 
+      let count = 0;
       for (const chunk of cluster(playerTags, 50)) {
         const responses = await Promise.all(
           chunk.map(async (tag) => {
@@ -69,6 +97,9 @@ export class CleanupTasksService {
             await this.redis.sAdd('deleted:links', res.tag);
           }
         }
+
+        count += chunk.length;
+        console.log(`Processed ${count} links`);
       }
     } finally {
       await this.redis.del('cleanup:links');
