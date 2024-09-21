@@ -2,7 +2,7 @@ import { JwtAuthGuard, Role, Roles, RolesGuard } from '@app/auth';
 import { RostersEntity } from '@app/entities';
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { SwapCategoryInput, SwapRosterInput } from './dto';
+import { SwapCategoryBulkInput, SwapRosterBulkInput } from './dto';
 import { RostersService } from './rosters.service';
 
 @Controller('/rosters')
@@ -23,14 +23,23 @@ export class RostersController {
   @Put('/:rosterId/change-category')
   @ApiOperation({ summary: '(Internal)' })
   @ApiResponse({ type: RostersEntity, status: 200 })
-  async swapCategory(@Param('rosterId') rosterId: string, @Body() body: SwapCategoryInput) {
-    return this.rostersService.swapCategory(rosterId, body.playerTag, body.categoryId);
+  async swapCategory(@Param('rosterId') rosterId: string, @Body() body: SwapCategoryBulkInput) {
+    return this.rostersService.swapCategory({
+      newCategoryId: body.categoryId,
+      playerTags: body.playerTags,
+      rosterId,
+    });
   }
 
   @Put('/:rosterId/change-roster')
   @ApiOperation({ summary: '(Internal)' })
   @ApiResponse({ type: RostersEntity, status: 200 })
-  async swapRoster(@Param('rosterId') rosterId: string, @Body() body: SwapRosterInput) {
-    return this.rostersService.swapRoster(rosterId, body.playerTag, body.rosterId);
+  async swapRoster(@Param('rosterId') rosterId: string, @Body() body: SwapRosterBulkInput) {
+    return this.rostersService.swapRoster({
+      categoryId: body.categoryId,
+      rosterId,
+      newRosterId: body.rosterId,
+      playerTags: body.playerTags,
+    });
   }
 }

@@ -1,7 +1,7 @@
 import { ClashClientService } from '@app/clash-client';
 import { Collections } from '@app/constants';
 import { PlayerLinksEntity, RosterCategoriesEntity, RostersEntity } from '@app/entities';
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { APIPlayer } from 'clashofclans.js';
 import { Collection, ObjectId, WithId } from 'mongodb';
 
@@ -23,45 +23,74 @@ export class RostersService {
     return roster;
   }
 
-  async swapCategory(rosterId: string, playerTag: string, newCategoryId: string) {
+  async swapCategory({
+    newCategoryId,
+    playerTags,
+    rosterId,
+  }: {
+    rosterId: string;
+    playerTags: string[];
+    newCategoryId: string;
+  }) {
     const category = await this.rosterCategoriesCollection.findOne({
       _id: new ObjectId(newCategoryId),
     });
     if (!category) throw new NotFoundException(`Category ${newCategoryId} not found.`);
 
-    await this.rostersCollection.updateOne(
-      { _id: new ObjectId(rosterId), 'members.tag': playerTag },
-      { $set: { 'members.$.categoryId': category._id } },
+    await Promise.all(
+      playerTags.map(async (playerTag) => {
+        await this.rostersCollection.updateOne(
+          { _id: new ObjectId(rosterId), 'members.tag': playerTag },
+          { $set: { 'members.$.categoryId': category._id } },
+        );
+      }),
     );
 
     return this.getRoster(rosterId);
   }
 
-  async swapRoster(rosterId: string, playerTag: string, newRosterId: string) {
-    const player = await this.clashClientService.getPlayerOrThrow(playerTag);
-    const link = await this.playerLinksCollection.findOne({ tag: player.tag });
+  async swapRoster({
+    rosterId,
+    newRosterId,
+    playerTags,
+    categoryId,
+  }: {
+    rosterId: string;
+    playerTags: string[];
+    newRosterId: string;
+    categoryId: string | null;
+  }) {
+    const result = await Promise.all(
+      playerTags.map(async (playerTag) => {
+        const player = await this.clashClientService.getPlayerOrThrow(playerTag);
+        const link = await this.playerLinksCollection.findOne({ tag: player.tag });
 
-    const newRoster = await this.getRoster(newRosterId);
-    const result = await this.attemptSignup({
-      roster: newRoster,
-      player,
-      isDryRun: false,
-      isOwner: false,
-      link,
-    });
+        const newRoster = await this.getRoster(newRosterId);
+        const result = await this.attemptSignup({
+          roster: newRoster,
+          player,
+          isDryRun: false,
+          isOwner: false,
+          link,
+        });
 
-    if (!result.success) throw new BadRequestException(result.message);
+        if (result.success) {
+          // OPT OUT FROM THE OLD ROSTER
+          await this.rostersCollection.updateOne(
+            { _id: new ObjectId(rosterId) },
+            { $pull: { members: { tag: playerTag } } },
+          );
 
-    // OPT OUT FROM THE OLD ROSTER
-    await this.rostersCollection.updateOne(
-      { _id: new ObjectId(rosterId) },
-      { $pull: { members: { tag: playerTag } } },
+          // SIGNUP TO THE NEW ROSTER
+          await this.signupUser({ roster: newRoster, player, link, categoryId });
+        }
+
+        return { ...result, player: { tag: player.tag, name: player.name } };
+      }),
     );
 
-    // SIGNUP TO THE NEW ROSTER
-    await this.signupUser({ roster: newRoster, player, link });
-
-    return this.getRoster(rosterId);
+    const roster = await this.getRoster(rosterId);
+    return { roster, result };
   }
 
   private async signupUser({

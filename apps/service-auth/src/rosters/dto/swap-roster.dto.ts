@@ -1,5 +1,5 @@
 import { ObjectIdValidator } from '@app/validators';
-import { IsNotEmpty, Validate } from 'class-validator';
+import { ArrayMinSize, IsArray, IsNotEmpty, IsOptional, Validate } from 'class-validator';
 
 export class SwapRosterInput {
   @IsNotEmpty()
@@ -7,4 +7,17 @@ export class SwapRosterInput {
 
   @Validate(ObjectIdValidator)
   rosterId: string;
+}
+
+export class SwapRosterBulkInput {
+  @Validate(ObjectIdValidator)
+  rosterId: string;
+
+  @Validate(ObjectIdValidator)
+  @IsOptional()
+  categoryId: string | null;
+
+  @IsArray()
+  @ArrayMinSize(1)
+  playerTags: string[];
 }
