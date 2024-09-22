@@ -16,6 +16,8 @@ export class CleanupTasksService {
     private readonly clanLogsEntity: Collection<ClanLogsEntity>,
     @Inject(Collections.PLAYER_LINKS)
     private readonly linksEntity: Collection<PlayerLinksEntity>,
+    @Inject(Collections.CLAN_GAMES_POINTS)
+    private readonly clanGamesPointsEntity: Collection<PlayerLinksEntity>,
 
     @Inject(Tokens.CLASH_CLIENT) private readonly clashClient: ClashClient,
     @Inject(Tokens.REDIS) private readonly redis: RedisClient,
@@ -106,6 +108,31 @@ export class CleanupTasksService {
     }
 
     console.log('Links cleanup completed');
+    return { status: 'success' };
+  }
+
+  public reSyncClanGamesPoints() {
+    this._reSyncClanGamesPoints();
+    return { status: 'processing' };
+  }
+
+  public async _reSyncClanGamesPoints() {
+    const isProcessing = await this.redis.get('cleanup:clan-games-points');
+    if (isProcessing) return { status: 'processing' };
+
+    await this.redis.set('cleanup:clan-games-points', 'true', { EX: 60 * 60 * 24 });
+
+    try {
+      const seasonId = this.clashClient.util.getSeasonId();
+      await this.clanGamesPointsEntity.updateMany(
+        { season: seasonId },
+        { $set: { season: `${seasonId}-00` } },
+      );
+    } finally {
+      await this.redis.del('cleanup:clan-games-points');
+    }
+
+    console.log('Clan games points cleanup completed');
     return { status: 'success' };
   }
 }

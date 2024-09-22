@@ -30,4 +30,9 @@ export class TasksController {
   async cleanupLinks() {
     return this.cleanupTasksService.linksCleanup();
   }
+
+  @Post('/clan-games-resync')
+  async reSyncClanGamesPoints() {
+    return this.cleanupTasksService.linksCleanup();
+  }
 }

@@ -93,6 +93,15 @@ export class RostersService {
     return { roster, result };
   }
 
+  async removeMembers({ rosterId, playerTags }: { rosterId: string; playerTags: string[] }) {
+    await this.rostersCollection.updateOne(
+      { _id: new ObjectId(rosterId) },
+      { $pull: { members: { tag: { $in: playerTags } } } },
+    );
+
+    return this.getRoster(rosterId);
+  }
+
   private async signupUser({
     roster,
     player,

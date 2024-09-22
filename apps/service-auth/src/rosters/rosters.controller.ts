@@ -1,8 +1,8 @@
 import { JwtAuthGuard, Role, Roles, RolesGuard } from '@app/auth';
 import { RostersEntity } from '@app/entities';
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { SwapCategoryBulkInput, SwapRosterBulkInput } from './dto';
+import { RemoveMembersBulkInput, SwapCategoryBulkInput, SwapRosterBulkInput } from './dto';
 import { RostersService } from './rosters.service';
 
 @Controller('/rosters')
@@ -39,6 +39,16 @@ export class RostersController {
       categoryId: body.categoryId,
       rosterId,
       newRosterId: body.rosterId,
+      playerTags: body.playerTags,
+    });
+  }
+
+  @Delete('/:rosterId/members')
+  @ApiOperation({ summary: '(Internal)' })
+  @ApiResponse({ type: RostersEntity, status: 200 })
+  async removeMembers(@Param('rosterId') rosterId: string, @Body() body: RemoveMembersBulkInput) {
+    return this.rostersService.removeMembers({
+      rosterId,
       playerTags: body.playerTags,
     });
   }
