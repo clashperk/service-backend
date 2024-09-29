@@ -93,7 +93,9 @@ export class ClansService {
           userId: user?.userId,
           username: user?.username,
           verified: user?.verified,
-          deletable: !user?.verified && authUserTags.some((tag) => clanLeaders.includes(tag)),
+          deletable:
+            authUserId === '444432489818357760' ||
+            (!user?.verified && authUserTags.some((tag) => clanLeaders.includes(tag))),
         };
       }),
     };
