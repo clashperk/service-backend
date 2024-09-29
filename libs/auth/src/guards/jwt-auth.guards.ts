@@ -1,7 +1,7 @@
+import { AuthGuardStrategyMapping } from '@app/constants';
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthGuardStrategyMapping } from 'apps/service-auth/src/app.constants';
 import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 

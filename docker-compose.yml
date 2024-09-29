@@ -1,6 +1,6 @@
 services:
   api:
-    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-auth:latest
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/service-backend:latest
     container_name: api
     restart: always
     env_file:

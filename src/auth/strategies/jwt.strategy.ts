@@ -1,9 +1,9 @@
+import { JwtUser } from '@app/auth';
+import { AuthGuardStrategyMapping } from '@app/constants';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { JwtUser } from '../../../../../libs/auth/src/decorators/current-user.decorator';
-import { AuthGuardStrategyMapping } from '../../app.constants';
 import { AuthService } from '../auth.service';
 
 @Injectable()

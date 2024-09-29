@@ -1,4 +1,4 @@
-name: CD/ECR
+name: aws-ecr-publish
 
 on:
   push:
@@ -11,12 +11,7 @@ env:
 
 jobs:
   build:
-    name: ECR
-
-    strategy:
-      matrix:
-        service: [service-auth]
-
+    name: aws-ecr-publish
     runs-on: buildjet-4vcpu-ubuntu-2204-arm
 
     steps:
@@ -54,7 +49,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v3
         with:
-          images: ${{ steps.ecr-login.outputs.registry }}/${{ matrix.service }}
+          images: ${{ steps.ecr-login.outputs.registry }}/service-backend
           tags: |
             type=raw,value=latest
 
@@ -67,4 +62,3 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           build-args: |
             GIT_SHA=${{ github.sha }}
-            SERVICE_NAME=${{ matrix.service }}
