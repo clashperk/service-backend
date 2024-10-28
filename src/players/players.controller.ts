@@ -1,6 +1,8 @@
 import { JwtAuthGuard, RolesGuard } from '@app/auth';
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { LegendAttacksEntity } from '@app/entities/legend-attacks.entity';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { GetLegendAttacksInput } from './dto';
 import { AttackHistoryQueryInput } from './dto/attack-history-input.dto';
 import { AttackHistoryOutput } from './dto/attack-history-output.dto';
 import { CWLAttackSummaryOutput } from './dto/attack-summary-output.dto';
@@ -27,5 +29,10 @@ export class PlayersController {
     @Query() query: AttackHistoryQueryInput,
   ): Promise<CWLAttackSummaryOutput[]> {
     return this.playersService.getCWLAttackSummary(playerTag, query.months);
+  }
+
+  @Post('/legend-attacks')
+  getLegendAttacksBulk(@Body() body: GetLegendAttacksInput): Promise<LegendAttacksEntity[]> {
+    return this.playersService.getLegendAttacks(body.playerTags);
   }
 }

@@ -32,7 +32,9 @@ async function bootstrap() {
     .addTag('GUILDS')
     .build();
   const document = SwaggerModule.createDocument(app, builder);
-  SwaggerModule.setup('/', app, document);
+  SwaggerModule.setup('/', app, document, {
+    jsonDocumentUrl: 'swagger/json',
+  });
 
   app.enableVersioning({ type: VersioningType.URI });
 

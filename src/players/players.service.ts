@@ -1,5 +1,7 @@
-import { Collections } from '@app/constants';
+import { ClashClient } from '@app/clash-client';
+import { Collections, Tokens } from '@app/constants';
 import { ClanWarsEntity } from '@app/entities';
+import { LegendAttacksEntity } from '@app/entities/legend-attacks.entity';
 import { getPreviousBestAttack } from '@app/helper';
 import { Inject, Injectable } from '@nestjs/common';
 import moment from 'moment';
@@ -11,6 +13,9 @@ export class PlayersService {
   constructor(
     @Inject(Collections.CLAN_WARS)
     private clanWarsCollection: Collection<ClanWarsEntity>,
+    @Inject(Collections.LEGEND_ATTACKS)
+    private legendAttacks: Collection<LegendAttacksEntity>,
+    @Inject(Tokens.CLASH_CLIENT) private clashClient: ClashClient,
   ) {}
 
   async getClanWarHistory(playerTag: string, months: number) {
@@ -254,6 +259,17 @@ export class PlayersService {
     ]);
 
     const result: CWLAttackSummaryOutput[] = await cursor.toArray();
+
+    return result;
+  }
+
+  async getLegendAttacks(playerTags: string[]) {
+    const result = await this.legendAttacks
+      .find(
+        { tag: { $in: playerTags }, seasonId: this.clashClient.util.getSeasonId() },
+        { projection: { _id: 0, defenseLogs: 0, attackLogs: 0, streak: 0 } },
+      )
+      .toArray();
 
     return result;
   }
