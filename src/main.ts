@@ -30,6 +30,7 @@ async function bootstrap() {
     .addTag('PLAYERS')
     .addTag('CLANS')
     .addTag('GUILDS')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, builder);
   SwaggerModule.setup('/', app, document, {
