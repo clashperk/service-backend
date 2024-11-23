@@ -9,6 +9,10 @@ on:
 env:
   AWS_REGION: us-east-1
 
+concurrency:
+  group: aws-ecr-publish
+  cancel-in-progress: true
+
 jobs:
   build:
     name: aws-ecr-publish

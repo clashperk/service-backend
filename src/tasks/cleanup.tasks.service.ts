@@ -18,7 +18,7 @@ export class CleanupTasksService {
     @Inject(Collections.PLAYER_LINKS)
     private readonly linksEntity: Collection<PlayerLinksEntity>,
     @Inject(Collections.CLAN_GAMES_POINTS)
-    private readonly clanGamesPointsEntity: Collection<PlayerLinksEntity>,
+    private readonly clanGamesPointsEntity: Collection<any>,
 
     @Inject(Tokens.CLASH_CLIENT) private readonly clashClient: ClashClient,
     @Inject(Tokens.REDIS) private readonly redis: RedisClient,
@@ -136,5 +136,57 @@ export class CleanupTasksService {
 
     this.logger.log('Clan games points cleanup completed');
     return { status: 'success' };
+  }
+
+  private async onModuleInit() {
+    this.restoreClanGames();
+  }
+
+  private async restoreClanGames() {
+    let lastCursor = null;
+    let loop = 0;
+    let hasMore = true;
+
+    do {
+      const cursor = this.clanGamesPointsEntity
+        .find({ season: '2024-11', ...(lastCursor ? { _id: { $gt: lastCursor } } : {}) })
+        .sort({ _id: 1 })
+        .limit(1000);
+
+      loop++;
+      hasMore = false;
+
+      for await (const doc of cursor) {
+        hasMore = true;
+        let initial = doc.initial;
+        lastCursor = doc._id;
+
+        const { clans } = doc;
+        const cleanedUpLogs = clans.filter((clan) => new Date(clan.timestamp).getDate() >= 22);
+
+        const fake = clans.reduce((total, clan) => {
+          if (new Date(clan.timestamp).getDate() < 22) total += clan.score;
+          return total;
+        }, 0);
+
+        if (!fake) continue;
+        initial = initial + fake;
+
+        await this.clanGamesPointsEntity.updateOne(
+          { _id: doc._id },
+          {
+            $set: {
+              initial,
+              completedAt: null,
+              clans: cleanedUpLogs,
+            },
+          },
+        );
+      }
+
+      console.log(`loop: ${loop}`);
+    } while (hasMore);
+
+    console.log('done');
   }
 }
