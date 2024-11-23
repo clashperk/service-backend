@@ -33,7 +33,7 @@ export class AuthService {
       userId: user.userId,
       roles: user.roles,
       expiresIn: moment().add(2, 'hours').toDate().getTime(),
-      accessToken: this.jwtService.sign(payload, { expiresIn: '2h' }),
+      accessToken: this.jwtService.sign(payload),
     };
   }
 

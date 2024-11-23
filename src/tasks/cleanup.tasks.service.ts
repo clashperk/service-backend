@@ -3,12 +3,13 @@ import { Collections, Tokens } from '@app/constants';
 import { ClanStoresEntity, PlayerLinksEntity } from '@app/entities';
 import { ClanLogsEntity } from '@app/entities/clan-logs.entity';
 import { RedisClient } from '@app/redis';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Collection } from 'mongodb';
 import { cluster } from 'radash';
 
 @Injectable()
 export class CleanupTasksService {
+  private logger = new Logger(CleanupTasksService.name);
   constructor(
     @Inject(Collections.CLAN_STORES)
     private readonly clanStoresEntity: Collection<ClanStoresEntity>,
@@ -35,7 +36,7 @@ export class CleanupTasksService {
     await this.redis.set('cleanup:clans', 'true', { EX: 60 * 60 * 24 });
     try {
       const clanTags = await this.clanStoresEntity.distinct('tag');
-      console.log(`Processing ${clanTags.length} clans`);
+      this.logger.log(`Processing ${clanTags.length} clans`);
 
       let count = 0;
       for (const chunk of cluster(clanTags, 50)) {
@@ -57,13 +58,13 @@ export class CleanupTasksService {
         }
 
         count += chunk.length;
-        console.log(`Processed ${count} clans`);
+        this.logger.log(`Processed ${count} clans`);
       }
     } finally {
       await this.redis.del('cleanup:clans');
     }
 
-    console.log('Cleanup clans completed');
+    this.logger.log('Cleanup clans completed');
     return { status: 'success' };
   }
 
@@ -79,7 +80,7 @@ export class CleanupTasksService {
     await this.redis.set('cleanup:links', 'true', { EX: 60 * 60 * 24 });
     try {
       const playerTags = await this.linksEntity.distinct('tag');
-      console.log(`Found ${playerTags.length} links`);
+      this.logger.log(`Found ${playerTags.length} links`);
 
       let count = 0;
       for (const chunk of cluster(playerTags, 50)) {
@@ -101,13 +102,13 @@ export class CleanupTasksService {
         }
 
         count += chunk.length;
-        console.log(`Processed ${count} links`);
+        this.logger.log(`Processed ${count} links`);
       }
     } finally {
       await this.redis.del('cleanup:links');
     }
 
-    console.log('Links cleanup completed');
+    this.logger.log('Links cleanup completed');
     return { status: 'success' };
   }
 
@@ -117,10 +118,11 @@ export class CleanupTasksService {
   }
 
   public async _reSyncClanGamesPoints() {
-    const isProcessing = await this.redis.get('cleanup:clan-games-points');
+    const key = 'cleanup:clan-games-points';
+    const isProcessing = await this.redis.get(key);
     if (isProcessing) return { status: 'processing' };
 
-    await this.redis.set('cleanup:clan-games-points', 'true', { EX: 60 * 60 * 24 });
+    await this.redis.set(key, 'true', { EX: 60 * 60 * 24 });
 
     try {
       const seasonId = this.clashClient.util.getSeasonId();
@@ -129,10 +131,10 @@ export class CleanupTasksService {
         { $set: { season: `${seasonId}-00` } },
       );
     } finally {
-      await this.redis.del('cleanup:clan-games-points');
+      await this.redis.del(key);
     }
 
-    console.log('Clan games points cleanup completed');
+    this.logger.log('Clan games points cleanup completed');
     return { status: 'success' };
   }
 }
