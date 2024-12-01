@@ -138,10 +138,6 @@ export class CleanupTasksService {
     return { status: 'success' };
   }
 
-  private async onModuleInit() {
-    this.restoreClanGames();
-  }
-
   private async restoreClanGames() {
     let lastCursor = null;
     let loop = 0;
