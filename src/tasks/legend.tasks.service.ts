@@ -74,6 +74,12 @@ export class LegendTasksService {
           },
         },
         {
+          $project: {
+            _id: 0,
+            trophies: 1,
+          },
+        },
+        {
           $sort: {
             trophies: -1,
           },
