@@ -1,3 +1,4 @@
+import { ClashClientModule } from '@app/clash-client';
 import { DiscordOAuthModule } from '@app/discord-oauth';
 import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
@@ -11,7 +12,6 @@ import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
 import { RostersModule } from './rosters/rosters.module';
-import { ClashClientModule } from '@app/clash-client';
 import { TasksModule } from './tasks/tasks.module';
 
 @Module({
@@ -29,6 +29,7 @@ import { TasksModule } from './tasks/tasks.module';
     ClashClientModule,
     DiscordOAuthModule,
     TasksModule,
+    // ExportsModule,
     // KafkaProducerModule.forRootAsync({
     //   useFactory: (configService: ConfigService) => {
     //     return {

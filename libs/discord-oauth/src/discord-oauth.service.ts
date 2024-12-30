@@ -39,8 +39,8 @@ export class DiscordOAuthService {
    * Generate the url which the user will be directed to in order to approve the
    * bot, and see the list of requested scopes.
    */
-  getOAuth2Url() {
-    const state = randomUUID();
+  getOAuth2Url(joinGuilds = false) {
+    const state = joinGuilds ? `guilds.join-${randomUUID()}` : randomUUID();
 
     const url = new URL('https://discord.com/api/oauth2/authorize');
     url.searchParams.set('client_id', this.configService.getOrThrow<string>('DISCORD_CLIENT_ID'));
@@ -50,7 +50,13 @@ export class DiscordOAuthService {
     );
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('state', state);
-    url.searchParams.set('scope', 'role_connections.write identify');
+
+    if (joinGuilds) {
+      url.searchParams.set('scope', 'identify guilds.join');
+    } else {
+      url.searchParams.set('scope', 'role_connections.write identify');
+    }
+
     url.searchParams.set('prompt', 'consent');
 
     return { state, url: url.toString() };
@@ -248,7 +254,7 @@ export class DiscordOAuthService {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bot ${this.configService.getOrThrow<string>('DISCORD_BOT_TOKEN')}`,
+        Authorization: `Bot ${this.configService.getOrThrow<string>('DISCORD_TOKEN')}`,
       },
       body: JSON.stringify({
         access_token: tokens.access_token,

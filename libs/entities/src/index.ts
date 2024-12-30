@@ -5,6 +5,7 @@ export * from './clan-categories.entity';
 export * from './clan-stores.entity';
 export * from './custom-bots.entity';
 export * from './cwl-groups.entity';
+export * from './google-sheets.entity';
 export * from './player-links.entity';
 export * from './players.entity';
 export * from './portal-users.entity';

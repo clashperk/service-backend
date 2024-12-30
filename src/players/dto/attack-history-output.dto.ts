@@ -16,8 +16,8 @@ export class AttackRecord {
 export class AttackHistoryOutput {
   id: number;
   warType: number;
-  startTime: string;
-  endTime: string;
+  startTime: string | Date;
+  endTime: string | Date;
   clan: {
     name: string;
     tag: string;

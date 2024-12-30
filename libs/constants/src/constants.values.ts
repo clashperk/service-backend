@@ -78,6 +78,8 @@ export enum Collections {
 
   PORTAL_USERS = 'PortalUsers',
 
+  GOOGLE_SHEETS = 'GoogleSheets',
+
   BOT_GROWTH = 'BotGrowth',
   BOT_USAGE = 'BotUsage',
   BOT_GUILDS = 'BotGuilds',
@@ -95,3 +97,9 @@ export const AuthGuardStrategyMapping = {
   OPTIONAL_JWT_AUTH: 'optional-jwt-auth',
   ADMIN_JWT_AUTH: 'admin-jwt-auth',
 } as const;
+
+export enum WarType {
+  REGULAR = 1,
+  FRIENDLY,
+  CWL,
+}

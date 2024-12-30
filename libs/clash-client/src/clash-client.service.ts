@@ -2,6 +2,7 @@ import { Tokens } from '@app/constants';
 import { RedisService } from '@app/redis';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ClashClient } from './clash-client.module';
+import { APIClanWarAttack } from 'clashofclans.js';
 
 @Injectable()
 export class ClashClientService {
@@ -39,5 +40,30 @@ export class ClashClientService {
     if (!res.ok) throw new NotFoundException(`Player ${playerTag} not found.`);
 
     return body;
+  }
+
+  public getPreviousBestAttack(
+    attacks: APIClanWarAttack[],
+    {
+      defenderTag,
+      attackerTag,
+      order,
+    }: { defenderTag: string; attackerTag: string; order: number },
+  ) {
+    const defenderDefenses = attacks.filter((atk) => atk.defenderTag === defenderTag);
+    const isFresh =
+      defenderDefenses.length === 0 ||
+      order === Math.min(...defenderDefenses.map((def) => def.order));
+    if (isFresh) return null;
+
+    return (
+      attacks
+        .filter(
+          (atk) =>
+            atk.defenderTag === defenderTag && atk.order < order && atk.attackerTag !== attackerTag,
+        )
+        .sort((a, b) => b.destructionPercentage ** b.stars - a.destructionPercentage ** a.stars)
+        .at(0) ?? null
+    );
   }
 }
