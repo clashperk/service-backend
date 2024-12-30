@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 import { morganLogger } from '@app/helper';
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
