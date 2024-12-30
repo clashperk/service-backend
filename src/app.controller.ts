@@ -19,7 +19,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiExcludeController, ApiTags } from '@nestjs/swagger';
 import {
   InteractionResponseFlags,
   InteractionResponseType,
@@ -30,6 +30,7 @@ import { Request, Response } from 'express';
 import { Collection } from 'mongodb';
 
 @ApiTags('DISCORD')
+@ApiExcludeController()
 @Controller({ path: '/' })
 export class AppController {
   private readonly discordPublicKey: string;

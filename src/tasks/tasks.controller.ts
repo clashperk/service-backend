@@ -1,10 +1,13 @@
 import { ApiKeyGuard } from '@app/auth/guards/api-key-guard';
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { ApiExcludeController, ApiTags } from '@nestjs/swagger';
 import { CleanupTasksService } from './cleanup.tasks.service';
 import { LegendTasksService } from './legend.tasks.service';
 
+@ApiTags('TASKS')
 @UseGuards(ApiKeyGuard)
-@Controller('tasks')
+@Controller('/tasks')
+@ApiExcludeController()
 export class TasksController {
   constructor(
     private legendTasksService: LegendTasksService,
