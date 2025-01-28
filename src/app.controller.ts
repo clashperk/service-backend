@@ -6,6 +6,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Headers,
   HttpCode,
   Inject,
@@ -19,7 +20,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ApiExcludeController, ApiTags } from '@nestjs/swagger';
+import { ApiExcludeController, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
 import {
   InteractionResponseFlags,
   InteractionResponseType,
@@ -43,6 +44,67 @@ export class AppController {
     private clashClientService: ClashClientService,
   ) {
     this.discordPublicKey = this.configService.getOrThrow<string>('DISCORD_PUBLIC_KEY');
+  }
+
+  @Get('/c/:tag')
+  @ApiExcludeEndpoint()
+  @Header('Cache-Control', 'max-age=21600')
+  async getClanMetadata(@Req() req: Request, @Res() res: Response) {
+    const tag = req.params.tag!;
+    const clan = await this.clashClientService.getClan(tag);
+    if (!clan) return res.status(404).send('Clan not found');
+
+    const metadata = {
+      title: `${clan.name} (${clan.tag})`,
+      description: `${clan.description}`,
+      image: clan.badgeUrls.large,
+    };
+
+    const metaTags = `
+      <meta property="og:title" content="${metadata.title}" />
+      <meta property="og:description" content="${metadata.description}" />
+      <meta property="og:image" content="${metadata.image}" />
+    `;
+
+    res.setHeader('Content-Type', 'text/html');
+    return res.send(`<html><head>${metaTags}</head><body></body></html>`);
+  }
+
+  @Get('/p/:tag')
+  @ApiExcludeEndpoint()
+  @Header('Cache-Control', 'max-age=21600')
+  async getPlayerMetadata(@Req() req: Request, @Res() res: Response) {
+    const tag = req.params.tag!;
+    const player = await this.clashClientService.getPlayer(tag);
+    if (!player) return res.status(404).send('Player not found');
+
+    const EMOJIS = {
+      EXP: '🔥',
+      TROPHY: '🏆',
+      WAR_STAR: '⭐',
+      TROOPS_DONATE: '🎁',
+      UP_KEY: '🔼',
+      DOWN_KEY: '🔽',
+      SWORD: '⚔️',
+      SHIELD: '🛡️',
+    };
+
+    const metadata = {
+      title: `${player.name} (${player.tag})`,
+      description: [
+        `${EMOJIS.EXP} ${player.expLevel} ${EMOJIS.TROPHY} ${player.trophies} ${EMOJIS.WAR_STAR} ${player.warStars}`,
+      ].join('\n'),
+      image: `https://cdn.coc.guide/static/imgs/other/town-hall-${player.townHallLevel}.png`,
+    };
+
+    const metaTags = `
+      <meta property="og:title" content="${metadata.title}" />
+      <meta property="og:description" content="${metadata.description}" />
+      <meta property="og:image" content="${metadata.image}" />
+    `;
+
+    res.setHeader('Content-Type', 'text/html');
+    return res.send(`<html><head>${metaTags}</head><body></body></html>`);
   }
 
   @Post('/interactions')

@@ -35,6 +35,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, builder);
   SwaggerModule.setup('/', app, document, {
     jsonDocumentUrl: 'swagger/json',
+    yamlDocumentUrl: 'swagger/yaml',
   });
 
   app.enableVersioning({ type: VersioningType.URI });
