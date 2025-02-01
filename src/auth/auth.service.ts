@@ -44,7 +44,7 @@ export class AuthService {
 
   async getCustomBots() {
     const bots = await this.customBotsCollection
-      .find()
+      .find({ $or: [{ isRunning: true }, { isDisabled: false }] })
       .project({
         name: 0,
         serviceId: 0,
