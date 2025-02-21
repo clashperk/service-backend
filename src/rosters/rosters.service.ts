@@ -69,7 +69,7 @@ export class RostersService {
         const result = await this.attemptSignup({
           roster: newRoster,
           player,
-          isDryRun: false,
+          isDryRun: true,
           isOwner: false,
           link,
         });
