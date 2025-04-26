@@ -5,6 +5,10 @@ import { RedisClient } from '@app/redis';
 import { Inject, Injectable } from '@nestjs/common';
 import { Collection } from 'mongodb';
 
+const storeKey = 'CACHED:LEGEND-TROPHY-THRESHOLD';
+const fallbackKey = 'CACHED-FALLBACK:LEGEND-TROPHY-THRESHOLD';
+const holdKey = 'CACHED-PROCESSING:LEGEND-TROPHY-THRESHOLD';
+
 @Injectable()
 export class LegendTasksService {
   constructor(
@@ -35,15 +39,20 @@ export class LegendTasksService {
   }
 
   public async getTrophyThresholds() {
-    const key = 'CACHED:LEGEND-TROPHY-THRESHOLD';
-    const cached = await this.getCachedTrophyThresholds(key);
+    const cached = await this.getCachedTrophyThresholds(storeKey);
     if (cached) return cached;
 
     const result = await this.aggregateTrophyThreshold();
 
-    await this.redis.set(key, JSON.stringify(result), {
-      EX: 60 * 10, // 10 minutes
-    });
+    if (result) {
+      await this.redis
+        .multi()
+        .set(storeKey, JSON.stringify(result), {
+          EX: 60 * 10, // 10 minutes
+        })
+        .set(fallbackKey, JSON.stringify(result))
+        .exec();
+    }
 
     return result;
   }
@@ -60,58 +69,68 @@ export class LegendTasksService {
   }
 
   private async aggregateTrophyThreshold() {
+    if (await this.redis.get(holdKey)) {
+      return this.getCachedTrophyThresholds(fallbackKey);
+    }
+
+    await this.redis.set(holdKey, new Date().toISOString());
+
     const limit = 50000;
     const ranks = [1, 3, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000].filter(
       (rank) => rank <= limit,
     );
 
-    const seasonId = this.clashClient.util.getSeasonId();
-    const [result] = await this.legendAttacksCollection
-      .aggregate<Record<string, number>>([
-        {
-          $match: {
-            seasonId,
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            trophies: 1,
-          },
-        },
-        {
-          $sort: {
-            trophies: -1,
-          },
-        },
-        {
-          $limit: limit,
-        },
-        {
-          $group: {
-            _id: null,
-            trophies: {
-              $push: '$trophies',
+    try {
+      const seasonId = this.clashClient.util.getSeasonId();
+      const [result] = await this.legendAttacksCollection
+        .aggregate<Record<string, number>>([
+          {
+            $match: {
+              seasonId,
             },
           },
-        },
-        {
-          $project: {
-            _id: 0,
-            ...ranks.reduce((acc, rank) => {
-              acc[rank.toString()] = {
-                $arrayElemAt: ['$trophies', rank - 1],
-              };
-              return acc;
-            }, {}),
+          {
+            $project: {
+              _id: 0,
+              trophies: 1,
+            },
           },
-        },
-      ])
-      .toArray();
+          {
+            $sort: {
+              trophies: -1,
+            },
+          },
+          {
+            $limit: limit,
+          },
+          {
+            $group: {
+              _id: null,
+              trophies: {
+                $push: '$trophies',
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 0,
+              ...ranks.reduce((acc, rank) => {
+                acc[rank.toString()] = {
+                  $arrayElemAt: ['$trophies', rank - 1],
+                };
+                return acc;
+              }, {}),
+            },
+          },
+        ])
+        .toArray();
 
-    return Object.entries(result ?? {}).map(([rank, minTrophies]) => ({
-      rank: Number(rank),
-      minTrophies,
-    }));
+      return Object.entries(result ?? {}).map(([rank, minTrophies]) => ({
+        rank: Number(rank),
+        minTrophies,
+      }));
+    } finally {
+      await this.redis.del(holdKey);
+    }
   }
 }
