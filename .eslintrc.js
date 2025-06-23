@@ -26,5 +26,6 @@ module.exports = {
         caughtErrorsIgnorePattern: '^_',
       },
     ],
+    '@typescript-eslint/no-empty-object-type': 'off',
   },
 };

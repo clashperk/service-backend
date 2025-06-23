@@ -136,7 +136,7 @@ export class ClansService {
           atk.order === Math.min(...defenderDefenses.map((d) => d.order));
         const previousBestAttack = isFresh
           ? null
-          : [...__attacks]
+          : ([...__attacks]
               .filter(
                 (_atk) =>
                   _atk.defenderTag === defender?.tag &&
@@ -146,7 +146,7 @@ export class ClansService {
               .sort(
                 (a, b) => b.destructionPercentage ** b.stars - a.destructionPercentage ** a.stars,
               )
-              .at(0) ?? null;
+              .at(0) ?? null);
 
         return {
           ...atk,
@@ -174,7 +174,7 @@ export class ClansService {
           atk.order === Math.min(...defenderDefenses.map((d) => d.order));
         const previousBestAttack = isFresh
           ? null
-          : [...__defenses]
+          : ([...__defenses]
               .filter(
                 (_atk) =>
                   _atk.defenderTag === defender?.tag &&
@@ -184,7 +184,7 @@ export class ClansService {
               .sort(
                 (a, b) => b.destructionPercentage ** b.stars - a.destructionPercentage ** a.stars,
               )
-              .at(0) ?? null;
+              .at(0) ?? null);
 
         return {
           ...atk,

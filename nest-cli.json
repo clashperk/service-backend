@@ -14,13 +14,31 @@
     "flat": false
   },
   "projects": {
-    "entities": {
+    "auth": {
       "type": "library",
-      "root": "libs/entities",
+      "root": "libs/auth",
       "entryFile": "index",
-      "sourceRoot": "libs/entities/src",
+      "sourceRoot": "libs/auth/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/entities/tsconfig.lib.json"
+        "tsConfigPath": "libs/auth/tsconfig.lib.json"
+      }
+    },
+    "clash-client": {
+      "type": "library",
+      "root": "libs/clash-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/clash-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/clash-client/tsconfig.lib.json"
+      }
+    },
+    "clickhouse": {
+      "type": "library",
+      "root": "libs/clickhouse",
+      "entryFile": "index",
+      "sourceRoot": "libs/clickhouse/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/clickhouse/tsconfig.lib.json"
       }
     },
     "constants": {
@@ -30,6 +48,60 @@
       "sourceRoot": "libs/constants/src",
       "compilerOptions": {
         "tsConfigPath": "libs/constants/tsconfig.lib.json"
+      }
+    },
+    "discord-client": {
+      "type": "library",
+      "root": "libs/discord-client",
+      "entryFile": "index",
+      "sourceRoot": "libs/discord-client/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/discord-client/tsconfig.lib.json"
+      }
+    },
+    "discord-oauth": {
+      "type": "library",
+      "root": "libs/discord-oauth",
+      "entryFile": "index",
+      "sourceRoot": "libs/discord-oauth/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/discord-oauth/tsconfig.lib.json"
+      }
+    },
+    "elastic": {
+      "type": "library",
+      "root": "libs/elastic",
+      "entryFile": "index",
+      "sourceRoot": "libs/elastic/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/elastic/tsconfig.lib.json"
+      }
+    },
+    "entities": {
+      "type": "library",
+      "root": "libs/entities",
+      "entryFile": "index",
+      "sourceRoot": "libs/entities/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/entities/tsconfig.lib.json"
+      }
+    },
+    "helper": {
+      "type": "library",
+      "root": "libs/helper",
+      "entryFile": "index",
+      "sourceRoot": "libs/helper/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/helper/tsconfig.lib.json"
+      }
+    },
+    "kafka": {
+      "type": "library",
+      "root": "libs/kafka",
+      "entryFile": "index",
+      "sourceRoot": "libs/kafka/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/kafka/tsconfig.lib.json"
       }
     },
     "mongodb": {
@@ -50,33 +122,6 @@
         "tsConfigPath": "libs/redis/tsconfig.lib.json"
       }
     },
-    "auth": {
-      "type": "library",
-      "root": "libs/auth",
-      "entryFile": "index",
-      "sourceRoot": "libs/auth/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/auth/tsconfig.lib.json"
-      }
-    },
-    "elastic": {
-      "type": "library",
-      "root": "libs/elastic",
-      "entryFile": "index",
-      "sourceRoot": "libs/elastic/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/elastic/tsconfig.lib.json"
-      }
-    },
-    "helper": {
-      "type": "library",
-      "root": "libs/helper",
-      "entryFile": "index",
-      "sourceRoot": "libs/helper/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/helper/tsconfig.lib.json"
-      }
-    },
     "repositories": {
       "type": "library",
       "root": "libs/repositories",
@@ -86,33 +131,6 @@
         "tsConfigPath": "libs/repositories/tsconfig.lib.json"
       }
     },
-    "clash-client": {
-      "type": "library",
-      "root": "libs/clash-client",
-      "entryFile": "index",
-      "sourceRoot": "libs/clash-client/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/clash-client/tsconfig.lib.json"
-      }
-    },
-    "discord-client": {
-      "type": "library",
-      "root": "libs/discord-client",
-      "entryFile": "index",
-      "sourceRoot": "libs/discord-client/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/discord-client/tsconfig.lib.json"
-      }
-    },
-    "kafka": {
-      "type": "library",
-      "root": "libs/kafka",
-      "entryFile": "index",
-      "sourceRoot": "libs/kafka/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/kafka/tsconfig.lib.json"
-      }
-    },
     "validators": {
       "type": "library",
       "root": "libs/validators",
@@ -120,15 +138,6 @@
       "sourceRoot": "libs/validators/src",
       "compilerOptions": {
         "tsConfigPath": "libs/validators/tsconfig.lib.json"
-      }
-    },
-    "discord-oauth": {
-      "type": "library",
-      "root": "libs/discord-oauth",
-      "entryFile": "index",
-      "sourceRoot": "libs/discord-oauth/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/discord-oauth/tsconfig.lib.json"
       }
     }
   }

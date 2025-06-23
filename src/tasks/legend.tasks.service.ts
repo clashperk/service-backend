@@ -1,17 +1,16 @@
 import { ClashClient } from '@app/clash-client';
-import { Collections, Tokens } from '@app/constants';
-import { LegendAttacksEntity } from '@app/entities/legend-attacks.entity';
+import { CLICKHOUSE_CLIENT } from '@app/clickhouse';
+import { Tokens } from '@app/constants';
 import { RedisClient } from '@app/redis';
+import { NodeClickHouseClient } from '@clickhouse/client/dist/client';
 import { Inject, Injectable } from '@nestjs/common';
-import { Collection } from 'mongodb';
 
 @Injectable()
 export class LegendTasksService {
   constructor(
-    @Inject(Collections.LEGEND_ATTACKS)
-    private readonly legendAttacksCollection: Collection<LegendAttacksEntity>,
     @Inject(Tokens.CLASH_CLIENT) private readonly clashClient: ClashClient,
     @Inject(Tokens.REDIS) private readonly redis: RedisClient,
+    @Inject(CLICKHOUSE_CLIENT) private readonly clickhouseClient: NodeClickHouseClient,
   ) {}
 
   public async backfillLegendTrophyThreshold() {
@@ -66,52 +65,32 @@ export class LegendTasksService {
     );
 
     const seasonId = this.clashClient.util.getSeasonId();
-    const [result] = await this.legendAttacksCollection
-      .aggregate<Record<string, number>>([
-        {
-          $match: {
-            seasonId,
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            trophies: 1,
-          },
-        },
-        {
-          $sort: {
-            trophies: -1,
-          },
-        },
-        {
-          $limit: limit,
-        },
-        {
-          $group: {
-            _id: null,
-            trophies: {
-              $push: '$trophies',
-            },
-          },
-        },
-        {
-          $project: {
-            _id: 0,
-            ...ranks.reduce((acc, rank) => {
-              acc[rank.toString()] = {
-                $arrayElemAt: ['$trophies', rank - 1],
-              };
-              return acc;
-            }, {}),
-          },
-        },
-      ])
-      .toArray();
 
-    return Object.entries(result ?? {}).map(([rank, minTrophies]) => ({
-      rank: Number(rank),
-      minTrophies,
+    const rows = await this.clickhouseClient
+      .query({
+        query: `
+            WITH ranked AS (
+              SELECT
+                trophies,
+                streak,
+                seasonId,
+                row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
+              FROM legend_players
+              FINAL
+              WHERE seasonId = {seasonId: String}
+            )
+            SELECT *
+            FROM ranked
+            WHERE rank IN {ranks: Array(String)}
+            ORDER BY rank;
+          `,
+        query_params: { ranks: ranks.map(String), seasonId },
+      })
+      .then((res) => res.json<{ rank: string; trophies: string }>());
+
+    return rows.data.map((row) => ({
+      rank: Number(row.rank),
+      minTrophies: Number(row.trophies),
     }));
   }
 }

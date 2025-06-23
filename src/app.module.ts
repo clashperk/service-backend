@@ -1,4 +1,5 @@
 import { ClashClientModule } from '@app/clash-client';
+import { ClickhouseModule } from '@app/clickhouse';
 import { DiscordOAuthModule } from '@app/discord-oauth';
 import { MongoDbModule } from '@app/mongodb';
 import { RedisModule } from '@app/redis';
@@ -18,8 +19,25 @@ import { TasksModule } from './tasks/tasks.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+    // RdbModule,
+
+    // GraphQLModule.forRootAsync<ApolloDriverConfig>({
+    //   imports: [],
+    //   driver: ApolloDriver,
+    //   useFactory: async () => ({
+    //     autoSchemaFile: true,
+    //     sortSchema: true,
+    //     persistedQueries: false,
+    //     plugins: [ApolloServerPluginLandingPageLocalDefault()],
+    //     playground: false,
+    //     introspection: true,
+    //   }),
+    //   inject: [ConfigService],
+    // }),
+
     MongoDbModule,
     RedisModule,
+    ClickhouseModule,
     AuthModule,
     ClansModule,
     GuildsModule,

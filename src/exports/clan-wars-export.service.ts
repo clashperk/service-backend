@@ -36,8 +36,8 @@ export class ClanWarsExportsService {
             input.warType === 'regular-and-cwl'
               ? { $in: [WarType.REGULAR, WarType.CWL] }
               : input.warType === 'friendly'
-              ? WarType.FRIENDLY
-              : WarType.REGULAR,
+                ? WarType.FRIENDLY
+                : WarType.REGULAR,
           ...query,
         })
         .sort({ _id: -1 })
@@ -169,8 +169,8 @@ export class ClanWarsExportsService {
         input.warType === 'regular-and-cwl'
           ? SheetType.COMBINED_WARS
           : input.warType === 'friendly'
-          ? SheetType.FRIENDLY_WARS
-          : SheetType.REGULAR_WARS,
+            ? SheetType.FRIENDLY_WARS
+            : SheetType.REGULAR_WARS,
     });
 
     return result;

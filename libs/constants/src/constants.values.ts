@@ -6,6 +6,7 @@ export enum Tokens {
   REDIS_SUB = 'REDIS_SUB',
   ELASTIC = 'ELASTIC',
   CLASH_CLIENT = 'CLASH_CLIENT',
+  CLICKHOUSE = 'CLICKHOUSE',
 }
 
 export enum TokenType {

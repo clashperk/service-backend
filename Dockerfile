@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:20-alpine as build
 
 WORKDIR /app
 
@@ -13,7 +13,7 @@ RUN npm run build
 USER node
 
 # ------ PRODUCTION BUILD ------
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ COPY --chown=node:node --from=build /app/dist ./dist
 
 RUN npm ci --omit=dev
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 EXPOSE 8080
 ENV PORT 8080

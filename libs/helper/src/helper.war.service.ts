@@ -12,7 +12,7 @@ export function getPreviousBestAttack(
     atk.order === Math.min(...defenderDefenses.map((d) => d.order));
   const previousBestAttack = isFresh
     ? null
-    : [...attacks]
+    : ([...attacks]
         .filter(
           (_atk) =>
             _atk.defenderTag === defender?.tag &&
@@ -20,6 +20,6 @@ export function getPreviousBestAttack(
             _atk.attackerTag !== atk.attackerTag,
         )
         .sort((a, b) => b.destructionPercentage ** b.stars - a.destructionPercentage ** a.stars)
-        .at(0) ?? null;
+        .at(0) ?? null);
   return isFresh ? null : previousBestAttack;
 }

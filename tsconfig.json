@@ -21,34 +21,99 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@app/entities": ["libs/entities/src"],
-      "@app/entities/*": ["libs/entities/src/*"],
-      "@app/constants": ["libs/constants/src"],
-      "@app/constants/*": ["libs/constants/src/*"],
-      "@app/mongodb": ["libs/mongodb/src"],
-      "@app/mongodb/*": ["libs/mongodb/src/*"],
-      "@app/redis": ["libs/redis/src"],
-      "@app/redis/*": ["libs/redis/src/*"],
-      "@app/auth": ["libs/auth/src"],
-      "@app/auth/*": ["libs/auth/src/*"],
-      "@app/elastic": ["libs/elastic/src"],
-      "@app/elastic/*": ["libs/elastic/src/*"],
-      "@app/helper": ["libs/helper/src"],
-      "@app/helper/*": ["libs/helper/src/*"],
-      "@app/repositories": ["libs/repositories/src"],
-      "@app/repositories/*": ["libs/repositories/src/*"],
-      "@app/clash-client": ["libs/clash-client/src"],
-      "@app/clash-client/*": ["libs/clash-client/src/*"],
-      "@app/discord-client": ["libs/discord-client/src"],
-      "@app/discord-client/*": ["libs/discord-client/src/*"],
-      "@app/kafka": ["libs/kafka/src"],
-      "@app/kafka/*": ["libs/kafka/src/*"],
-      "@app/validators": ["libs/validators/src"],
-      "@app/validators/*": ["libs/validators/src/*"],
-      "@app/discord-oauth": ["libs/discord-oauth/src"],
-      "@app/discord-oauth/*": ["libs/discord-oauth/src/*"]
+      "@app/auth": [
+        "libs/auth/src"
+      ],
+      "@app/auth/*": [
+        "libs/auth/src/*"
+      ],
+      "@app/clash-client": [
+        "libs/clash-client/src"
+      ],
+      "@app/clash-client/*": [
+        "libs/clash-client/src/*"
+      ],
+      "@app/clickhouse": [
+        "libs/clickhouse/src"
+      ],
+      "@app/clickhouse/*": [
+        "libs/clickhouse/src/*"
+      ],
+      "@app/constants": [
+        "libs/constants/src"
+      ],
+      "@app/constants/*": [
+        "libs/constants/src/*"
+      ],
+      "@app/discord-client": [
+        "libs/discord-client/src"
+      ],
+      "@app/discord-client/*": [
+        "libs/discord-client/src/*"
+      ],
+      "@app/discord-oauth": [
+        "libs/discord-oauth/src"
+      ],
+      "@app/discord-oauth/*": [
+        "libs/discord-oauth/src/*"
+      ],
+      "@app/elastic": [
+        "libs/elastic/src"
+      ],
+      "@app/elastic/*": [
+        "libs/elastic/src/*"
+      ],
+      "@app/entities": [
+        "libs/entities/src"
+      ],
+      "@app/entities/*": [
+        "libs/entities/src/*"
+      ],
+      "@app/helper": [
+        "libs/helper/src"
+      ],
+      "@app/helper/*": [
+        "libs/helper/src/*"
+      ],
+      "@app/kafka": [
+        "libs/kafka/src"
+      ],
+      "@app/kafka/*": [
+        "libs/kafka/src/*"
+      ],
+      "@app/mongodb": [
+        "libs/mongodb/src"
+      ],
+      "@app/mongodb/*": [
+        "libs/mongodb/src/*"
+      ],
+      "@app/redis": [
+        "libs/redis/src"
+      ],
+      "@app/redis/*": [
+        "libs/redis/src/*"
+      ],
+      "@app/repositories": [
+        "libs/repositories/src"
+      ],
+      "@app/repositories/*": [
+        "libs/repositories/src/*"
+      ],
+      "@app/validators": [
+        "libs/validators/src"
+      ],
+      "@app/validators/*": [
+        "libs/validators/src/*"
+      ]
     }
   },
-  "include": ["src", "scripts", "test", "libs"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src",
+    "scripts",
+    "test",
+    "libs"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
