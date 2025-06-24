@@ -26,6 +26,6 @@ RUN npm ci --omit=dev
 ENV NODE_ENV=production
 
 EXPOSE 8080
-ENV PORT 8080
+ENV PORT=8080
 
 CMD [ "node", "dist/src/main.js" ]

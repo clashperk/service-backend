@@ -21,8 +21,8 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   const builder = new DocumentBuilder()
-    .setTitle('Service Backend API')
-    .setDescription('Public and Private Routes for the Service Backend API')
+    .setTitle('ClashPerk API')
+    .setDescription(['API routes for ClashPerk bot and tools.'].join('<br />'))
     .setVersion('v1')
     .addTag('AUTH')
     .addTag('DISCORD')
@@ -33,7 +33,7 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, builder);
-  SwaggerModule.setup('/', app, document, {
+  SwaggerModule.setup('/docs', app, document, {
     jsonDocumentUrl: 'swagger/json',
     yamlDocumentUrl: 'swagger/yaml',
   });
