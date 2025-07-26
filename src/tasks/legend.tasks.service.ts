@@ -4,6 +4,7 @@ import { Tokens } from '@app/constants';
 import { RedisClient } from '@app/redis';
 import { NodeClickHouseClient } from '@clickhouse/client/dist/client';
 import { Inject, Injectable } from '@nestjs/common';
+import moment from 'moment';
 
 @Injectable()
 export class LegendTasksService {
@@ -47,6 +48,23 @@ export class LegendTasksService {
     return result;
   }
 
+  public async getTrophyHistoricalThresholds() {
+    const { endTime, startTime } = this.clashClient.util.getSeason();
+    const timestamps = Array.from({ length: moment(endTime).diff(startTime, 'days') + 1 }, (_, i) =>
+      moment(startTime).add(i, 'days'),
+    ).filter((mts) => mts.isSameOrBefore(moment()));
+
+    const thresholdRecords = await this.redis.mGet(
+      timestamps.map((mts) => `RAW:LEGEND-TROPHY-THRESHOLD:${mts.format('YYYY-MM-DD')}`),
+    );
+
+    const thresholds = thresholdRecords
+      .filter((result) => result !== null)
+      .map((result) => JSON.parse(result as string));
+
+    return thresholds;
+  }
+
   private async getCachedTrophyThresholds(key: string) {
     try {
       const result = await this.redis.get(key);
@@ -77,7 +95,7 @@ export class LegendTasksService {
                 row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
               FROM legend_players
               FINAL
-              WHERE seasonId = {seasonId: String}
+              WHERE seasonId = {seasonId: String} AND createdAt >= toStartOfDay(now() - INTERVAL 1 DAY)
             )
             SELECT *
             FROM ranked

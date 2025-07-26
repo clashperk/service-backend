@@ -19,6 +19,11 @@ export class TasksController {
     return this.legendTasksService.getTrophyThresholds();
   }
 
+  @Get('/historical-legend-trophy-threshold')
+  async getHistoricalLegendThresholds() {
+    return this.legendTasksService.getTrophyHistoricalThresholds();
+  }
+
   @Post('/backfill-legend-trophy-threshold')
   async backfillLegendThresholds() {
     return this.legendTasksService.backfillLegendTrophyThreshold();
