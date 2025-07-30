@@ -15,7 +15,7 @@ export class LegendTasksService {
   ) {}
 
   public async backfillLegendTrophyThreshold() {
-    const thresholds = await this.getTrophyThresholds();
+    const thresholds = await this.getTrophyThresholds({ useCache: false });
     const timestamp = new Date().toISOString();
     const keyPrefix = 'RAW:LEGEND-TROPHY-THRESHOLD';
     const key = `${keyPrefix}:${timestamp.slice(0, 10)}`;
@@ -34,10 +34,10 @@ export class LegendTasksService {
     return thresholds;
   }
 
-  public async getTrophyThresholds() {
+  public async getTrophyThresholds({ useCache = true }: { useCache?: boolean }) {
     const key = 'CACHED:LEGEND-TROPHY-THRESHOLD';
     const cached = await this.getCachedTrophyThresholds(key);
-    if (cached) return cached;
+    if (cached && useCache) return cached;
 
     const result = await this.aggregateTrophyThreshold();
 

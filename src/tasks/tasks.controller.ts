@@ -16,7 +16,7 @@ export class TasksController {
 
   @Get('/legend-trophy-threshold')
   async getLegendThresholds() {
-    return this.legendTasksService.getTrophyThresholds();
+    return this.legendTasksService.getTrophyThresholds({ useCache: true });
   }
 
   @Get('/historical-legend-trophy-threshold')
