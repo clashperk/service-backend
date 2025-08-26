@@ -1,44 +1,34 @@
-import { CurrentUserExpanded, JwtAuthGuard, JwtUser, Role, Roles, RolesGuard } from '@app/auth';
-import { getAppHealth } from '@app/helper';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiExcludeEndpoint, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Request } from 'express';
 import { AuthService } from './auth.service';
-import { LoginInput } from './dto';
+import { CacheControl } from './decorators';
+import { LoginInputDto, LoginOkDto } from './dto';
 
-@ApiTags('AUTH')
-@Controller({ path: '/auth' })
+@Controller('/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiExcludeEndpoint()
-  @Get()
-  ack() {
-    return { message: `Hello from ${AuthController.name}` };
-  }
-
-  @ApiExcludeEndpoint()
-  @Get('/health')
-  stats() {
-    return getAppHealth(AuthController.name);
-  }
-
   @Post('/login')
-  async login(@Body() body: LoginInput) {
-    return this.authService.login(body.passkey);
+  async login(@Body() body: LoginInputDto): Promise<LoginOkDto> {
+    const user = this.authService.login(body.token);
+    return {
+      roles: user.roles,
+      userId: user.userId,
+      accessToken: await this.authService.generateToken(),
+    };
   }
 
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @Get('/generate-token')
+  async generateToken() {
+    return { accessToken: await this.authService.generateToken() };
+  }
+
   @Get('/status')
-  getStatus(@CurrentUserExpanded() user: JwtUser) {
-    return user;
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @ApiExcludeEndpoint()
-  @Get('/applications')
-  getCustomBots() {
-    return this.authService.getCustomBots();
+  @CacheControl(30)
+  async getAuthStatus(@Req() req: Request) {
+    return Promise.resolve({
+      'authorization': req.headers['authorization'] || null,
+      'x-access-token': req.headers['x-access-token'] || null,
+    });
   }
 }

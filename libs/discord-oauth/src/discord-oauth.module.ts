@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { DiscordOAuthService } from './discord-oauth.service';
+import { DiscordOauthService } from './discord-oauth.service';
 
 @Module({
-  providers: [DiscordOAuthService],
-  exports: [DiscordOAuthService],
+  providers: [DiscordOauthService],
+  exports: [DiscordOauthService],
 })
-export class DiscordOAuthModule {}
+export class DiscordOauthModule {}

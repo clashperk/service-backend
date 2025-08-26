@@ -1,60 +1,35 @@
-import { JwtUser } from '@app/auth';
-import { Collections } from '@app/constants';
-import { CustomBotsEntity, PortalUsersEntity } from '@app/entities';
-import { encrypt } from '@app/helper';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import moment from 'moment';
-import { Collection } from 'mongodb';
-import { v4 as uuid } from 'uuid';
-
-const jwtVersion = 'v1';
+import Redis from 'ioredis';
+import { Db } from 'mongodb';
+import { MONGODB_TOKEN } from '../db/mongodb.module';
+import { REDIS_TOKEN } from '../db/redis.module';
+import { JwtUser, JwtUserInput } from './decorators';
+import { UserRoles } from './dto/roles.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly jwtService: JwtService,
-    @Inject(Collections.PORTAL_USERS) private portalUsersCollection: Collection<PortalUsersEntity>,
-    @Inject(Collections.CUSTOM_BOTS) private customBotsCollection: Collection<CustomBotsEntity>,
+    @Inject(REDIS_TOKEN) private redis: Redis,
+    @Inject(MONGODB_TOKEN) private db: Db,
+    private jwtService: JwtService,
   ) {}
 
-  async login(passKey: string) {
-    const user = await this.portalUsersCollection.findOne({ passKey });
-    if (!user) throw new UnauthorizedException();
-
-    const payload = {
-      sub: user.userId,
-      jti: uuid(),
-      version: jwtVersion,
-      roles: user.roles,
-    } satisfies Partial<JwtUser>;
-
-    return {
-      userId: user.userId,
-      roles: user.roles,
-      expiresIn: moment().add(2, 'hours').toDate().getTime(),
-      accessToken: this.jwtService.sign(payload),
-    };
+  login(token: string) {
+    try {
+      return this.jwtService.verify(token) as unknown as JwtUser;
+    } catch {
+      throw new UnauthorizedException();
+    }
   }
 
-  async validateJwt(jwtUser: JwtUser) {
-    if (jwtUser.version !== jwtVersion) throw new UnauthorizedException();
-    return jwtUser;
-  }
-
-  async getCustomBots() {
-    const bots = await this.customBotsCollection
-      .find({ $or: [{ isRunning: true }, { isDisabled: false }] })
-      .project({
-        name: 0,
-        serviceId: 0,
-        patronId: 0,
-        userId: 0,
-        updatedAt: 0,
-        createdAt: 0,
-      })
-      .toArray();
-
-    return { payload: await encrypt(JSON.stringify(bots)) };
+  async generateToken() {
+    return Promise.resolve(
+      this.jwtService.sign({
+        userId: '1',
+        roles: [UserRoles.Admin],
+        version: '1.0',
+      } satisfies JwtUserInput),
+    );
   }
 }
