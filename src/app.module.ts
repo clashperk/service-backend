@@ -1,78 +1,54 @@
-import { ClashClientModule } from '@app/clash-client';
-import { ClickhouseModule } from '@app/clickhouse';
-import { DiscordOAuthModule } from '@app/discord-oauth';
-import { MongoDbModule } from '@app/mongodb';
-import { RedisModule } from '@app/redis';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
+
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
+import { MongoDbModule } from './db/mongodb.module';
+import { RedisClientModule } from './db/redis.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
 import { RostersModule } from './rosters/rosters.module';
 import { TasksModule } from './tasks/tasks.module';
+import { UsersModule } from './users/users.module';
+import { WarsModule } from './wars/wars.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
-    // RdbModule,
 
-    // GraphQLModule.forRootAsync<ApolloDriverConfig>({
-    //   imports: [],
-    //   driver: ApolloDriver,
-    //   useFactory: async () => ({
-    //     autoSchemaFile: true,
-    //     sortSchema: true,
-    //     persistedQueries: false,
-    //     plugins: [ApolloServerPluginLandingPageLocalDefault()],
-    //     playground: false,
-    //     introspection: true,
-    //   }),
-    //   inject: [ConfigService],
-    // }),
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
+      imports: [],
+      driver: ApolloDriver,
+      useFactory: () => ({
+        autoSchemaFile: true,
+        sortSchema: true,
+        persistedQueries: false,
+        plugins: [ApolloServerPluginLandingPageLocalDefault()],
+        playground: false,
+        introspection: true,
+      }),
+      inject: [ConfigService],
+    }),
 
+    RedisClientModule,
     MongoDbModule,
-    RedisModule,
-    ClickhouseModule,
+
     AuthModule,
-    ClansModule,
     GuildsModule,
-    LinksModule,
+    UsersModule,
+    ClansModule,
+    WarsModule,
     PlayersModule,
     RostersModule,
-    ClashClientModule,
-    DiscordOAuthModule,
     TasksModule,
-    // ExportsModule,
-    // KafkaProducerModule.forRootAsync({
-    //   useFactory: (configService: ConfigService) => {
-    //     return {
-    //       kafkaConfig: {
-    //         clientId: 'kafka-client-id',
-    //         brokers: [configService.getOrThrow('KAFKA_BROKER')],
-    //       },
-    //       producerConfig: {},
-    //     };
-    //   },
-    //   inject: [ConfigService],
-    // }),
-    // KafkaConsumerModule.forRootAsync({
-    //   useFactory: (configService: ConfigService) => {
-    //     return {
-    //       kafkaConfig: {
-    //         clientId: 'kafka-client-id',
-    //         brokers: [configService.getOrThrow('KAFKA_BROKER')],
-    //       },
-    //       consumerConfig: { groupId: 'kafka-consumer-group' },
-    //     };
-    //   },
-    //   inject: [ConfigService],
-    // }),
-    // ConsumerModule,
+    LinksModule,
   ],
   controllers: [AppController],
   providers: [],

@@ -11,7 +11,13 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "@app/clickhouse": "<rootDir>/../libs/clickhouse/src",
-    "@app/clickhouse/(.*)": "<rootDir>/../libs/clickhouse/src/$1"
+    "@app/clash-client": "<rootDir>/../libs/clash-client/src",
+    "@app/clash-client/(.*)": "<rootDir>/../libs/clash-client/src/$1",
+    "@app/discord-client": "<rootDir>/../libs/discord-client/src",
+    "@app/discord-client/(.*)": "<rootDir>/../libs/discord-client/src/$1",
+    "@app/discord-oauth": "<rootDir>/../libs/discord-oauth/src",
+    "@app/discord-oauth/(.*)": "<rootDir>/../libs/discord-oauth/src/$1",
+    "@app/google-sheet": "<rootDir>/../libs/google-sheet/src",
+    "@app/google-sheet/(.*)": "<rootDir>/../libs/google-sheet/src/$1"
   }
 }

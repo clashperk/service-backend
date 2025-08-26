@@ -1,49 +1,32 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
+    "esModuleInterop": true,
+    "isolatedModules": false,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "importHelpers": true,
-    "target": "ES2021",
+    "target": "ES2023",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noUncheckedIndexedAccess": true,
-    "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "useUnknownInCatchVariables": false,
     "paths": {
-      "@app/auth": [
-        "libs/auth/src"
-      ],
-      "@app/auth/*": [
-        "libs/auth/src/*"
-      ],
       "@app/clash-client": [
         "libs/clash-client/src"
       ],
       "@app/clash-client/*": [
         "libs/clash-client/src/*"
-      ],
-      "@app/clickhouse": [
-        "libs/clickhouse/src"
-      ],
-      "@app/clickhouse/*": [
-        "libs/clickhouse/src/*"
-      ],
-      "@app/constants": [
-        "libs/constants/src"
-      ],
-      "@app/constants/*": [
-        "libs/constants/src/*"
       ],
       "@app/discord-client": [
         "libs/discord-client/src"
@@ -57,63 +40,13 @@
       "@app/discord-oauth/*": [
         "libs/discord-oauth/src/*"
       ],
-      "@app/elastic": [
-        "libs/elastic/src"
+      "@app/google-sheet": [
+        "libs/google-sheet/src"
       ],
-      "@app/elastic/*": [
-        "libs/elastic/src/*"
-      ],
-      "@app/entities": [
-        "libs/entities/src"
-      ],
-      "@app/entities/*": [
-        "libs/entities/src/*"
-      ],
-      "@app/helper": [
-        "libs/helper/src"
-      ],
-      "@app/helper/*": [
-        "libs/helper/src/*"
-      ],
-      "@app/kafka": [
-        "libs/kafka/src"
-      ],
-      "@app/kafka/*": [
-        "libs/kafka/src/*"
-      ],
-      "@app/mongodb": [
-        "libs/mongodb/src"
-      ],
-      "@app/mongodb/*": [
-        "libs/mongodb/src/*"
-      ],
-      "@app/redis": [
-        "libs/redis/src"
-      ],
-      "@app/redis/*": [
-        "libs/redis/src/*"
-      ],
-      "@app/repositories": [
-        "libs/repositories/src"
-      ],
-      "@app/repositories/*": [
-        "libs/repositories/src/*"
-      ],
-      "@app/validators": [
-        "libs/validators/src"
-      ],
-      "@app/validators/*": [
-        "libs/validators/src/*"
+      "@app/google-sheet/*": [
+        "libs/google-sheet/src/*"
       ]
-    }
-  },
-  "include": [
-    "src",
-    "scripts",
-    "test",
-    "libs"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+    },
+    "baseUrl": "./"
+  }
 }

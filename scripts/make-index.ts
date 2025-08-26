@@ -5,7 +5,7 @@ import * as path from 'path';
 
 const INDEX_FILE_NAME = 'index.ts';
 
-const makeIndex = async (directory: string) => {
+const makeIndex = (directory: string) => {
   const dirPath = path.join(__dirname, '..', directory);
   console.log(`Making index file in: ${directory}`);
 
@@ -24,19 +24,39 @@ const makeIndex = async (directory: string) => {
   fs.writeFileSync(indexPath, indexFileContent.concat('\n'), { flag: 'w' });
 };
 
-const paths = [
-  'libs/entities/src',
-  'libs/repositories/src',
-  'apps/service-auth/src/auth/dto',
-  'apps/service-auth/src/guilds/dto',
-  'apps/service-auth/src/clans/dto',
-  'apps/service-auth/src/links/dto',
-  'apps/service-auth/src/players/dto',
-  'apps/service-auth/src/rosters/dto',
+const findIndexFiles = (dir: string, basePath: string): string[] => {
+  const indexPaths: string[] = [];
 
-  'apps/service-clans/src/dto',
-];
+  const items = fs.readdirSync(dir, { withFileTypes: true });
 
-(async () => {
-  for (const path of paths) await makeIndex(path);
-})();
+  const hasIndexFile = items.some((item) => item.isFile() && item.name === INDEX_FILE_NAME);
+
+  if (hasIndexFile) {
+    const relativePath = path.relative(basePath, dir);
+    indexPaths.push(relativePath || '.');
+  }
+
+  for (const item of items) {
+    if (item.isDirectory()) {
+      const subDir = path.join(dir, item.name);
+      indexPaths.push(...findIndexFiles(subDir, basePath));
+    }
+  }
+
+  return indexPaths;
+};
+
+const findAllIndexPaths = (baseDir: string = 'src'): string[] => {
+  const projectRoot = path.join(__dirname, '..');
+  const searchDir = path.join(projectRoot, baseDir);
+
+  if (!fs.existsSync(searchDir)) {
+    return [];
+  }
+
+  const indexPaths = findIndexFiles(searchDir, searchDir);
+
+  return indexPaths.map((p) => path.join(baseDir, p));
+};
+
+for (const path of findAllIndexPaths('src')) makeIndex(path);

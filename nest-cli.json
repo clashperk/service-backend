@@ -2,27 +2,27 @@
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
+  "generateOptions": {
+    "spec": false
+  },
   "compilerOptions": {
     "plugins": [
-      "@nestjs/swagger"
+      {
+        "name": "@nestjs/swagger",
+        "options": {
+          "dtoFileNameSuffix": [
+            ".dto.ts",
+            ".entity.ts",
+            ".enum.ts"
+          ],
+          "introspectComments": true
+        }
+      }
     ],
     "deleteOutDir": true,
     "webpack": false
   },
-  "generateOptions": {
-    "spec": false,
-    "flat": false
-  },
   "projects": {
-    "auth": {
-      "type": "library",
-      "root": "libs/auth",
-      "entryFile": "index",
-      "sourceRoot": "libs/auth/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/auth/tsconfig.lib.json"
-      }
-    },
     "clash-client": {
       "type": "library",
       "root": "libs/clash-client",
@@ -30,24 +30,6 @@
       "sourceRoot": "libs/clash-client/src",
       "compilerOptions": {
         "tsConfigPath": "libs/clash-client/tsconfig.lib.json"
-      }
-    },
-    "clickhouse": {
-      "type": "library",
-      "root": "libs/clickhouse",
-      "entryFile": "index",
-      "sourceRoot": "libs/clickhouse/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/clickhouse/tsconfig.lib.json"
-      }
-    },
-    "constants": {
-      "type": "library",
-      "root": "libs/constants",
-      "entryFile": "index",
-      "sourceRoot": "libs/constants/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/constants/tsconfig.lib.json"
       }
     },
     "discord-client": {
@@ -68,76 +50,13 @@
         "tsConfigPath": "libs/discord-oauth/tsconfig.lib.json"
       }
     },
-    "elastic": {
+    "google-sheet": {
       "type": "library",
-      "root": "libs/elastic",
+      "root": "libs/google-sheet",
       "entryFile": "index",
-      "sourceRoot": "libs/elastic/src",
+      "sourceRoot": "libs/google-sheet/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/elastic/tsconfig.lib.json"
-      }
-    },
-    "entities": {
-      "type": "library",
-      "root": "libs/entities",
-      "entryFile": "index",
-      "sourceRoot": "libs/entities/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/entities/tsconfig.lib.json"
-      }
-    },
-    "helper": {
-      "type": "library",
-      "root": "libs/helper",
-      "entryFile": "index",
-      "sourceRoot": "libs/helper/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/helper/tsconfig.lib.json"
-      }
-    },
-    "kafka": {
-      "type": "library",
-      "root": "libs/kafka",
-      "entryFile": "index",
-      "sourceRoot": "libs/kafka/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/kafka/tsconfig.lib.json"
-      }
-    },
-    "mongodb": {
-      "type": "library",
-      "root": "libs/mongodb",
-      "entryFile": "index",
-      "sourceRoot": "libs/mongodb/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/mongodb/tsconfig.lib.json"
-      }
-    },
-    "redis": {
-      "type": "library",
-      "root": "libs/redis",
-      "entryFile": "index",
-      "sourceRoot": "libs/redis/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/redis/tsconfig.lib.json"
-      }
-    },
-    "repositories": {
-      "type": "library",
-      "root": "libs/repositories",
-      "entryFile": "index",
-      "sourceRoot": "libs/repositories/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/repositories/tsconfig.lib.json"
-      }
-    },
-    "validators": {
-      "type": "library",
-      "root": "libs/validators",
-      "entryFile": "index",
-      "sourceRoot": "libs/validators/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/validators/tsconfig.lib.json"
+        "tsConfigPath": "libs/google-sheet/tsconfig.lib.json"
       }
     }
   }
