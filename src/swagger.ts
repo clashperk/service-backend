@@ -21,7 +21,8 @@ export function build(app: NestExpressApplication) {
     .setExternalDoc('Join our Discord', 'https://discord.gg/ppuppun');
 
   builder
-    .addTag('Auth', 'Authentication endpoints')
+    .addTag('Auth', 'Authentication endpoints (requires api key)')
+    .addTag('Links', 'Links management endpoints (requires access token)')
     .addTag('Users', 'User management endpoints (requires access token)')
     .addTag('Guilds', 'Guild management endpoints (requires api key)')
     .addTag('Rosters', 'Roster management endpoints (requires access token)')

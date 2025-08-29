@@ -43,6 +43,7 @@
     "class-validator": "^0.14.2",
     "graphql": "^16.11.0",
     "ioredis": "^5.7.0",
+    "lodash": "^4.17.21",
     "mongodb": "^6.18.0",
     "morgan": "^1.10.1",
     "passport-jwt": "^4.0.1",
@@ -61,6 +62,7 @@
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
+    "@types/lodash": "^4.17.20",
     "@types/morgan": "^1.9.10",
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
@@ -103,6 +105,7 @@
     ],
     "moduleNameMapper": {
       "^@app/clash-client(|/.*)$": "<rootDir>/libs/clash-client/src/$1",
+      "^@app/decorators(|/.*)$": "<rootDir>/libs/decorators/src/$1",
       "^@app/discord-client(|/.*)$": "<rootDir>/libs/discord-client/src/$1",
       "^@app/discord-oauth(|/.*)$": "<rootDir>/libs/discord-oauth/src/$1",
       "^@app/google-sheet(|/.*)$": "<rootDir>/libs/google-sheet/src/$1"

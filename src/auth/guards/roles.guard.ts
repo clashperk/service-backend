@@ -18,7 +18,7 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest<Request>();
     if (!user?.roles) throw new ForbiddenException('Insufficient access or malformed JWT');
 
-    if (user.roles.includes(UserRoles.Admin)) return true;
+    if (user.roles.includes(UserRoles.ADMIN)) return true;
 
     const isOk = requiredRoles.some((role) => user.roles.includes(role));
     if (!isOk) throw new ForbiddenException();

@@ -22,31 +22,16 @@
     "noFallthroughCasesInSwitch": false,
     "useUnknownInCatchVariables": false,
     "paths": {
-      "@app/clash-client": [
-        "libs/clash-client/src"
-      ],
-      "@app/clash-client/*": [
-        "libs/clash-client/src/*"
-      ],
-      "@app/discord-client": [
-        "libs/discord-client/src"
-      ],
-      "@app/discord-client/*": [
-        "libs/discord-client/src/*"
-      ],
-      "@app/discord-oauth": [
-        "libs/discord-oauth/src"
-      ],
-      "@app/discord-oauth/*": [
-        "libs/discord-oauth/src/*"
-      ],
-      "@app/google-sheet": [
-        "libs/google-sheet/src"
-      ],
-      "@app/google-sheet/*": [
-        "libs/google-sheet/src/*"
-      ]
-    },
-    "baseUrl": "./"
+      "@app/clash-client": ["./libs/clash-client/src"],
+      "@app/clash-client/*": ["./libs/clash-client/src/*"],
+      "@app/decorators": ["./libs/decorators/src"],
+      "@app/decorators/*": ["./libs/decorators/src/*"],
+      "@app/discord-client": ["./libs/discord-client/src"],
+      "@app/discord-client/*": ["./libs/discord-client/src/*"],
+      "@app/discord-oauth": ["./libs/discord-oauth/src"],
+      "@app/discord-oauth/*": ["./libs/discord-oauth/src/*"],
+      "@app/google-sheet": ["./libs/google-sheet/src"],
+      "@app/google-sheet/*": ["./libs/google-sheet/src/*"]
+    }
   }
 }
