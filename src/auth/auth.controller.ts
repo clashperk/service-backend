@@ -1,34 +1,28 @@
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { CacheControl } from './decorators';
-import { LoginInputDto, LoginOkDto } from './dto';
+import { GenerateTokenDto, GenerateTokenInputDto, LoginInputDto, LoginOkDto } from './dto';
+import { ApiKeyGuard } from './guards';
 
 @Controller('/auth')
+@UseGuards(ApiKeyGuard)
+@ApiSecurity('apiKey')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @ApiOperation({
+    summary: `Authenticates a user and returns login information.`,
+  })
   @Post('/login')
   async login(@Body() body: LoginInputDto): Promise<LoginOkDto> {
-    const user = this.authService.login(body.token);
-    return {
-      roles: user.roles,
-      userId: user.userId,
-      accessToken: await this.authService.generateToken(),
-    };
+    return this.authService.login(body.userId);
   }
 
-  @Get('/generate-token')
-  async generateToken() {
-    return { accessToken: await this.authService.generateToken() };
-  }
-
-  @Get('/status')
-  @CacheControl(30)
-  async getAuthStatus(@Req() req: Request) {
-    return Promise.resolve({
-      'authorization': req.headers['authorization'] || null,
-      'x-access-token': req.headers['x-access-token'] || null,
-    });
+  @ApiOperation({
+    summary: `Generates a JWT token with specified user roles.`,
+  })
+  @Post('/generate-token')
+  async generateToken(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
+    return this.authService.generateToken(body);
   }
 }

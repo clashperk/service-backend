@@ -1,0 +1,59 @@
+import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsString,
+  Validate,
+  ValidateIf,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
+@ValidatorConstraint({ name: 'EitherOrConstraint', async: false })
+class EitherOrConstraint implements ValidatorConstraintInterface {
+  validate() {
+    return false;
+  }
+
+  defaultMessage() {
+    return 'You can send either "playerTags" or "userIds", not both or none. Max size is 100.';
+  }
+}
+
+export class CreateLinkInputDto {
+  playerTag: string;
+  userId: string;
+  apiToken: string | null;
+}
+
+export class LinksDto {
+  tag: string;
+  name: string;
+  userId: string;
+  username: string;
+  verified: boolean;
+}
+
+export class BulkLinksInputDto {
+  @ValidateIf((body) => !!(body.playerTags && !body.userIds))
+  @IsString({ each: true })
+  @ArrayMaxSize(100)
+  @ArrayMinSize(1)
+  @ApiProperty({ example: ['#2PP'] })
+  playerTags: string[];
+
+  @ValidateIf((body) => !!(body.userIds && !body.playerTags))
+  @IsString({ each: true })
+  @ArrayMaxSize(100)
+  @ArrayMinSize(1)
+  @ApiProperty({ example: ['444432489818357760'] })
+  userIds: string[];
+
+  @ApiHideProperty()
+  @ValidateIf(
+    (body) =>
+      !!(body.playerTags?.length && body.userIds?.length) ||
+      !!(!body.playerTags?.length && !body.userIds?.length),
+  )
+  @Validate(EitherOrConstraint)
+  private _: string;
+}

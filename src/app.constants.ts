@@ -1,6 +1,8 @@
 import { Logger } from '@nestjs/common';
 import morgan from 'morgan';
 
+export const codeBlock = (str: string) => '\n```' + str + '```';
+
 export const morganLogger = (logger: Logger) => {
   return morgan(
     (tokens, req, res) => {

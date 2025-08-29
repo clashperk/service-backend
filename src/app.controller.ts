@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Cache } from '@app/decorators';
+import { Controller, Get, Req } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint, ApiResponse } from '@nestjs/swagger';
 
 @Controller('/')
@@ -27,5 +28,14 @@ export class AppController {
   })
   getHealth() {
     return { message: 'Ok' };
+  }
+
+  @Get('/cloudflare-cache-status-check')
+  @Cache(30)
+  async cloudflareCacheStatusCheck(@Req() req: Request) {
+    return Promise.resolve({
+      'authorization': req.headers['authorization'] || null,
+      'x-access-token': req.headers['x-access-token'] || null,
+    });
   }
 }
