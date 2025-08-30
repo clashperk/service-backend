@@ -1,15 +1,15 @@
+import { DiscordClientService } from '@app/discord-client';
 import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { randomBytes } from 'crypto';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
-
-import { DiscordClientService } from '@app/discord-client';
 import { RedisKeys } from '../app.constants';
 import { Collections } from '../db/db.constants';
 import { MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_TOKEN } from '../db/redis.module';
 import { JwtUser, JwtUserInput } from './decorators';
-import { GenerateTokenInputDto, UserRoles } from './dto';
+import { GenerateTokenDto, GenerateTokenInputDto, LoginOkDto, UserRoles } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -21,32 +21,49 @@ export class AuthService {
     private discordClientService: DiscordClientService,
   ) {}
 
-  async login(userId: string) {
-    const user = await this.users.findOne({ userId });
+  async login(passKey: string): Promise<LoginOkDto> {
+    const user = await this.users.findOne({ passKey });
+    if (!user) throw new UnauthorizedException('Invalid');
 
-    const roles = user ? user.roles : [UserRoles.USER];
     return {
-      userId,
-      roles,
-      accessToken: this.createJwt({ userId, roles }),
+      userId: user.userId,
+      roles: user.roles,
+      accessToken: this.createJwt({ userId: user.userId, roles: user.roles }, { expiresIn: '2h' }),
     };
   }
 
-  async generateToken(input: GenerateTokenInputDto) {
+  async generateToken(input: GenerateTokenInputDto): Promise<GenerateTokenDto> {
     const user = await this.discordClientService.getUser(input.userId);
 
-    const dto = {
-      userId: input.userId,
-      roles: input.roles,
-      isBot: !!user.bot,
-      username: user.username,
-      displayName: user.global_name || user.username,
-    };
+    const dto = await this.users.findOneAndUpdate(
+      { userId: input.userId },
+      {
+        $setOnInsert: {
+          createdAt: new Date(),
+          passKey: randomBytes(16).toString('hex'),
+        },
+        $set: {
+          userId: input.userId,
+          roles: input.roles,
+          isBot: !!user.bot,
+          displayName: user.global_name || user.username,
+          updatedAt: new Date(),
+          deletedAt: null,
+        },
+      },
+      { upsert: true, returnDocument: 'after' },
+    );
 
-    await this.users.updateOne({ userId: input.userId }, { $set: dto }, { upsert: true });
+    if (!dto) {
+      throw new UnauthorizedException('Failed');
+    }
 
     return {
-      ...dto,
+      passKey: dto.passKey,
+      userId: dto.userId,
+      displayName: dto.displayName,
+      isBot: dto.isBot,
+      roles: dto.roles,
       accessToken: this.createJwt({ userId: input.userId, roles: input.roles }),
     };
   }
@@ -60,15 +77,17 @@ export class AuthService {
     return payload;
   }
 
-  private createJwt(input: { userId: string; roles: UserRoles[] }) {
-    return this.jwtService.sign({
+  private createJwt(input: { userId: string; roles: UserRoles[] }, options?: JwtSignOptions) {
+    const payload = {
       userId: input.userId,
       roles: input.roles,
       version: '1',
-    } satisfies JwtUserInput);
+    } satisfies JwtUserInput;
+
+    return this.jwtService.sign(payload, options);
   }
 
   private get users() {
-    return this.db.collection(Collections.API_USERS);
+    return this.db.collection(Collections.PORTAL_USERS);
   }
 }

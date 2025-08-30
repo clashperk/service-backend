@@ -12,6 +12,7 @@ import { JwtStrategy } from './strategies';
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET'),
+        signOptions: { issuer: 'clashperk.com' },
       }),
       inject: [ConfigService],
     }),

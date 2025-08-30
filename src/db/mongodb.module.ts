@@ -1,8 +1,22 @@
 import { Global, Inject, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Db, MongoClient } from 'mongodb';
+import { ApiUsersEntity, ClanStoresEntity, PlayerLinksEntity } from './collections';
+import { Collections } from './db.constants';
 
 export const MONGODB_TOKEN = 'MONGODB_TOKEN';
+
+interface CollectionRecords {
+  [Collections.CLAN_STORES]: ClanStoresEntity;
+  [Collections.PORTAL_USERS]: ApiUsersEntity;
+  [Collections.PLAYER_LINKS]: PlayerLinksEntity;
+}
+
+declare module 'mongodb' {
+  interface Db {
+    collection<T extends keyof CollectionRecords>(name: T): Collection<CollectionRecords[T]>;
+  }
+}
 
 @Global()
 @Module({
