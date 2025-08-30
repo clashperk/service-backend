@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
@@ -13,6 +13,7 @@ import { GenerateTokenInputDto, UserRoles } from './dto';
 
 @Injectable()
 export class AuthService {
+  private logger = new Logger(AuthService.name);
   constructor(
     @Inject(REDIS_TOKEN) private redis: Redis,
     @Inject(MONGODB_TOKEN) private readonly db: Db,
@@ -51,13 +52,13 @@ export class AuthService {
   }
 
   async validateJwtUser(payload: JwtUser) {
-    const _start = Date.now();
-    const key = `${RedisKeys.BLOCKED}:${payload.userId}`;
+    const [key, startTime] = [`${RedisKeys.BLOCKED}:${payload.userId}`, Date.now()];
     const isBlocked = await this.redis.get(key);
+    this.logger.log(`Checked blocked status in ${Date.now() - startTime}ms`);
+
     if (isBlocked) {
       throw new UnauthorizedException('User is blocked');
     }
-    console.log('Checked blocked status in', Date.now() - _start, 'ms');
     return payload;
   }
 
