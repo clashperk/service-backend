@@ -51,14 +51,12 @@ export class AuthService {
     };
   }
 
-  async validateJwtUser(payload: JwtUser) {
-    const [key, startTime] = [`${RedisKeys.BLOCKED}:${payload.userId}`, Date.now()];
-    const isBlocked = await this.redis.get(key);
-    this.logger.log(`Checked blocked status in ${Date.now() - startTime}ms`);
+  async revalidateJwtUser(payload: JwtUser) {
+    if (payload.roles.includes(UserRoles.ADMIN)) return payload;
 
-    if (isBlocked) {
-      throw new UnauthorizedException('User is blocked');
-    }
+    const isBlocked = await this.redis.get(`${RedisKeys.USER_BLOCKED}:${payload.userId}`);
+    if (isBlocked) throw new UnauthorizedException('Blocked');
+
     return payload;
   }
 
