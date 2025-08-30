@@ -1,12 +1,14 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
 
+import { DiscordClientService } from '@app/discord-client';
+import { RedisKeys } from '../app.constants';
 import { Collections } from '../db/db.constants';
 import { MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_TOKEN } from '../db/redis.module';
-import { JwtUserInput } from './decorators';
+import { JwtUser, JwtUserInput } from './decorators';
 import { GenerateTokenInputDto, UserRoles } from './dto';
 
 @Injectable()
@@ -15,6 +17,7 @@ export class AuthService {
     @Inject(REDIS_TOKEN) private redis: Redis,
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private jwtService: JwtService,
+    private discordClientService: DiscordClientService,
   ) {}
 
   async login(userId: string) {
@@ -29,17 +32,33 @@ export class AuthService {
   }
 
   async generateToken(input: GenerateTokenInputDto) {
-    await this.users.updateOne(
-      { userId: input.userId },
-      { $set: { userId: input.userId, roles: input.roles } },
-      { upsert: true },
-    );
+    const user = await this.discordClientService.getUser(input.userId);
 
-    return {
+    const dto = {
       userId: input.userId,
       roles: input.roles,
+      isBot: !!user.bot,
+      username: user.username,
+      displayName: user.global_name || user.username,
+    };
+
+    await this.users.updateOne({ userId: input.userId }, { $set: dto }, { upsert: true });
+
+    return {
+      ...dto,
       accessToken: this.createJwt({ userId: input.userId, roles: input.roles }),
     };
+  }
+
+  async validateJwtUser(payload: JwtUser) {
+    const _start = Date.now();
+    const key = `${RedisKeys.BLOCKED}:${payload.userId}`;
+    const isBlocked = await this.redis.get(key);
+    if (isBlocked) {
+      throw new UnauthorizedException('User is blocked');
+    }
+    console.log('Checked blocked status in', Date.now() - _start, 'ms');
+    return payload;
   }
 
   private createJwt(input: { userId: string; roles: UserRoles[] }) {
