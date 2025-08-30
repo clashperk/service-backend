@@ -5,8 +5,6 @@ import { GenerateTokenDto, GenerateTokenInputDto, LoginInputDto, LoginOkDto } fr
 import { ApiKeyGuard } from './guards';
 
 @Controller('/auth')
-@UseGuards(ApiKeyGuard)
-@ApiSecurity('apiKey')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -15,13 +13,15 @@ export class AuthController {
   })
   @Post('/login')
   async login(@Body() body: LoginInputDto): Promise<LoginOkDto> {
-    return this.authService.login(body.userId);
+    return this.authService.login(body.passKey);
   }
 
   @ApiOperation({
     summary: `Generates a JWT token with specified user roles.`,
   })
+  @UseGuards(ApiKeyGuard)
   @Post('/generate-token')
+  @ApiSecurity('apiKey')
   async generateToken(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
     return this.authService.generateToken(body);
   }

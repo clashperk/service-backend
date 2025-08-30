@@ -4,10 +4,13 @@ import { UserRoles } from './roles.dto';
 
 export class LoginInputDto {
   @IsString()
-  userId: string;
+  passKey: string;
 }
 
-export class GenerateTokenInputDto extends LoginInputDto {
+export class GenerateTokenInputDto {
+  @IsString()
+  userId: string;
+
   @EnumArray(UserRoles, 'UserRoles')
   roles: UserRoles[];
 }
@@ -17,8 +20,12 @@ export class LoginOkDto {
   roles: UserRoles[];
 
   userId: string;
+
+  accessToken: string;
 }
 
 export class GenerateTokenDto extends LoginOkDto {
-  accessToken: string;
+  passKey: string;
+  isBot: boolean;
+  displayName: string;
 }
