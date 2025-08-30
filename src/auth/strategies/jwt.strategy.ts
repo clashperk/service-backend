@@ -23,6 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, AuthGuardStrategies.
   }
 
   async validate(payload: JwtUser): Promise<JwtUser> {
-    return this.authService.validateJwtUser(payload);
+    return this.authService.revalidateJwtUser(payload);
   }
 }

@@ -3,5 +3,5 @@ export enum QueueTypes {
 }
 
 export enum RedisKeys {
-  BLOCKED = 'blocked',
+  USER_BLOCKED = 'user_blocked',
 }
