@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-import { morganLogger } from './app.constants';
+import { morganLogger } from './app.helpers';
 import { AppModule } from './app.module';
 import * as Swagger from './swagger';
 
@@ -24,6 +24,6 @@ async function bootstrap() {
   const port = config.get<number>('PORT', 8080);
   await app.listen(port);
 
-  logger.log(`App running on: http://localhost:${port}`);
+  logger.log(`App running on: http://localhost:${port}/docs`);
 }
 bootstrap(); // eslint-disable-line

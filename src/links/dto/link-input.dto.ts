@@ -2,6 +2,7 @@ import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
   ArrayMinSize,
+  IsOptional,
   IsString,
   Validate,
   ValidateIf,
@@ -20,9 +21,19 @@ class EitherOrConstraint implements ValidatorConstraintInterface {
 }
 
 export class CreateLinkInputDto {
+  @IsString()
   playerTag: string;
+
+  @IsString()
   userId: string;
+
+  @IsOptional()
+  @IsString()
   apiToken: string | null;
+}
+
+export class DeleteLinkInputDto {
+  playerTag: string;
 }
 
 export class LinksDto {

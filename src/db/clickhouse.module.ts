@@ -1,6 +1,6 @@
 import { createClient } from '@clickhouse/client';
 import { NodeClickHouseClient } from '@clickhouse/client/dist/client';
-import { Global, Module } from '@nestjs/common';
+import { Global, Inject, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 export const CLICKHOUSE_TOKEN = 'CLICKHOUSE_TOKEN';
@@ -22,4 +22,10 @@ export const CLICKHOUSE_TOKEN = 'CLICKHOUSE_TOKEN';
   ],
   exports: [CLICKHOUSE_TOKEN],
 })
-export class ClickhouseModule {}
+export class ClickhouseModule {
+  constructor(@Inject(CLICKHOUSE_TOKEN) private clickhouse: NodeClickHouseClient) {}
+
+  onModuleInit() {
+    this.clickhouse.ping(); // eslint-disable-line
+  }
+}

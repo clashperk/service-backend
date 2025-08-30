@@ -13,7 +13,7 @@ export const dataSourceOptions: DataSourceOptions = {
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DB,
   entities: ['./src/db/entities/**/*.entity.ts'],
-  migrations: ['./src/db/migrations/**/*.ts'],
+  migrations: ['./src/db/migrations/**/[!index]*.ts'],
   namingStrategy: new SnakeNamingStrategy(),
   migrationsTableName: 'migrations',
   synchronize: false,

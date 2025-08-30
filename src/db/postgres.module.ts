@@ -19,7 +19,7 @@ import * as repositories from './repositories';
           password: configService.getOrThrow<string>('POSTGRES_PASSWORD'),
           database: configService.getOrThrow<string>('POSTGRES_DB'),
           entities: [__dirname + '/../**/entities/**/*.entity.js'],
-          migrations: [__dirname + '/../**/migrations/**/*.js'],
+          migrations: [__dirname + '/../**/migrations/**/[!index]*.js'],
           namingStrategy: new SnakeNamingStrategy(),
           migrationsRun: !!configService.get('RUN_DB_MIGRATIONS_ON_START'),
           migrationsTableName: 'migrations',

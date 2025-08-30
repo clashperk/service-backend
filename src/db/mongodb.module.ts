@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Inject, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Db, MongoClient } from 'mongodb';
 
@@ -19,4 +19,10 @@ export const MONGODB_TOKEN = 'MONGODB_TOKEN';
   ],
   exports: [MONGODB_TOKEN],
 })
-export class MongoDbModule {}
+export class MongoDbModule {
+  constructor(@Inject(MONGODB_TOKEN) private db: Db) {}
+
+  onModuleInit() {
+    this.db.command({ ping: 1 }); // eslint-disable-line
+  }
+}

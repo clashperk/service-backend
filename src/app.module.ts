@@ -4,12 +4,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 
+import { ClashClientModule } from '@app/clash-client';
+import { DiscordClientModule } from '@app/discord-client';
+import { BullModule } from '@nestjs/bull';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
 import { MongoDbModule } from './db/mongodb.module';
 import { RedisClientModule } from './db/redis.module';
+import { ExportsModule } from './exports/exports.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
 import { PlayersModule } from './players/players.module';
@@ -22,6 +26,13 @@ import { WarsModule } from './wars/wars.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
+
+    BullModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        url: configService.getOrThrow('REDIS_URL'),
+      }),
+      inject: [ConfigService],
+    }),
 
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       imports: [],
@@ -49,6 +60,10 @@ import { WarsModule } from './wars/wars.module';
     RostersModule,
     TasksModule,
     LinksModule,
+    ExportsModule,
+
+    ClashClientModule,
+    DiscordClientModule,
   ],
   controllers: [AppController],
   providers: [],
