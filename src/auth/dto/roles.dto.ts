@@ -2,9 +2,7 @@ export enum UserRoles {
   USER = 'user',
   DEV = 'dev',
   ADMIN = 'admin',
-}
 
-export enum UserPermissions {
   FETCH_WARS = 'fetch:wars',
   FETCH_CLANS = 'fetch:clans',
   FETCH_PLAYERS = 'fetch:players',

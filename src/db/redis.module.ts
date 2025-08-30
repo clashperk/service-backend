@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Inject, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
@@ -17,4 +17,10 @@ export const REDIS_TOKEN = 'REDIS_TOKEN';
   ],
   exports: [REDIS_TOKEN],
 })
-export class RedisClientModule {}
+export class RedisClientModule {
+  constructor(@Inject(REDIS_TOKEN) private redis: Redis) {}
+
+  onModuleInit() {
+    this.redis.ping(); // eslint-disable-line
+  }
+}

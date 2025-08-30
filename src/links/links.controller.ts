@@ -1,15 +1,27 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { codeBlock } from '../app.constants';
-import { JwtAuthGuard } from '../auth/guards';
-import { BulkLinksInputDto, LinksDto } from './dto';
+import { codeBlock } from '../app.helpers';
+import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
+import { BulkLinksInputDto, CreateLinkInputDto, LinksDto } from './dto';
 import { LinksService } from './links.service';
 
 @Controller('/links')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class LinksController {
   constructor(private linksService: LinksService) {}
+
+  @Post('/')
+  @Roles(UserRoles.DEV, UserRoles.MANAGE_LINKS)
+  async link(@CurrentUser() user: JwtUser, @Body() body: CreateLinkInputDto) {
+    return this.linksService.createLink(user.userId, body);
+  }
+
+  @Delete('/:playerTag')
+  @Roles(UserRoles.DEV, UserRoles.MANAGE_LINKS)
+  async unlink(@CurrentUser() user: JwtUser, @Param('playerTag') playerTag: string) {
+    return this.linksService.deleteLink(user.userId, playerTag);
+  }
 
   @Post('/search')
   @HttpCode(200)
@@ -19,7 +31,8 @@ export class LinksController {
       `You can send either "playerTags" or "userIds", not both or none. Max size is 100.`,
     ),
   })
-  getLinksByUserIds(@Body() input: BulkLinksInputDto): Promise<LinksDto[]> {
+  @Roles(UserRoles.USER, UserRoles.DEV, UserRoles.FETCH_LINKS, UserRoles.MANAGE_LINKS)
+  async getLinksByUserIds(@Body() input: BulkLinksInputDto): Promise<LinksDto[]> {
     if (input.playerTags?.length) {
       return this.linksService.getLinksByPlayerTags(input.playerTags);
     }
