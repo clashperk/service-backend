@@ -2,7 +2,6 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import compression from 'compression';
 
 import { AppModule } from './app.module';
 import * as Swagger from './swagger';
@@ -15,7 +14,6 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   app.enableCors();
-  app.use(compression());
   app.set('trust proxy', true);
   app.use(morganLogger(logger));
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
