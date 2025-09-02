@@ -60,8 +60,14 @@ export class PlayersService {
 
       wars.push({
         id: war.id,
-        clan,
-        opponent,
+        clan: {
+          name: clan.name,
+          tag: clan.tag,
+        },
+        opponent: {
+          name: opponent.name,
+          tag: opponent.tag,
+        },
         endTime: war.endTime,
         startTime: war.startTime,
         warType: war.warType,
