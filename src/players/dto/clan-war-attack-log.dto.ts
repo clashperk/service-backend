@@ -20,7 +20,7 @@ class AttackRecordDto {
   @ApiProperty()
   defender: {
     tag: string;
-    townhallLevel: number;
+    townHallLevel: number;
     mapPosition: number;
   };
 }
@@ -41,7 +41,7 @@ export class AttackHistoryDto {
   attacker: {
     name: string;
     tag: string;
-    townhallLevel: number;
+    townHallLevel: number;
     mapPosition: number;
   };
 
