@@ -1,5 +1,16 @@
 import { ApiProperty } from '@nestjs/swagger';
 
+import { Transform } from 'class-transformer';
+import { IsOptional, Max, Min } from 'class-validator';
+
+export class AttackHistoryInputDto {
+  @Max(12)
+  @Min(1)
+  @Transform(({ value }) => Number(value))
+  @IsOptional()
+  months: number = 12;
+}
+
 class AttackRecordDto {
   stars: number;
   trueStars: number;

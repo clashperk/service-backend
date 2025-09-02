@@ -1,6 +1,7 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, UserRoles } from '../auth';
+import { AttackHistoryInputDto } from './dto';
 import { PlayersService } from './players.service';
 
 @Controller('/players')
@@ -11,7 +12,7 @@ export class PlayersController {
 
   @Get('/:playerTag/wars')
   @Roles(UserRoles.DEV, UserRoles.FETCH_PLAYERS)
-  clanWarAttackLog(@Param('playerTag') playerTag: string) {
-    return this.playersService.clanWarAttackLog({ playerTag, months: 1 });
+  clanWarAttackLog(@Param('playerTag') playerTag: string, @Query() query: AttackHistoryInputDto) {
+    return this.playersService.clanWarAttackLog({ playerTag, months: query.months });
   }
 }
