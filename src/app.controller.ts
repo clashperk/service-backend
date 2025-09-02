@@ -41,14 +41,14 @@ export class AppController {
   }
 
   @Get('/cloudflare-cache-status-check-custom')
-  async cloudflareCacheStatusCheck1(
+  cloudflareCacheStatusCheck1(
     @Req() req: Request,
     @Res() res: Response,
     @Query('cacheControl') cacheControl: string,
   ) {
     if (cacheControl) res.setHeader('Cache-Control', cacheControl);
 
-    return Promise.resolve({
+    return res.json({
       cacheControl,
       'authorization': req.headers['authorization'] || null,
       'x-access-token': req.headers['x-access-token'] || null,
