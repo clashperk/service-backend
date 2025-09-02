@@ -1,10 +1,12 @@
-FROM node:22-alpine AS installer
+FROM node:22-alpine AS nodejs
+
+WORKDIR /app
+
+FROM nodejs AS installer
 
 RUN npm install -g pnpm
 
-FROM installer AS build
-
-WORKDIR /app
+FROM installer AS builder
 
 COPY --chown=node:node package*.json ./
 
@@ -16,17 +18,17 @@ RUN pnpm run build
 
 USER node
 
-FROM installer AS production
-
-WORKDIR /app
+FROM installer AS pruner
 
 COPY --chown=node:node package*.json ./
 
-COPY --chown=node:node --from=build /app/dist ./dist
-
 RUN pnpm i --prod
 
-ENV NODE_ENV=production
+FROM nodejs
+
+COPY --chown=node:node --from=builder /app/dist ./dist
+COPY --chown=node:node --from=pruner /app/node_modules ./node_modules
+COPY --chown=node:node --from=pruner /app/package*.json ./
 
 EXPOSE 8080
 ENV PORT=8080
