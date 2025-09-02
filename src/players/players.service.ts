@@ -71,8 +71,23 @@ export class PlayersService {
         endTime: war.endTime,
         startTime: war.startTime,
         warType: war.warType,
-        attacker,
-        attacks,
+        attacker: {
+          name: attacker.name,
+          tag: attacker.tag,
+          townHallLevel: attacker.townhallLevel,
+          mapPosition: attacker.mapPosition,
+        },
+        attacks: attacks.map((atk) => ({
+          stars: atk.stars,
+          trueStars: atk.trueStars,
+          defenderTag: atk.defenderTag,
+          destructionPercentage: atk.destructionPercentage,
+          defender: {
+            tag: atk.defender.tag,
+            townHallLevel: atk.defender.townhallLevel,
+            mapPosition: atk.defender.mapPosition,
+          },
+        })),
       });
     }
 
