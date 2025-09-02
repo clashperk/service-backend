@@ -41,7 +41,7 @@ export class PlayersController {
     @Param('playerTag') playerTag: string,
     @Query() query: AttackHistoryQueryInput,
   ): Promise<AttackHistoryOutput[]> {
-    return this.playersService.getClanWarHistory(playerTag, query.months);
+    return this.playersService.getClanWarHistoryV2(playerTag, query.months);
   }
 
   @Get('/:playerTag/cwl-stats')
