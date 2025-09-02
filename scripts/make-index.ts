@@ -59,4 +59,4 @@ const findAllIndexPaths = (baseDir: string = 'src'): string[] => {
   return indexPaths.map((p) => path.join(baseDir, p));
 };
 
-for (const path of findAllIndexPaths('src')) makeIndex(path);
+for (const path of [...findAllIndexPaths('src'), ...findAllIndexPaths('libs')]) makeIndex(path);

@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
-import { morganLogger } from './app.helpers';
 import { AppModule } from './app.module';
 import * as Swagger from './swagger';
+import { morganLogger } from './utils/helpers';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);

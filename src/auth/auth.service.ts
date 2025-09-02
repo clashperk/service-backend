@@ -1,13 +1,13 @@
-import { DiscordClientService } from '@app/discord-client';
+import { DiscordOauthService } from '@app/discord-oauth';
 import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { randomBytes } from 'crypto';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
-import { RedisKeys } from '../app.constants';
 import { Collections } from '../db/db.constants';
 import { MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_TOKEN } from '../db/redis.module';
+import { RedisKeys } from '../utils/constants';
 import { JwtUser, JwtUserInput } from './decorators';
 import { GenerateTokenDto, GenerateTokenInputDto, LoginOkDto, UserRoles } from './dto';
 
@@ -18,7 +18,7 @@ export class AuthService {
     @Inject(REDIS_TOKEN) private redis: Redis,
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private jwtService: JwtService,
-    private discordClientService: DiscordClientService,
+    private discordOauthService: DiscordOauthService,
   ) {}
 
   async login(passKey: string): Promise<LoginOkDto> {
@@ -33,7 +33,7 @@ export class AuthService {
   }
 
   async generateToken(input: GenerateTokenInputDto): Promise<GenerateTokenDto> {
-    const user = await this.discordClientService.getUser(input.userId);
+    const user = await this.discordOauthService.getUser(input.userId);
 
     const dto = await this.users.findOneAndUpdate(
       { userId: input.userId },

@@ -1,7 +1,7 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
-import { QueueTypes } from '../app.constants';
+import { QueueTypes } from '../utils/constants';
 import { ExportSheetInputDto } from './dto';
 
 @Injectable()

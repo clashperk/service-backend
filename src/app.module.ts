@@ -5,7 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 
 import { ClashClientModule } from '@app/clash-client';
-import { DiscordClientModule } from '@app/discord-client';
+import { DiscordOauthModule } from '@app/discord-oauth';
 import { BullModule } from '@nestjs/bull';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
@@ -63,7 +63,7 @@ import { WarsModule } from './wars/wars.module';
     ExportsModule,
 
     ClashClientModule,
-    DiscordClientModule,
+    DiscordOauthModule,
   ],
   controllers: [AppController],
   providers: [],
