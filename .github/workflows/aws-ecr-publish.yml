@@ -10,7 +10,7 @@ env:
   AWS_REGION: us-east-1
 
 concurrency:
-  group: aws-ecr-publish
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
