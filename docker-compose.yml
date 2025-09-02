@@ -1,4 +1,14 @@
 services:
+  backend:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/clashperk-backend:latest
+    container_name: backend
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '8080:8080'
+    mem_limit: 1g
+
   postgres:
     image: postgres:17
     environment:
