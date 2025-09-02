@@ -40,16 +40,16 @@ export class AppController {
     });
   }
 
-  @Get('/cloudflare-cache-status-check-custom')
+  @Get('/cloudflare-dynamic-cache-status-check')
   cloudflareCacheStatusCheck1(
     @Req() req: Request,
     @Res() res: Response,
-    @Query('cacheControl') cacheControl: string,
+    @Query('cache-control') cache: string,
   ) {
-    if (cacheControl) res.setHeader('Cache-Control', cacheControl);
+    if (cache) res.setHeader('Cache-Control', cache);
 
     return res.json({
-      cacheControl,
+      cache,
       'authorization': req.headers['authorization'] || null,
       'x-access-token': req.headers['x-access-token'] || null,
     });
