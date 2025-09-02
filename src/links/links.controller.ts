@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { codeBlock } from '../app.helpers';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
+import { codeBlock } from '../utils/helpers';
 import { BulkLinksInputDto, CreateLinkInputDto, LinksDto } from './dto';
 import { LinksService } from './links.service';
 

@@ -23,7 +23,7 @@ export const morganLogger = (logger: Logger) => {
         `${tokens.url?.(req, res)} \x1b[` + color + `m${tokens.status?.(req, res)}\x1b[0m`,
         `${tokens['response-time']?.(req, res)} ms - ${tokens['remote-addr']?.(req, res)}\x1b[0m`,
         // @ts-expect-error why?
-        req.user?.sub ?? '',
+        req.user?.userId ?? '',
       ].join(' ');
     },
     {

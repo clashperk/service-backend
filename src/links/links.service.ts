@@ -1,5 +1,6 @@
 import { ClashClientService } from '@app/clash-client';
-import { DiscordClientService } from '@app/discord-client';
+import { DiscordLinkService } from '@app/clash-client/discord-link.service';
+import { DiscordOauthService } from '@app/discord-oauth';
 import { ConflictException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { Collections } from '../db/db.constants';
@@ -10,7 +11,8 @@ import { CreateLinkInputDto } from './dto';
 export class LinksService {
   constructor(
     private clashClientService: ClashClientService,
-    private discordClientService: DiscordClientService,
+    private discordOauthService: DiscordOauthService,
+    private discordLinkService: DiscordLinkService,
     @Inject(MONGODB_TOKEN) private db: Db,
   ) {}
 
@@ -35,7 +37,7 @@ export class LinksService {
     }
 
     const [user, player] = await Promise.all([
-      this.discordClientService.getUser(input.userId),
+      this.discordOauthService.getUser(input.userId),
       this.clashClientService.getPlayerOrThrow(input.playerTag),
     ]);
 
@@ -59,7 +61,6 @@ export class LinksService {
   }
 
   public async deleteLink(userId: string, playerTag: string) {
-    console.log(userId, playerTag);
     const { deletedCount } = await this.links.deleteOne({
       tag: playerTag,
       $or: [{ userId }, { linkedBy: userId }],
@@ -67,6 +68,8 @@ export class LinksService {
     if (!deletedCount) {
       throw new ForbiddenException('You do not have permission to unlink this playerTag.');
     }
+
+    await this.discordLinkService.unlinkPlayerTag(playerTag);
 
     return { message: 'Ok' };
   }

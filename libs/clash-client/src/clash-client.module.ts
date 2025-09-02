@@ -2,6 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ClashClientService } from './clash-client.service';
 import { ClashClient } from './client';
+import { DiscordLinkService } from './discord-link.service';
 
 @Global()
 @Module({
@@ -18,7 +19,8 @@ import { ClashClient } from './client';
       inject: [ConfigService],
     },
     ClashClientService,
+    DiscordLinkService,
   ],
-  exports: [ClashClientService, ClashClient],
+  exports: [ClashClientService, DiscordLinkService, ClashClient],
 })
 export class ClashClientModule {}

@@ -13,10 +13,10 @@
   "moduleNameMapper": {
     "@app/clash-client": "<rootDir>/../libs/clash-client/src",
     "@app/clash-client/(.*)": "<rootDir>/../libs/clash-client/src/$1",
+    "@app/constants": "<rootDir>/../libs/constants/src",
+    "@app/constants/(.*)": "<rootDir>/../libs/constants/src/$1",
     "@app/decorators": "<rootDir>/../libs/decorators/src",
     "@app/decorators/(.*)": "<rootDir>/../libs/decorators/src/$1",
-    "@app/discord-client": "<rootDir>/../libs/discord-client/src",
-    "@app/discord-client/(.*)": "<rootDir>/../libs/discord-client/src/$1",
     "@app/discord-oauth": "<rootDir>/../libs/discord-oauth/src",
     "@app/discord-oauth/(.*)": "<rootDir>/../libs/discord-oauth/src/$1",
     "@app/google-sheet": "<rootDir>/../libs/google-sheet/src",

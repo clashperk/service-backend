@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { DiscordOauthService } from './discord-oauth.service';
 
+@Global()
 @Module({
   providers: [DiscordOauthService],
   exports: [DiscordOauthService],
