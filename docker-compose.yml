@@ -8,6 +8,8 @@ services:
     ports:
       - '8080:8080'
     mem_limit: 1g
+    networks:
+      - default_net
 
   postgres:
     image: postgres:17
@@ -32,3 +34,8 @@ volumes:
     name: postgres_data
   redis_data:
     name: redis_data
+
+networks:
+  default_net:
+    external: true
+    name: default_net
