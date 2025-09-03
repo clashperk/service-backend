@@ -1,7 +1,7 @@
-import { SNOWFLAKE_REGEX, TAG_REGEX } from '../../constants';
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Interval } from '@nestjs/schedule';
+import { SNOWFLAKE_REGEX, TAG_REGEX } from '../../constants';
 import { ClashClient } from './client';
 
 @Injectable()

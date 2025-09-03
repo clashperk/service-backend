@@ -22,36 +22,16 @@
     "noFallthroughCasesInSwitch": false,
     "useUnknownInCatchVariables": false,
     "paths": {
-      "@app/clash-client": [
-        "./libs/clash-client/src"
-      ],
-      "@app/clash-client/*": [
-        "./libs/clash-client/src/*"
-      ],
-      "@app/constants": [
-        "./libs/constants"
-      ],
-      "@app/constants/*": [
-        "./libs/constants/*"
-      ],
-      "@app/decorators": [
-        "./libs/decorators"
-      ],
-      "@app/decorators/*": [
-        "./libs/decorators/*"
-      ],
-      "@app/discord-oauth": [
-        "./libs/discord-oauth/src"
-      ],
-      "@app/discord-oauth/*": [
-        "./libs/discord-oauth/src/*"
-      ],
-      "@app/google-sheet": [
-        "./libs/google-sheet/src"
-      ],
-      "@app/google-sheet/*": [
-        "./libs/google-sheet/src/*"
-      ]
+      "@app/clash-client": ["./libs/clash-client/src"],
+      "@app/clash-client/*": ["./libs/clash-client/src/*"],
+      "@app/constants": ["./libs/constants"],
+      "@app/constants/*": ["./libs/constants/*"],
+      "@app/decorators": ["./libs/decorators"],
+      "@app/decorators/*": ["./libs/decorators/*"],
+      "@app/discord-oauth": ["./libs/discord-oauth/src"],
+      "@app/discord-oauth/*": ["./libs/discord-oauth/src/*"],
+      "@app/google-sheet": ["./libs/google-sheet/src"],
+      "@app/google-sheet/*": ["./libs/google-sheet/src/*"]
     }
   }
 }
