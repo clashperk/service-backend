@@ -1,11 +1,12 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
+import { WarsService } from './wars.service';
 
 @Controller('/wars')
 export class WarsController {
-  constructor() {}
+  constructor(private warsService: WarsService) {}
 
-  @Get('/:clanTag')
-  getClanWar() {
-    return Promise.resolve({});
+  @Get('/:clanTag/clan-war-league')
+  async getClanWar(@Param('clanTag') clanTag: string) {
+    return this.warsService.getClanWarLeague(clanTag);
   }
 }
