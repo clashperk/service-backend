@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { APIClanWar, APIClanWarLeagueGroup } from 'clashofclans.js';
+import { APIClanWar, APIClanWarLeagueRound } from 'clashofclans.js';
 import { ClashClient } from './client';
 
 @Injectable()
@@ -45,17 +45,22 @@ export class ClashClientService {
     );
 
     const payload: {
-      leagueGroup: APIClanWarLeagueGroup;
-      rounds: (APIClanWar & { round: number; warTag: string })[];
+      rounds: APIClanWarLeagueRound[];
+      clans: { tag: string; name: string }[];
+      wars: (APIClanWar & { round: number; warTag: string })[];
     } = {
-      leagueGroup: body,
-      rounds: [],
+      clans: body.clans.map((clan) => ({
+        tag: clan.tag,
+        name: clan.name,
+      })),
+      rounds,
+      wars: [],
     };
 
     for (const { body, warTag } of result) {
       if (!body) continue;
       const round = rounds.findIndex(({ warTags }) => warTags.includes(warTag)) + 1;
-      payload.rounds.push({ ...body, round, warTag });
+      payload.wars.push({ ...body, round, warTag });
     }
 
     return payload;
