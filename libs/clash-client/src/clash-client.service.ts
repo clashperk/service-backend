@@ -32,4 +32,11 @@ export class ClashClientService {
 
     return body;
   }
+
+  async getClanWarLeagues(clanTag: string) {
+    const { body, res } = await this.clashClient.getClanWarLeagueGroup(clanTag);
+    if (!res.ok) throw new NotFoundException(`Clan ${clanTag} not found.`);
+
+    return body;
+  }
 }
