@@ -11,9 +11,6 @@ export class WarsService {
   ) {}
 
   async getClanWarLeague(clanTag: string) {
-    const now = Date.now();
-    const r = await this.clashClientService.getClanWarLeague(clanTag);
-    console.log('CWL fetched in', Date.now() - now, 'ms');
-    return r;
+    return this.clashClientService.getClanWarLeague(clanTag);
   }
 }
