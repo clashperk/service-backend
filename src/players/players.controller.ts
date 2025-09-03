@@ -35,15 +35,6 @@ export class PlayersController {
     return this.playersService.getClanWarHistory(playerTag, query.months);
   }
 
-  @Get('/:playerTag/wars-v2')
-  @Header('Cache-Control', 'max-age=600')
-  getWarHistoryV2(
-    @Param('playerTag') playerTag: string,
-    @Query() query: AttackHistoryQueryInput,
-  ): Promise<AttackHistoryOutput[]> {
-    return this.playersService.getClanWarHistoryV2(playerTag, query.months);
-  }
-
   @Get('/:playerTag/cwl-stats')
   @Header('Cache-Control', 'max-age=600')
   getClanWarLeagueStats(
