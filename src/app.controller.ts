@@ -1,9 +1,12 @@
 import { Cache } from '@app/decorators';
-import { Controller, Get, Query, Req, Res } from '@nestjs/common';
+import { Controller, Get, Query, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
 
-@Controller('/')
+@Controller({
+  path: '/',
+  version: ['1', '2', VERSION_NEUTRAL],
+})
 @ApiExcludeController()
 export class AppController {
   constructor() {}
@@ -35,6 +38,7 @@ export class AppController {
   @Cache(30)
   async cloudflareCacheStatusCheck(@Req() req: Request) {
     return Promise.resolve({
+      'headers': { ...req.headers },
       'authorization': req.headers['authorization'] || null,
       'x-access-token': req.headers['x-access-token'] || null,
     });
@@ -49,7 +53,8 @@ export class AppController {
     if (cache) res.setHeader('Cache-Control', cache);
 
     return res.json({
-      cache,
+      'cache': cache || null,
+      'headers': { ...req.headers },
       'authorization': req.headers['authorization'] || null,
       'x-access-token': req.headers['x-access-token'] || null,
     });
