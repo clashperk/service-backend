@@ -30,7 +30,6 @@ export class KeyGenService {
       email,
       password,
       keyCount: 10,
-      keyName: this.configService.get('RAILWAY_SERVICE_NAME'),
       keyDescription: this.configService.get('RAILWAY_SERVICE_NAME'),
     });
 
