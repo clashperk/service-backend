@@ -10,7 +10,7 @@ export class ClashClient extends RESTManager {
     keys,
   }: {
     rateLimit: number;
-    baseURL: string;
+    baseURL?: string;
     keys: string[];
   }) {
     super();
