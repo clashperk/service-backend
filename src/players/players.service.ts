@@ -3,13 +3,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import moment from 'moment';
 import { Db } from 'mongodb';
 import { ClanWarsEntity, Collections, MONGODB_TOKEN } from '../db';
-import { AttackHistoryDto } from './dto';
+import { AggregateAttackHistoryDto, AttackHistoryDto } from './dto';
 
 @Injectable()
 export class PlayersService {
   constructor(@Inject(MONGODB_TOKEN) private db: Db) {}
 
-  async clanWarAttackLog(input: { playerTag: string; months: number }) {
+  async getAttackHistory(input: { playerTag: string; startDate: number }) {
     const cursor = this.wars.aggregate<ClanWarsEntity>([
       {
         $match: {
@@ -18,10 +18,7 @@ export class PlayersService {
             { 'opponent.members.tag': input.playerTag },
           ],
           startTime: {
-            $gte: moment().startOf('month').subtract(input.months, 'month').toDate(),
-          },
-          endTime: {
-            $lte: moment().toDate(),
+            $gte: moment(input.startDate).toDate(),
           },
         },
       },
@@ -71,6 +68,8 @@ export class PlayersService {
         endTime: war.endTime,
         startTime: war.startTime,
         warType: war.warType,
+        attacksPerMember: war.attacksPerMember || 1,
+        teamSize: war.teamSize,
         attacker: {
           name: attacker.name,
           tag: attacker.tag,
@@ -92,6 +91,31 @@ export class PlayersService {
     }
 
     return wars;
+  }
+
+  async aggregateAttackHistory(input: {
+    playerTag: string;
+    startDate: number;
+  }): Promise<AggregateAttackHistoryDto> {
+    const logs = await this.getAttackHistory(input);
+
+    const result: AggregateAttackHistoryDto = {
+      totalWars: 0,
+      totalAttacks: 0,
+      total3Stars: 0,
+      totalMissed: 0,
+      totalStars: 0,
+    };
+
+    for (const log of logs) {
+      result.totalWars += 1;
+      result.totalAttacks += log.attacks.length;
+      result.total3Stars += log.attacks.filter((atk) => atk.stars === 3).length;
+      result.totalStars += log.attacks.reduce((acc, atk) => acc + atk.trueStars, 0);
+      result.totalMissed += log.attacksPerMember - log.attacks.length;
+    }
+
+    return result;
   }
 
   private get wars() {

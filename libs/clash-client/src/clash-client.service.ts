@@ -34,6 +34,17 @@ export class ClashClientService {
     return body;
   }
 
+  async verifyPlayerOrThrow(playerTag: string, apiToken: string | null) {
+    if (!apiToken) return false;
+
+    const { body, res } = await this.clashClient.verifyPlayerToken(playerTag, apiToken);
+    const isVerified = res.ok && body.status === 'ok';
+
+    if (!isVerified) throw new NotFoundException(`Player ${playerTag} could not be verified.`);
+
+    return isVerified;
+  }
+
   async getClanWarLeague(clanTag: string) {
     const { body, res } = await this.clashClient.getClanWarLeagueGroup(clanTag);
     if (!res.ok) throw new NotFoundException(`Clan ${clanTag} is not in CWL.`);

@@ -45,6 +45,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "discord-api-types": "^0.38.22",
+    "discord-interactions": "^4.3.0",
     "graphql": "^16.11.0",
     "ioredis": "^5.7.0",
     "lodash": "^4.17.21",

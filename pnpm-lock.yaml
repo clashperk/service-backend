@@ -68,6 +68,9 @@ importers:
       discord-api-types:
         specifier: ^0.38.22
         version: 0.38.22
+      discord-interactions:
+        specifier: ^4.3.0
+        version: 4.3.0
       graphql:
         specifier: ^16.11.0
         version: 16.11.0
@@ -2080,6 +2083,10 @@ packages:
 
   discord-api-types@0.38.22:
     resolution: {integrity: sha512-2gnYrgXN3yTlv2cKBISI/A8btZwsSZLwKpIQXeI1cS8a7W7wP3sFVQOm3mPuuinTD8jJCKGPGNH399zE7Un1kA==}
+
+  discord-interactions@4.3.0:
+    resolution: {integrity: sha512-qCJEnuQeIDIo26MPEqYlIiYokqwFAMoRsmEE0PgAuiTYNXIMB9Z40LmqlgYe0yBO+743+AOnfTQdUK1WLg8+pw==}
+    engines: {node: '>=18.4.0'}
 
   dotenv-cli@10.0.0:
     resolution: {integrity: sha512-lnOnttzfrzkRx2echxJHQRB6vOAMSCzzZg79IxpC00tU42wZPuZkQxNNrrwVAxaQZIIh001l4PxVlCrBxngBzA==}
@@ -6308,6 +6315,8 @@ snapshots:
   diff@4.0.2: {}
 
   discord-api-types@0.38.22: {}
+
+  discord-interactions@4.3.0: {}
 
   dotenv-cli@10.0.0:
     dependencies:

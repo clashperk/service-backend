@@ -13,8 +13,18 @@ export class PlayersController {
 
   @Get('/:playerTag/wars')
   @Cache(600)
-  @Roles(UserRoles.DEV, UserRoles.FETCH_PLAYERS)
-  clanWarAttackLog(@Param('playerTag') playerTag: string, @Query() query: AttackHistoryInputDto) {
-    return this.playersService.clanWarAttackLog({ playerTag, months: query.months });
+  @Roles([UserRoles.DEV, UserRoles.FETCH_PLAYERS])
+  getAttackHistory(@Param('playerTag') playerTag: string, @Query() query: AttackHistoryInputDto) {
+    return this.playersService.getAttackHistory({ playerTag, startDate: query.startDate });
+  }
+
+  @Get('/:playerTag/wars/aggregate')
+  @Cache(600)
+  @Roles([UserRoles.DEV, UserRoles.FETCH_PLAYERS])
+  aggregateAttackHistory(
+    @Param('playerTag') playerTag: string,
+    @Query() query: AttackHistoryInputDto,
+  ) {
+    return this.playersService.aggregateAttackHistory({ playerTag, startDate: query.startDate });
   }
 }
