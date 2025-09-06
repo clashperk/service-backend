@@ -1,14 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-
 import { Transform } from 'class-transformer';
-import { IsOptional, Max, Min } from 'class-validator';
+import { IsNumber } from 'class-validator';
+import moment from 'moment';
 
 export class AttackHistoryInputDto {
-  @Max(12)
-  @Min(1)
-  @Transform(({ value }) => Number(value))
-  @IsOptional()
-  months: number = 12;
+  @ApiProperty({ type: 'string', format: 'date-time', required: false })
+  @Transform(({ value }: { value: string }) => {
+    if (!value) return null;
+    if (/^\d+$/.test(value)) return Number(value);
+    return moment(value).isValid() ? moment(value).toDate().getTime() : null;
+  })
+  @IsNumber()
+  startDate: number;
 }
 
 class AttackRecordDto {
@@ -44,7 +47,17 @@ export class AttackHistoryDto {
     townHallLevel: number;
     mapPosition: number;
   };
+  attacksPerMember: number;
+  teamSize: number;
 
   @ApiProperty({ isArray: true, type: AttackRecordDto })
   attacks: AttackRecordDto[];
+}
+
+export class AggregateAttackHistoryDto {
+  totalWars: number;
+  totalAttacks: number;
+  total3Stars: number;
+  totalMissed: number;
+  totalStars: number;
 }

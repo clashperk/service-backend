@@ -32,7 +32,12 @@ export class LinksService {
 
   public async createLink(userId: string, input: CreateLinkInputDto) {
     const existing = await this.links.findOne({ tag: input.playerTag });
-    if (existing && existing.userId !== input.userId) {
+    const isVerified = await this.clashClientService.verifyPlayerOrThrow(
+      input.playerTag,
+      input.apiToken,
+    );
+
+    if (existing && existing.userId !== input.userId && !isVerified) {
       throw new ConflictException('Player tag already linked to another user.');
     }
 

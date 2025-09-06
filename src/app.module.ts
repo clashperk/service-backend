@@ -21,6 +21,7 @@ import { RostersModule } from './rosters/rosters.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
 import { WarsModule } from './wars/wars.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { WarsModule } from './wars/wars.module';
 
     ClashClientModule,
     DiscordOauthModule,
+    WebhookModule,
   ],
   controllers: [AppController],
   providers: [],
