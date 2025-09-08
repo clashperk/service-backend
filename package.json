@@ -18,11 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "prebuild": "ts-node scripts/make-index.ts",
-    "typeorm-cli": "dotenv -- typeorm-ts-node-commonjs",
-    "migration:generate": "npm run typeorm-cli -- migration:generate ./src/db/migrations/$NAME.sql -d ./typeorm.config.ts",
-    "migration:run": "npm run typeorm-cli -- migration:run -d ./typeorm.config.ts",
-    "migration:revert": "npm run typeorm-cli -- migration:revert -d ./typeorm.config.ts"
+    "prebuild": "ts-node scripts/make-index.ts"
   },
   "dependencies": {
     "@apollo/server": "^4.12.2",
