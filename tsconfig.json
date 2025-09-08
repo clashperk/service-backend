@@ -28,10 +28,14 @@
       "@app/constants/*": ["./libs/constants/*"],
       "@app/decorators": ["./libs/decorators"],
       "@app/decorators/*": ["./libs/decorators/*"],
+      "@app/interceptors": ["./libs/interceptors"],
+      "@app/interceptors/*": ["./libs/interceptors/*"],
       "@app/discord-oauth": ["./libs/discord-oauth/src"],
       "@app/discord-oauth/*": ["./libs/discord-oauth/src/*"],
       "@app/google-sheet": ["./libs/google-sheet/src"],
-      "@app/google-sheet/*": ["./libs/google-sheet/src/*"]
+      "@app/google-sheet/*": ["./libs/google-sheet/src/*"],
+      "@app/helpers": ["./libs/helpers"],
+      "@app/helpers/*": ["./libs/helpers/*"]
     }
   }
 }

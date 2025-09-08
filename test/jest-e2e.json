@@ -20,6 +20,8 @@
     "@app/discord-oauth": "<rootDir>/../libs/discord-oauth/src",
     "@app/discord-oauth/(.*)": "<rootDir>/../libs/discord-oauth/src/$1",
     "@app/google-sheet": "<rootDir>/../libs/google-sheet/src",
-    "@app/google-sheet/(.*)": "<rootDir>/../libs/google-sheet/src/$1"
+    "@app/google-sheet/(.*)": "<rootDir>/../libs/google-sheet/src/$1",
+    "@app/helpers": "<rootDir>/../libs/helpers/src",
+    "@app/helpers/(.*)": "<rootDir>/../libs/helpers/src/$1"
   }
 }

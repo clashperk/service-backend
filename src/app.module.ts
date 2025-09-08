@@ -1,13 +1,17 @@
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import KeyvRedis from '@keyv/redis';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { BullModule } from '@nestjs/bull';
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { ClashClientModule } from '@app/clash-client';
 import { DiscordOauthModule } from '@app/discord-oauth';
-import { BullModule } from '@nestjs/bull';
-import { ScheduleModule } from '@nestjs/schedule';
+import { HttpCacheInterceptor } from '@app/interceptors';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
@@ -31,6 +35,15 @@ import { WebhookModule } from './webhook/webhook.module';
     BullModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
         url: configService.getOrThrow('REDIS_URL'),
+      }),
+      inject: [ConfigService],
+    }),
+
+    CacheModule.registerAsync({
+      isGlobal: true,
+      useFactory: (configService: ConfigService) => ({
+        ttl: 10 * 60 * 1000,
+        stores: [new KeyvRedis(configService.getOrThrow('REDIS_URL'))],
       }),
       inject: [ConfigService],
     }),
@@ -68,6 +81,11 @@ import { WebhookModule } from './webhook/webhook.module';
     WebhookModule,
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HttpCacheInterceptor,
+    },
+  ],
 })
 export class AppModule {}
