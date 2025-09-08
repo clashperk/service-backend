@@ -1,15 +1,15 @@
 import { UseGuards } from '@nestjs/common';
 import { Query, Resolver } from '@nestjs/graphql';
 import { GqlAuthGuard } from '../auth';
-import { SettingsEntity } from '../db/entities/settings.entity';
+import { PlayerLinksEntity } from '../db';
 
 @Resolver()
 export class GuildsResolver {
   constructor() {}
 
-  @Query(() => SettingsEntity)
+  @Query(() => PlayerLinksEntity)
   @UseGuards(GqlAuthGuard)
   getGuild() {
-    return { guildId: '1', name: 'Guild' } as SettingsEntity;
+    return {} as unknown as PlayerLinksEntity;
   }
 }
