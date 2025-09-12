@@ -1,13 +1,13 @@
+import { PRODUCTION_MODE } from '@app/constants';
 import { Cache } from '@app/decorators';
-import { Controller, Get, Post, Query, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint, ApiResponse } from '@nestjs/swagger';
 import { Response } from 'express';
-
 @Controller({
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
 })
-@ApiExcludeController()
+@ApiExcludeController(PRODUCTION_MODE)
 export class AppController {
   constructor() {}
 
@@ -34,30 +34,20 @@ export class AppController {
     return { message: 'Ok' };
   }
 
-  @Post('/cloudflare-cache-status-check')
+  @Post('/cache-status-check')
   @Cache(30)
   POSTcloudflareCacheStatusCheck(@Req() req: Request) {
-    return Promise.resolve({
-      'timestamp': new Date().toISOString(),
-      'headers': { ...req.headers },
-      'authorization': req.headers['authorization'] || null,
-      'x-access-token': req.headers['x-access-token'] || null,
-    });
+    return {
+      'req-headers': { ...req.headers },
+    };
   }
 
-  @Get('/cloudflare-cache-status-check')
-  GETcloudflareCacheStatusCheck(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Query('cache-control') cache: string,
-  ) {
-    if (cache) res.setHeader('Cache-Control', cache);
+  @Get('/cache-status-check')
+  GETcloudflareCacheStatusCheck(@Req() req: Request, @Res() res: Response) {
+    res.setHeader('Cache-Control', 'max-age=30');
 
     return res.json({
-      'cache': cache || null,
-      'headers': { ...req.headers },
-      'authorization': req.headers['authorization'] || null,
-      'x-access-token': req.headers['x-access-token'] || null,
+      'req-headers': { ...req.headers },
     });
   }
 }

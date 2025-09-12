@@ -18,7 +18,6 @@ export class DiscordOauthService {
     try {
       return (await rest.get(Routes.user(userId))) as APIUser;
     } catch (error) {
-      // eslint-disable-next-line
       throw new HttpException(error.message, error.status ?? 500);
     }
   }

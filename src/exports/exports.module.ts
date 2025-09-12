@@ -1,6 +1,6 @@
+import { QueueTypes } from '@app/constants';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { QueueTypes } from '../utils/constants';
 import { ExportsConsumer } from './consumer.service';
 import { ExportsController } from './exports.controller';
 import { ExportsService } from './exports.service';

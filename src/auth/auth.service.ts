@@ -1,3 +1,4 @@
+import { RedisKeys } from '@app/constants';
 import { DiscordOauthService } from '@app/discord-oauth';
 import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
@@ -7,7 +8,6 @@ import { Db } from 'mongodb';
 import { Collections } from '../db/db.constants';
 import { MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_TOKEN } from '../db/redis.module';
-import { RedisKeys } from '../utils/constants';
 import { JwtUser, JwtUserInput } from './decorators';
 import { GenerateTokenDto, GenerateTokenInputDto, LoginOkDto, UserRoles } from './dto';
 

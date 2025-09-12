@@ -6,7 +6,7 @@ export class ExportsController {
   constructor(private readonly exportsService: ExportsService) {}
 
   @Post()
-  exportData() {
-    return this.exportsService.exportData();
+  exportClanMembers() {
+    return this.exportsService.exportClanMembers();
   }
 }
