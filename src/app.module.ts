@@ -26,6 +26,8 @@ import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
 import { WarsModule } from './wars/wars.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { MetricsModule } from './metrics/metrics.module';
+import { ClickhouseModule } from './db';
 
 @Module({
   imports: [
@@ -64,6 +66,7 @@ import { WebhookModule } from './webhook/webhook.module';
 
     RedisClientModule,
     MongoDbModule,
+    ClickhouseModule,
 
     AuthModule,
     GuildsModule,
@@ -79,6 +82,7 @@ import { WebhookModule } from './webhook/webhook.module';
     ClashClientModule,
     DiscordOauthModule,
     WebhookModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,16 +1,8 @@
+import { DateTime } from '@app/decorators';
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform } from 'class-transformer';
-import { IsNumber } from 'class-validator';
-import moment from 'moment';
 
 export class AttackHistoryInputDto {
-  @ApiProperty({ type: 'string', format: 'date-time', required: false })
-  @Transform(({ value }: { value: string }) => {
-    if (!value) return null;
-    if (/^\d+$/.test(value)) return Number(value);
-    return moment(value).isValid() ? moment(value).toDate().getTime() : null;
-  })
-  @IsNumber()
+  @DateTime()
   startDate: number;
 }
 

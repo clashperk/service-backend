@@ -13,15 +13,17 @@
   "moduleNameMapper": {
     "@app/clash-client": "<rootDir>/../libs/clash-client/src",
     "@app/clash-client/(.*)": "<rootDir>/../libs/clash-client/src/$1",
-    "@app/constants": "<rootDir>/../libs/constants/src",
-    "@app/constants/(.*)": "<rootDir>/../libs/constants/src/$1",
-    "@app/decorators": "<rootDir>/../libs/decorators/src",
-    "@app/decorators/(.*)": "<rootDir>/../libs/decorators/src/$1",
+    "@app/constants": "<rootDir>/../libs/constants",
+    "@app/constants/(.*)": "<rootDir>/../libs/constants/$1",
+    "@app/decorators": "<rootDir>/../libs/decorators",
+    "@app/decorators/(.*)": "<rootDir>/../libs/decorators/$1",
     "@app/discord-oauth": "<rootDir>/../libs/discord-oauth/src",
     "@app/discord-oauth/(.*)": "<rootDir>/../libs/discord-oauth/src/$1",
     "@app/google-sheet": "<rootDir>/../libs/google-sheet/src",
     "@app/google-sheet/(.*)": "<rootDir>/../libs/google-sheet/src/$1",
-    "@app/helpers": "<rootDir>/../libs/helpers/src",
-    "@app/helpers/(.*)": "<rootDir>/../libs/helpers/src/$1"
+    "@app/helpers": "<rootDir>/../libs/helpers",
+    "@app/helpers/(.*)": "<rootDir>/../libs/helpers/$1",
+    "@app/interceptors": "<rootDir>/../libs/interceptors",
+    "@app/interceptors/(.*)": "<rootDir>/../libs/interceptors/$1"
   }
 }

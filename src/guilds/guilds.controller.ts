@@ -1,7 +1,6 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
-import { ApiKeyGuard } from '../auth/guards';
-import { PlayerLinksEntity } from '../db';
+import { ApiKeyGuard } from '../auth';
 import { GuildsService } from './guilds.service';
 
 @Controller('/guilds')
@@ -11,7 +10,7 @@ export class GuildsController {
   constructor(private guildsService: GuildsService) {}
 
   @Get('/:guildId/settings')
-  async getGuildSettings(@Param('guildId') guildId: string): Promise<PlayerLinksEntity> {
-    return Promise.resolve(this.guildsService.getSettings(guildId));
+  async getGuildSettings(@Param('guildId') guildId: string) {
+    return this.guildsService.getClans(guildId);
   }
 }
