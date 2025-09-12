@@ -7,7 +7,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 
 import { AppModule } from './app.module';
 import * as Swagger from './swagger';
-import { morganLogger } from './utils/helpers';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
@@ -17,7 +16,6 @@ async function bootstrap() {
 
   app.enableCors();
   app.set('trust proxy', true);
-  app.use(morganLogger(logger));
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 
   Swagger.build(app);

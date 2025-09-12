@@ -16,7 +16,7 @@ services:
 #     environment:
 #       POSTGRES_USER: postgres
 #       POSTGRES_PASSWORD: password
-#       POSTGRES_DB: clashperkdb
+#       POSTGRES_DB: postgres
 #     ports:
 #       - '5432:5432'
 #     volumes:
@@ -32,8 +32,10 @@ services:
 # volumes:
 #   postgres_data:
 #     name: postgres_data
+#     external: true
 #   redis_data:
 #     name: redis_data
+#     external: true
 
 networks:
   default_net:

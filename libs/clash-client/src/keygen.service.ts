@@ -20,7 +20,7 @@ export class KeyGenService {
     const password = this.configService.get('DEV_ACCOUNT_PASSWORD');
 
     if (!(email && password)) {
-      this.logger.warn('No dev account credentials provided');
+      this.logger.warn('No developer account credentials were provided');
       return;
     }
 
