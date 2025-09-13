@@ -5,7 +5,7 @@ import { ExportsService } from './exports.service';
 export class ExportsController {
   constructor(private readonly exportsService: ExportsService) {}
 
-  @Post()
+  @Post('/members')
   exportClanMembers() {
     return this.exportsService.exportClanMembers();
   }

@@ -1,3 +1,4 @@
+import { PRODUCTION_MODE } from '@app/constants';
 import {
   Body,
   Controller,
@@ -8,16 +9,14 @@ import {
   RawBodyRequest,
   Req,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ApiExcludeController } from '@nestjs/swagger';
 import { InteractionType } from 'discord-interactions';
 import { WebhookService } from './webhook.service';
 
 @Controller('/webhook')
+@ApiExcludeController(PRODUCTION_MODE)
 export class WebhookController {
-  constructor(
-    private configService: ConfigService,
-    private webhookService: WebhookService,
-  ) {}
+  constructor(private webhookService: WebhookService) {}
 
   @Post('/discord/interactions')
   @HttpCode(200)

@@ -1,4 +1,3 @@
-import { PRODUCTION_MODE } from '@app/constants';
 import { Cache } from '@app/decorators';
 import { Controller, Get, Post, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint, ApiResponse } from '@nestjs/swagger';
@@ -7,7 +6,7 @@ import { Response } from 'express';
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
 })
-@ApiExcludeController(PRODUCTION_MODE)
+@ApiExcludeController()
 export class AppController {
   constructor() {}
 
