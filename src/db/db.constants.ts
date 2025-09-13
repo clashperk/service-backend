@@ -5,4 +5,6 @@ export enum Collections {
   PORTAL_USERS = 'PortalUsers',
   PLAYER_LINKS = 'PlayerLinks',
   CLAN_WARS = 'ClanWars',
+
+  PLAYERS = 'Players',
 }

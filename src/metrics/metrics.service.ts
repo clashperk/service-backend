@@ -1,7 +1,7 @@
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable } from '@nestjs/common';
 import { CLICKHOUSE_TOKEN } from '../db';
-import { GetCommandsUsageLogsInputDto } from './dto';
+import { CommandsUsageLogDto, GetCommandsUsageLogsInputDto } from './dto';
 
 @Injectable()
 export class MetricsService {
@@ -48,7 +48,7 @@ export class MetricsService {
           offset: input.offset,
         },
       })
-      .then((res) => res.json());
+      .then((res) => res.json<CommandsUsageLogDto>());
 
     return { items: rows.data ?? [] };
   }

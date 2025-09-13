@@ -1,8 +1,12 @@
 import { Cache } from '@app/decorators';
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth';
 import { WarsService } from './wars.service';
 
 @Controller('/wars')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class WarsController {
   constructor(private warsService: WarsService) {}
 

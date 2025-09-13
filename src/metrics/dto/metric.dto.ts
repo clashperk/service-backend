@@ -28,3 +28,14 @@ export class GetCommandsUsageLogsInputDto {
   @Min(0)
   offset: number = 0;
 }
+
+export class CommandsUsageLogDto {
+  userId: string;
+  commandId: string;
+  guildId: string;
+  createdAt: number;
+}
+
+export class GetCommandsUsageLogsDto {
+  items: CommandsUsageLogDto[];
+}

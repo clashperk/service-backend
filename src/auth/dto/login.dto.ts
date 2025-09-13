@@ -24,8 +24,28 @@ export class LoginOkDto {
   accessToken: string;
 }
 
-export class GenerateTokenDto extends LoginOkDto {
+export class GenerateTokenDto {
+  @EnumArray(UserRoles, 'UserRoles')
+  roles: UserRoles[];
+
+  userId: string;
+
+  accessToken: string;
+
   passKey: string;
+
   isBot: boolean;
+
   displayName: string;
+}
+
+export class AuthUserDto {
+  @EnumArray(UserRoles, 'UserRoles')
+  roles: UserRoles[];
+
+  userId: string;
+
+  displayName: string;
+
+  isBot: boolean;
 }

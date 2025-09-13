@@ -1,7 +1,13 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { GenerateTokenDto, GenerateTokenInputDto, LoginInputDto, LoginOkDto } from './dto';
+import {
+  AuthUserDto,
+  GenerateTokenDto,
+  GenerateTokenInputDto,
+  LoginInputDto,
+  LoginOkDto,
+} from './dto';
 import { ApiKeyGuard } from './guards';
 
 @Controller('/auth')
@@ -24,5 +30,15 @@ export class AuthController {
   @ApiSecurity('apiKey')
   async generateToken(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
     return this.authService.generateToken(body);
+  }
+
+  @ApiOperation({
+    summary: `Retrieves authenticated user information based on userId.`,
+  })
+  @Get('/users/:userId')
+  @UseGuards(ApiKeyGuard)
+  @ApiSecurity('apiKey')
+  async getAuthUser(@Param('userId') userId: string): Promise<AuthUserDto> {
+    return this.authService.getAuthUser(userId);
   }
 }

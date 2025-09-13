@@ -1,15 +1,21 @@
 import { RedisKeys } from '@app/constants';
 import { DiscordOauthService } from '@app/discord-oauth';
-import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import { randomBytes } from 'crypto';
+import { randomBytes, randomUUID } from 'crypto';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
 import { Collections } from '../db/db.constants';
 import { MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_TOKEN } from '../db/redis.module';
 import { JwtUser, JwtUserInput } from './decorators';
-import { GenerateTokenDto, GenerateTokenInputDto, LoginOkDto, UserRoles } from './dto';
+import { AuthUserDto, GenerateTokenDto, GenerateTokenInputDto, LoginOkDto, UserRoles } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -68,6 +74,18 @@ export class AuthService {
     };
   }
 
+  async getAuthUser(userId: string): Promise<AuthUserDto> {
+    const user = await this.users.findOne({ userId });
+    if (!user) throw new NotFoundException();
+
+    return {
+      userId: user.userId,
+      roles: user.roles,
+      isBot: user.isBot,
+      displayName: user.displayName,
+    };
+  }
+
   async revalidateJwtUser(payload: JwtUser) {
     if (payload.roles.includes(UserRoles.ADMIN)) return payload;
 
@@ -82,6 +100,7 @@ export class AuthService {
       userId: input.userId,
       roles: input.roles,
       version: '1',
+      jti: randomUUID(),
     } satisfies JwtUserInput;
 
     return this.jwtService.sign(payload, options);

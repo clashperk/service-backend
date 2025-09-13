@@ -2,7 +2,7 @@ import { Cache } from '@app/decorators';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiSecurity } from '@nestjs/swagger';
 import { ApiKeyGuard } from '../auth';
-import { GetCommandsUsageLogsInputDto } from './dto';
+import { GetCommandsUsageLogsDto, GetCommandsUsageLogsInputDto } from './dto';
 import { MetricsService } from './metrics.service';
 
 @Controller('/metrics')
@@ -13,7 +13,9 @@ export class MetricsController {
 
   @Get('/commands-usage-logs')
   @Cache(60)
-  getCommandsUsageLogs(@Query() input: GetCommandsUsageLogsInputDto) {
+  getCommandsUsageLogs(
+    @Query() input: GetCommandsUsageLogsInputDto,
+  ): Promise<GetCommandsUsageLogsDto> {
     return this.metricsService.getCommandsUsageLogs(input);
   }
 }

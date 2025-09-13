@@ -32,7 +32,7 @@ export class LinksController {
     ),
   })
   @Roles([UserRoles.USER, UserRoles.DEV, UserRoles.FETCH_LINKS, UserRoles.MANAGE_LINKS])
-  async getLinksByUserIds(@Body() input: BulkLinksInputDto): Promise<LinksDto[]> {
+  async getLinks(@Body() input: BulkLinksInputDto): Promise<LinksDto[]> {
     if (input.playerTags?.length) {
       return this.linksService.getLinksByPlayerTags(input.playerTags);
     }

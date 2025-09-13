@@ -7,6 +7,7 @@ import {
   ClanStoresEntity,
   ClanWarsEntity,
   PlayerLinksEntity,
+  PlayersEntity,
 } from './collections';
 import { Collections } from './db.constants';
 
@@ -18,6 +19,7 @@ interface CollectionRecords {
   [Collections.PORTAL_USERS]: ApiUsersEntity;
   [Collections.PLAYER_LINKS]: PlayerLinksEntity;
   [Collections.CLAN_WARS]: ClanWarsEntity;
+  [Collections.PLAYERS]: PlayersEntity;
 }
 
 declare module 'mongodb' {

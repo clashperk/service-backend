@@ -7,6 +7,7 @@ import { Request } from 'express';
 import { UserRoles } from '../dto/roles.dto';
 
 export interface JwtUserInput {
+  jti: string;
   userId: string;
   version: string;
   roles: UserRoles[];
