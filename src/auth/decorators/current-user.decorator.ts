@@ -4,24 +4,7 @@ import {
   createParamDecorator,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { UserRoles } from '../dto/roles.dto';
-
-export interface JwtUserInput {
-  jti: string;
-  userId: string;
-  version: string;
-  roles: UserRoles[];
-}
-
-export interface JwtUser extends JwtUserInput {
-  userId: string;
-  sub: string;
-  jti: string;
-  iat: number;
-  exp: number;
-  version: string;
-  roles: UserRoles[];
-}
+import { JwtUser } from '../dto';
 
 export const CurrentUser = createParamDecorator((_: unknown, context: ExecutionContext) => {
   const req = context.switchToHttp().getRequest<Request>();

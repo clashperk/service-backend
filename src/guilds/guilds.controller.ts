@@ -1,11 +1,11 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { ApiSecurity } from '@nestjs/swagger';
-import { ApiKeyGuard } from '../auth';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth';
 import { GuildsService } from './guilds.service';
 
 @Controller('/guilds')
-@ApiSecurity('apiKey')
-@UseGuards(ApiKeyGuard)
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class GuildsController {
   constructor(private guildsService: GuildsService) {}
 

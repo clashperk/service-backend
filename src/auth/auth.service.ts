@@ -14,8 +14,15 @@ import { Db } from 'mongodb';
 import { Collections } from '../db/db.constants';
 import { MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_TOKEN } from '../db/redis.module';
-import { JwtUser, JwtUserInput } from './decorators';
-import { AuthUserDto, GenerateTokenDto, GenerateTokenInputDto, LoginOkDto, UserRoles } from './dto';
+import {
+  AuthUserDto,
+  GenerateTokenDto,
+  GenerateTokenInputDto,
+  JwtUser,
+  JwtUserInput,
+  LoginOkDto,
+  UserRoles,
+} from './dto';
 
 @Injectable()
 export class AuthService {
@@ -51,7 +58,7 @@ export class AuthService {
         $set: {
           userId: input.userId,
           roles: input.roles,
-          isBot: !!user.bot,
+          isBot: user.bot,
           displayName: user.global_name || user.username,
           updatedAt: new Date(),
           deletedAt: null,

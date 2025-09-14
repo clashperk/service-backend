@@ -1,11 +1,13 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import { apiKeyUser } from '../dto';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
-  private readonly apiKey: string;
-  constructor(private readonly configService: ConfigService) {
+  private apiKey: string;
+
+  constructor(private configService: ConfigService) {
     this.apiKey = this.configService.getOrThrow('API_KEY');
   }
 
@@ -16,6 +18,8 @@ export class ApiKeyGuard implements CanActivate {
     if (!key || key !== this.apiKey) {
       throw new UnauthorizedException();
     }
+
+    req.user = apiKeyUser;
 
     return true;
   }

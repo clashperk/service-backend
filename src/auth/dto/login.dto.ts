@@ -1,6 +1,6 @@
 import { EnumArray } from '@app/decorators';
 import { IsString } from 'class-validator';
-import { UserRoles } from './roles.dto';
+import { UserRoles } from './user-roles.dto';
 
 export class LoginInputDto {
   @IsString()

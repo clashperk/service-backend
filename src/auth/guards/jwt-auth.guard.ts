@@ -1,24 +1,52 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { Observable } from 'rxjs';
+import { Request } from 'express';
 import { AuthGuardStrategies } from '../app.constants';
-import { IS_PUBLIC_KEY } from '../decorators';
+import { PUBLIC_METADATA, USE_API_KEY_METADATA } from '../decorators';
+import { apiKeyUser } from '../dto';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard(AuthGuardStrategies.JWT) {
-  public constructor(private reflector: Reflector) {
+  private apiKey: string;
+
+  public constructor(
+    private reflector: Reflector,
+    private configService: ConfigService,
+  ) {
     super();
+    this.apiKey = this.configService.getOrThrow('API_KEY');
   }
 
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+  canActivate(context: ExecutionContext) {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(PUBLIC_METADATA, [
       context.getHandler(),
       context.getClass(),
     ]);
 
     if (isPublic) return true;
 
+    const useApiKey = this.reflector.getAllAndOverride<boolean>(USE_API_KEY_METADATA, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (useApiKey) return this.canUseApiKey(context);
+
     return super.canActivate(context);
+  }
+
+  public canUseApiKey(context: ExecutionContext) {
+    const req = context.switchToHttp().getRequest<Request>();
+    const key = req.headers?.['x-api-key'] || req.query['apiKey'];
+
+    if (!key || key !== this.apiKey) {
+      return super.canActivate(context);
+    }
+
+    req.user = apiKeyUser;
+
+    return true;
   }
 }
