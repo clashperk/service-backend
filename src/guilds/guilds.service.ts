@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Db } from 'mongodb';
-import { ClanStoresEntity, Collections, PlayerLinksEntity } from '../db';
-import { MONGODB_TOKEN } from '../db/mongodb.module';
+import { ClanStoresEntity, Collections, MONGODB_TOKEN, PlayerLinksEntity } from '../db';
 
 @Injectable()
 export class GuildsService {

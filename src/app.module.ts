@@ -11,13 +11,11 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { ClashClientModule } from '@app/clash-client';
 import { DiscordOauthModule } from '@app/discord-oauth';
-import { HttpCacheInterceptor, HttpLoggingMiddleware } from '@app/interceptors';
+import { HttpLoggingMiddleware, HttpTimeoutInterceptor } from '@app/interceptors';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
-import { ClickhouseModule } from './db';
-import { MongoDbModule } from './db/mongodb.module';
-import { RedisClientModule } from './db/redis.module';
+import { ClickhouseModule, MongoDbModule, RedisClientModule } from './db';
 import { ExportsModule } from './exports/exports.module';
 import { GuildsModule } from './guilds/guilds.module';
 import { LinksModule } from './links/links.module';
@@ -89,7 +87,7 @@ import { WebhookModule } from './webhook/webhook.module';
   providers: [
     {
       provide: APP_INTERCEPTOR,
-      useClass: HttpCacheInterceptor,
+      useClass: HttpTimeoutInterceptor,
     },
   ],
 })

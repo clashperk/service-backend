@@ -9,9 +9,17 @@ import {
   PlayerLinksEntity,
   PlayersEntity,
 } from './collections';
-import { Collections } from './db.constants';
 
-export const MONGODB_TOKEN = 'MONGODB_TOKEN';
+export enum Collections {
+  CLAN_STORES = 'ClanStores',
+  CLAN_CATEGORIES = 'ClanCategories',
+
+  PORTAL_USERS = 'PortalUsers',
+  PLAYER_LINKS = 'PlayerLinks',
+  CLAN_WARS = 'ClanWars',
+
+  PLAYERS = 'Players',
+}
 
 interface CollectionRecords {
   [Collections.CLAN_STORES]: ClanStoresEntity;
@@ -27,6 +35,8 @@ declare module 'mongodb' {
     collection<T extends keyof CollectionRecords>(name: T): Collection<CollectionRecords[T]>;
   }
 }
+
+export const MONGODB_TOKEN = 'MONGODB_TOKEN';
 
 @Global()
 @Module({

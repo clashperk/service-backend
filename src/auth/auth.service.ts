@@ -11,10 +11,7 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { randomBytes, randomUUID } from 'crypto';
 import Redis from 'ioredis';
 import { Db, ObjectId } from 'mongodb';
-import { ApiUsersEntity } from '../db';
-import { Collections } from '../db/db.constants';
-import { MONGODB_TOKEN } from '../db/mongodb.module';
-import { REDIS_TOKEN } from '../db/redis.module';
+import { ApiUsersEntity, Collections, MONGODB_TOKEN, REDIS_TOKEN } from '../db';
 import {
   AuthUserDto,
   GenerateTokenDto,

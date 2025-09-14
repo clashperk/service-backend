@@ -3,8 +3,7 @@ import { DiscordLinkService } from '@app/clash-client/discord-link.service';
 import { DiscordOauthService } from '@app/discord-oauth';
 import { ConflictException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { Db } from 'mongodb';
-import { Collections } from '../db/db.constants';
-import { MONGODB_TOKEN } from '../db/mongodb.module';
+import { Collections, MONGODB_TOKEN } from '../db';
 import { CreateLinkInputDto } from './dto';
 
 @Injectable()

@@ -9,7 +9,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     const startTime = Date.now();
 
     response.on('finish', () => {
-      if (request.originalUrl === '/graphql' && request.body) {
+      if (request.originalUrl === '/graphql') {
         this.logGraphQLRequest(request, response, startTime);
       } else {
         this.logRequest(request, response, startTime);
