@@ -8,14 +8,13 @@ import { Observable } from 'rxjs';
 @Injectable()
 export class HttpCacheInterceptor extends CacheInterceptor {
   trackBy(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest<RawBodyRequest<Request>>();
-
     const ttl = this.reflector.getAllAndOverride(CACHE_TTL_METADATA, [
       context.getHandler(),
       context.getClass(),
     ]);
-
     if (!ttl) return;
+
+    const request = context.switchToHttp().getRequest<RawBodyRequest<Request>>();
 
     const params = request.path !== request.originalUrl ? request.originalUrl : ``;
     const body = (

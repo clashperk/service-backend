@@ -1,3 +1,4 @@
+import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
@@ -9,6 +10,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
+
 @ValidatorConstraint({ name: 'EitherOrConstraint', async: false })
 class EitherOrConstraint implements ValidatorConstraintInterface {
   validate() {
@@ -36,15 +38,33 @@ export class DeleteLinkInputDto {
   playerTag: string;
 }
 
+@ObjectType()
 export class LinksDto {
+  @Field()
   tag: string;
+
+  @Field()
   name: string;
+
+  @Field()
   userId: string;
+
+  @Field()
   username: string;
+
+  @Field()
   verified: boolean;
 }
 
+@ObjectType()
+export class MessageOkDto {
+  @Field()
+  message: string;
+}
+
+@InputType()
 export class BulkLinksInputDto {
+  @Field(() => [String])
   @ValidateIf((body) => !!(body.playerTags && !body.userIds))
   @IsString({ each: true })
   @ArrayMaxSize(100)
@@ -52,6 +72,7 @@ export class BulkLinksInputDto {
   @ApiProperty({ example: ['#2PP'] })
   playerTags: string[];
 
+  @Field(() => [String])
   @ValidateIf((body) => !!(body.userIds && !body.playerTags))
   @IsString({ each: true })
   @ArrayMaxSize(100)

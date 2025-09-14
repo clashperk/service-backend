@@ -11,35 +11,38 @@ export class MetricsService {
     let where = '';
 
     if (input.commandId) {
-      where += ` and commandId='${input.commandId}'`;
+      where += ` AND commandId='${input.commandId}'`;
     }
 
     if (input.userId) {
-      where += ` and userId='${input.userId}'`;
+      where += ` AND userId='${input.userId}'`;
     }
 
     if (input.guildId) {
-      where += ` and guildId='${input.guildId}'`;
+      where += ` AND guildId='${input.guildId}'`;
     }
 
     if (input.startDate) {
       input.startDate = Math.floor(input.startDate / 1000);
-      where += ` and createdAt >= {startDate: DateTime}`;
+      where += ` AND createdAt >= {startDate: DateTime}`;
     }
 
     if (input.endDate) {
       input.endDate = Math.floor(input.endDate / 1000);
-      where += ` and createdAt <= {endDate: DateTime}`;
+      where += ` AND createdAt <= {endDate: DateTime}`;
     }
 
     const rows = await this.clickhouse
       .query({
         query: `
-          select * from bot_command_logs
-          where 1=1 ${where}
-          order by createdAt desc
-          limit {limit: Int32}
-          offset {offset: Int32}
+          SELECT
+            *
+          FROM bot_command_logs
+          WHERE
+            1=1 ${where}
+          ORDER BY createdAt DESC
+          LIMIT {limit: Int32}
+          OFFSET {offset: Int32}
         `,
         query_params: {
           startDate: input.startDate,

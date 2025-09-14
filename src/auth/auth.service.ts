@@ -10,7 +10,8 @@ import {
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { randomBytes, randomUUID } from 'crypto';
 import Redis from 'ioredis';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
+import { ApiUsersEntity } from '../db';
 import { Collections } from '../db/db.constants';
 import { MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_TOKEN } from '../db/redis.module';
@@ -58,7 +59,7 @@ export class AuthService {
         $set: {
           userId: input.userId,
           roles: input.roles,
-          isBot: user.bot,
+          isBot: !!user.bot,
           displayName: user.global_name || user.username,
           updatedAt: new Date(),
           deletedAt: null,
@@ -74,9 +75,9 @@ export class AuthService {
     return {
       passKey: dto.passKey,
       userId: dto.userId,
-      displayName: dto.displayName,
       isBot: dto.isBot,
       roles: dto.roles,
+      displayName: dto.displayName,
       accessToken: this.createJwt({ userId: input.userId, roles: input.roles }),
     };
   }
@@ -115,5 +116,25 @@ export class AuthService {
 
   private get users() {
     return this.db.collection(Collections.PORTAL_USERS);
+  }
+
+  private async _update() {
+    const users = await this.users.find().toArray();
+
+    for (const user of users) {
+      if (user.userId === 'vercel-user') continue;
+      const discordUser = await this.discordOauthService.getUser(user.userId);
+
+      const update: Partial<ApiUsersEntity> = {
+        isBot: !!discordUser.bot,
+        deletedAt: null,
+        updatedAt: new Date(),
+        displayName: discordUser.global_name || discordUser.username,
+      };
+
+      if (!user.createdAt) update.createdAt = new ObjectId(user._id).getTimestamp();
+
+      await this.users.updateOne({ userId: user.userId }, { $set: update });
+    }
   }
 }

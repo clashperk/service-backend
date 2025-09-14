@@ -1,7 +1,7 @@
 export enum UserRoles {
   USER = 'user',
-  DEV = 'dev',
   ADMIN = 'admin',
+  VIEWER = 'viewer',
 
   FETCH_WARS = 'fetch:wars',
   FETCH_CLANS = 'fetch:clans',

@@ -9,13 +9,17 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     const startTime = Date.now();
 
     response.on('finish', () => {
-      this.logRequest(request, response, startTime);
+      if (request.originalUrl === '/graphql' && request.body) {
+        this.logGraphQLRequest(request, response, startTime);
+      } else {
+        this.logRequest(request, response, startTime);
+      }
     });
 
     next();
   }
 
-  private logRequest(request: Request, response: Response, startTime: number): void {
+  private logRequest(request: Request, response: Response, startTime: number) {
     const { method, originalUrl } = request;
     const { statusCode } = response;
     const responseTime = Date.now() - startTime;
@@ -30,6 +34,22 @@ export class HttpLoggingMiddleware implements NestMiddleware {
 
     const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'verbose';
     this.logger[logType](logMessage, method);
+  }
+
+  private logGraphQLRequest(request: Request, response: Response, startTime: number) {
+    const { statusCode } = response;
+    const responseTime = Date.now() - startTime;
+    const remoteAddr = this.formatIp(this.getClientIp(request));
+    const userId = request.user?.userId ?? '0x0';
+
+    const logMessage = [
+      `${statusCode} ${request.body.operationName}`,
+      `${responseTime}ms - ${remoteAddr}`,
+      `${userId}`,
+    ].join(' ');
+
+    const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'verbose';
+    this.logger[logType](logMessage, 'GRAPHQL');
   }
 
   private formatIp(ip?: string): string {

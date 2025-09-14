@@ -1,26 +1,28 @@
 import { randomUUID } from 'node:crypto';
 import { UserRoles } from './user-roles.dto';
 
-export interface JwtUserInput {
+export class JwtUserInput {
   jti: string;
   userId: string;
   version: string;
   roles: UserRoles[];
 }
 
-export interface JwtUser extends JwtUserInput {
+export class JwtUser implements JwtUserInput {
   userId: string;
-  sub: string;
   jti: string;
   iat: number;
   exp: number;
   version: string;
   roles: UserRoles[];
+
+  static isAdmin(user: JwtUser) {
+    return user.roles.includes(UserRoles.ADMIN);
+  }
 }
 
-export const apiKeyUser: JwtUser = {
+export const fallbackUser: JwtUser = {
   userId: '526971716711350273',
-  sub: '526971716711350273',
   roles: [UserRoles.ADMIN],
   jti: randomUUID(),
   version: '1',

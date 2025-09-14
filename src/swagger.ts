@@ -12,6 +12,8 @@ export function build(app: NestExpressApplication) {
           `Response **caching is enabled**, with duration varying across different endpoints for optimal performance.`,
           `API **access is limited** and reviewed individually. If you'd like to request access, reach out to us on Discord.`,
         ].join('<br/>'),
+        'By using this API, you agree to fair usage. Access may be revoked for abuse, misuse, or security violations.',
+        '[Join our Discord](https://discord.gg/ppuppun) | [Terms of Service](https://clashperk.com/terms) | [Privacy Policy](https://clashperk.com/privacy)',
       ].join('\n\n'),
     )
     .setVersion('v1')
@@ -27,7 +29,6 @@ export function build(app: NestExpressApplication) {
       name: 'x-api-key',
       description: 'in header (x-api-key: [key]) or query param (?apiKey=[key])',
     })
-    .setExternalDoc('Join our Discord', 'https://discord.gg/ppuppun')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {

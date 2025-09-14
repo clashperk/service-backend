@@ -25,6 +25,7 @@ async function bootstrap() {
   const port = config.get<number>('PORT', 8080);
   await app.listen(port);
 
-  logger.log(`App running on: http://localhost:${port}/docs`);
+  logger.log(`GraphQL running on: http://localhost:${port}/graphql`);
+  logger.log(`HTTP running on: http://localhost:${port}/docs`);
 }
 bootstrap(); // eslint-disable-line

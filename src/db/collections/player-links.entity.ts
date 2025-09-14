@@ -1,8 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
-
-@ObjectType()
 export class PlayerLinksEntity {
-  @Field()
   userId: string;
   username: string;
   displayName: string;
