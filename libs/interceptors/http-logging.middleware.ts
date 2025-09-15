@@ -43,7 +43,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     const userId = request.user?.userId ?? '0x0';
 
     const logMessage = [
-      `${statusCode} ${request.body.operationName}`,
+      `${statusCode} ${request.body?.operationName || request.originalUrl}`,
       `${responseTime}ms - ${remoteAddr}`,
       `${userId}`,
     ].join(' ');
