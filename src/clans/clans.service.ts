@@ -13,6 +13,6 @@ export class ClansService {
     const clan = await this.clashClientService.getClanOrThrow(clanTag);
     const playerTags = clan.memberList.map((m) => m.tag);
 
-    return this.clanMembersService.getLastSeen(playerTags);
+    return { items: await this.clanMembersService.getLastSeen(playerTags) };
   }
 }

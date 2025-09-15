@@ -3,6 +3,7 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import { ClansService } from './clans.service';
+import { LastSeenDto } from './dto';
 
 @Controller('/clans')
 @UseGuards(JwtAuthGuard)
@@ -10,14 +11,9 @@ import { ClansService } from './clans.service';
 export class ClansController {
   constructor(private clansService: ClansService) {}
 
-  @Get('/:clanTag')
-  getClanTag() {
-    return Promise.resolve({});
-  }
-
   @Get('/:clanTag/lastseen')
   @Cache(60)
-  async getLastSeen(@Param('clanTag') clanTag: string) {
+  async getLastSeen(@Param('clanTag') clanTag: string): Promise<LastSeenDto> {
     return this.clansService.getLastSeen(clanTag);
   }
 }

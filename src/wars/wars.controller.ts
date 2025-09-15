@@ -10,7 +10,7 @@ import { WarsService } from './wars.service';
 export class WarsController {
   constructor(private warsService: WarsService) {}
 
-  @Get('/:clanTag/clan-war-league')
+  @Get('/:clanTag/clan-war-leagues')
   @Cache(60 * 5)
   async getClanWar(@Param('clanTag') clanTag: string) {
     return this.warsService.getClanWarLeague(clanTag);
