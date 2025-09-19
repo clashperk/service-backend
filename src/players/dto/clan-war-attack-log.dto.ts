@@ -1,5 +1,6 @@
-import { DateTime } from '@app/decorators';
+import { DateTime, EnumString } from '@app/decorators';
 import { ApiProperty } from '@nestjs/swagger';
+import { WarTypes } from './war-types.enum';
 
 export class AttackHistoryInputDto {
   @DateTime()
@@ -22,9 +23,16 @@ class AttackRecordDto {
 
 export class AttackHistoryDto {
   id: number;
-  warType: number;
+
+  @EnumString(WarTypes, 'WarTypes', 'Regular = 1, Friendly = 2, CWL = 3')
+  warType: WarTypes;
+
+  @ApiProperty({ type: String, format: 'date-time' })
   startTime: string | Date;
+
+  @ApiProperty({ type: String, format: 'date-time' })
   endTime: string | Date;
+
   clan: {
     name: string;
     tag: string;
@@ -44,6 +52,10 @@ export class AttackHistoryDto {
 
   @ApiProperty({ isArray: true, type: AttackRecordDto })
   attacks: AttackRecordDto[];
+}
+
+export class AttackHistoryItemsDto {
+  items: AttackHistoryDto[];
 }
 
 export class AggregateAttackHistoryDto {

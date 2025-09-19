@@ -9,6 +9,11 @@ import {
   PlayerLinksEntity,
   PlayersEntity,
 } from './collections';
+import {
+  GlobalClanEntity,
+  GlobalClanHistoryEntity,
+  GlobalPlayerEntity,
+} from './collections/global-clan-history.entity';
 
 export enum Collections {
   CLAN_STORES = 'ClanStores',
@@ -19,6 +24,10 @@ export enum Collections {
   CLAN_WARS = 'ClanWars',
 
   PLAYERS = 'Players',
+
+  GLOBAL_CLANS = 'global_clans',
+  GLOBAL_PLAYERS = 'global_players',
+  GLOBAL_CLAN_HISTORY = 'global_clan_history',
 }
 
 interface CollectionRecords {
@@ -28,6 +37,10 @@ interface CollectionRecords {
   [Collections.PLAYER_LINKS]: PlayerLinksEntity;
   [Collections.CLAN_WARS]: ClanWarsEntity;
   [Collections.PLAYERS]: PlayersEntity;
+
+  [Collections.GLOBAL_CLANS]: GlobalClanEntity;
+  [Collections.GLOBAL_PLAYERS]: GlobalPlayerEntity;
+  [Collections.GLOBAL_CLAN_HISTORY]: GlobalClanHistoryEntity;
 }
 
 declare module 'mongodb' {
@@ -37,6 +50,7 @@ declare module 'mongodb' {
 }
 
 export const MONGODB_TOKEN = 'MONGODB_TOKEN';
+export const GLOBAL_MONGODB_TOKEN = 'GLOBAL_MONGODB_TOKEN';
 
 @Global()
 @Module({
@@ -50,13 +64,26 @@ export const MONGODB_TOKEN = 'MONGODB_TOKEN';
       },
       inject: [ConfigService],
     },
+    {
+      provide: GLOBAL_MONGODB_TOKEN,
+      useFactory: (configService: ConfigService): Db => {
+        return new MongoClient(configService.getOrThrow('GLOBAL_MONGODB_URL')).db(
+          configService.getOrThrow('GLOBAL_MONGODB_DATABASE'),
+        );
+      },
+      inject: [ConfigService],
+    },
   ],
-  exports: [MONGODB_TOKEN],
+  exports: [MONGODB_TOKEN, GLOBAL_MONGODB_TOKEN],
 })
 export class MongoDbModule {
-  constructor(@Inject(MONGODB_TOKEN) private db: Db) {}
+  constructor(
+    @Inject(MONGODB_TOKEN) private mainDb: Db,
+    @Inject(GLOBAL_MONGODB_TOKEN) private globalDb: Db,
+  ) {}
 
   onModuleInit() {
-    this.db.command({ ping: 1 }); // eslint-disable-line
+    this.mainDb.command({ ping: 1 }); // eslint-disable-line
+    this.globalDb.command({ ping: 1 }); // eslint-disable-line
   }
 }

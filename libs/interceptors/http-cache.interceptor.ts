@@ -16,13 +16,7 @@ export class HttpCacheInterceptor extends CacheInterceptor {
 
     const request = context.switchToHttp().getRequest<RawBodyRequest<Request>>();
 
-    const params = request.path !== request.originalUrl ? request.originalUrl : ``;
-    const body = (
-      request.method !== 'GET' ? (request.rawBody?.toString('utf-8') ?? ``) : ``
-    ).concat(params);
-    const hash = body.length ? `?${generateHash(body)}` : ``;
-
-    return `cache:${request.path}${hash}`;
+    return this.buildCacheKey(request);
   }
 
   intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
@@ -34,5 +28,17 @@ export class HttpCacheInterceptor extends CacheInterceptor {
     }
 
     return super.intercept(context, next);
+  }
+
+  private buildCacheKey(request: RawBodyRequest<Request>): string {
+    if (request.method === 'GET') {
+      return `cache:${request.originalUrl}`;
+    }
+
+    const params = request.path !== request.originalUrl ? request.originalUrl : ``;
+    const body = (request.rawBody?.toString('utf-8') ?? ``).concat(params);
+    const hash = body.length ? `?${generateHash(body)}` : ``;
+
+    return `cache:${request.path}${hash}`;
   }
 }
