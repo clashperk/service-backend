@@ -32,7 +32,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
       `${userId}`,
     ].join(' ');
 
-    const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'verbose';
+    const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'debug';
     this.logger[logType](logMessage, method);
   }
 
@@ -48,7 +48,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
       `${userId}`,
     ].join(' ');
 
-    const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'verbose';
+    const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'debug';
     this.logger[logType](logMessage, 'GRAPHQL');
   }
 

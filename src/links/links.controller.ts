@@ -31,7 +31,7 @@ export class LinksController {
       `You can send either "playerTags" or "userIds", not both or none. Max size is 100.`,
     ),
   })
-  @Roles([UserRoles.FETCH_LINKS, UserRoles.MANAGE_LINKS])
+  @Roles([UserRoles.USER, UserRoles.FETCH_LINKS, UserRoles.MANAGE_LINKS])
   async getLinks(@Body() input: BulkLinksInputDto): Promise<LinksDto[]> {
     if (input.playerTags?.length) {
       return this.linksService.getLinksByPlayerTags(input.playerTags);

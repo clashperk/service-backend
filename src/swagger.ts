@@ -1,4 +1,4 @@
-import { expandable, paragraph } from '@app/helpers';
+import { expandable, hyperlink, paragraph } from '@app/helpers';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 
@@ -20,7 +20,7 @@ export function build(app: NestExpressApplication) {
         expandable(
           'API Versioning and Deprecation Notice',
           "You're viewing the upcoming API, which is currently under active development and may undergo changes before its stable release.",
-          'The legacy API is unversioned and remains fully maintained at [https://api-legacy.clashperk.com/docs](https://api-legacy.clashperk.com/docs) until December 2025.',
+          `The legacy API is unversioned and remains fully maintained at ${hyperlink('https://api-legacy.clashperk.com/docs')} until December 2025.`,
           'The upcoming API is formally versioned, starting with `/v1` (example request: GET `/v1/clans/{clanTag}`). Please ensure you migrate to this API before that date to avoid disruption.',
         ),
 

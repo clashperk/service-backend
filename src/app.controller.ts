@@ -24,7 +24,7 @@ export class AppController {
       properties: {
         message: {
           type: 'string',
-          example: 'OK',
+          example: 'Ok',
         },
       },
     },

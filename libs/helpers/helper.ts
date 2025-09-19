@@ -15,3 +15,7 @@ export function paragraph(...lines: string[]) {
 export function expandable(label: string, ...summary: string[]) {
   return `\n<details>\n<summary>\n${label}\n</summary>\n\n${summary.join('<br/>')}\n</details>`;
 }
+
+export function hyperlink(url: string) {
+  return `[${url}](${url})`;
+}
