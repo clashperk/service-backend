@@ -1,25 +1,34 @@
 import { Cache } from '@app/decorators';
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard, UseApiKey } from '../auth';
+import { JwtAuthGuard } from '../auth';
 import {
   AggregateAttackHistoryDto,
   AttackHistoryInputDto,
   AttackHistoryItemsDto,
   ClanHistoryItemsDto,
+  GetLegendAttacksInputDto,
+  LegendAttacksItemsDto,
 } from './dto';
 import { GlobalService } from './services/global.service';
+import { LegendService } from './services/legend.service';
 import { PlayerWarsService } from './services/wars.service';
 
 @Controller('/players')
 @ApiBearerAuth()
-@UseApiKey()
 @UseGuards(JwtAuthGuard)
 export class PlayersController {
   constructor(
     private playerWarsService: PlayerWarsService,
     private globalService: GlobalService,
+    private legendService: LegendService,
   ) {}
+
+  @Post('/legend-attacks')
+  @Cache(600)
+  getLegendAttacks(@Body() body: GetLegendAttacksInputDto): Promise<LegendAttacksItemsDto> {
+    return this.legendService.getLegendAttacks(body);
+  }
 
   @Get('/:playerTag/history')
   @Cache(600)

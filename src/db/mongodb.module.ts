@@ -6,6 +6,7 @@ import {
   ClanCategoriesEntity,
   ClanStoresEntity,
   ClanWarsEntity,
+  LegendAttacksEntity,
   PlayerLinksEntity,
   PlayersEntity,
 } from './collections';
@@ -22,6 +23,8 @@ export enum Collections {
   PORTAL_USERS = 'PortalUsers',
   PLAYER_LINKS = 'PlayerLinks',
   CLAN_WARS = 'ClanWars',
+
+  LEGEND_ATTACKS = 'LegendAttacks',
 
   PLAYERS = 'Players',
 
@@ -41,6 +44,7 @@ interface CollectionRecords {
   [Collections.GLOBAL_CLANS]: GlobalClanEntity;
   [Collections.GLOBAL_PLAYERS]: GlobalPlayerEntity;
   [Collections.GLOBAL_CLAN_HISTORY]: GlobalClanHistoryEntity;
+  [Collections.LEGEND_ATTACKS]: LegendAttacksEntity;
 }
 
 declare module 'mongodb' {

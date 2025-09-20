@@ -1,7 +1,6 @@
 import { Cache } from '@app/decorators';
-import { Controller, Get, Post, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Post, Req, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint, ApiResponse } from '@nestjs/swagger';
-import { Response } from 'express';
 @Controller({
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
@@ -35,18 +34,17 @@ export class AppController {
 
   @Post('/cache-status-check')
   @Cache(30)
-  POSTcloudflareCacheStatusCheck(@Req() req: Request) {
+  cacheStatusCheckPOST(@Req() req: Request) {
     return {
-      'req-headers': { ...req.headers },
+      headers: { ...req.headers },
     };
   }
 
   @Get('/cache-status-check')
-  GETcloudflareCacheStatusCheck(@Req() req: Request, @Res() res: Response) {
-    res.setHeader('Cache-Control', 'max-age=30');
-
-    return res.json({
-      'req-headers': { ...req.headers },
-    });
+  @Cache(30)
+  cacheStatusCheckGET(@Req() req: Request) {
+    return {
+      headers: { ...req.headers },
+    };
   }
 }

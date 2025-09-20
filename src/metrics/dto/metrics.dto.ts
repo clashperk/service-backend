@@ -36,6 +36,6 @@ export class CommandsUsageLogDto {
   createdAt: number;
 }
 
-export class GetCommandsUsageLogsDto {
+export class CommandsUsageLogItemsDto {
   items: CommandsUsageLogDto[];
 }

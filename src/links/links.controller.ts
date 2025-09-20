@@ -2,7 +2,7 @@ import { codeBlock } from '@app/helpers';
 import { Body, Controller, Delete, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
-import { BulkLinksInputDto, CreateLinkInputDto, LinksDto } from './dto';
+import { CreateLinkInputDto, GetLinksInputDto, LinksDto } from './dto';
 import { LinksService } from './links.service';
 
 @Controller('/links')
@@ -32,7 +32,7 @@ export class LinksController {
     ),
   })
   @Roles([UserRoles.USER, UserRoles.FETCH_LINKS, UserRoles.MANAGE_LINKS])
-  async getLinks(@Body() input: BulkLinksInputDto): Promise<LinksDto[]> {
+  async getLinks(@Body() input: GetLinksInputDto): Promise<LinksDto[]> {
     if (input.playerTags?.length) {
       return this.linksService.getLinksByPlayerTags(input.playerTags);
     }

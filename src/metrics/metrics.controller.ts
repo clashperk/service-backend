@@ -1,16 +1,14 @@
 import { PRODUCTION_MODE } from '@app/constants';
 import { Cache } from '@app/decorators';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiExcludeController, ApiSecurity } from '@nestjs/swagger';
-import { JwtAuthGuard, Roles, RolesGuard, UseApiKey, UserRoles } from '../auth';
-import { GetCommandsUsageLogsDto, GetCommandsUsageLogsInputDto } from './dto';
+import { ApiBearerAuth, ApiExcludeController } from '@nestjs/swagger';
+import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
+import { CommandsUsageLogItemsDto, GetCommandsUsageLogsInputDto } from './dto';
 import { MetricsService } from './metrics.service';
 
 @Controller('/metrics')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
-@UseApiKey()
-@ApiSecurity('apiKey')
 @Roles([UserRoles.ADMIN])
 @ApiExcludeController(PRODUCTION_MODE)
 export class MetricsController {
@@ -20,7 +18,7 @@ export class MetricsController {
   @Cache(60)
   getCommandsUsageLogs(
     @Query() input: GetCommandsUsageLogsInputDto,
-  ): Promise<GetCommandsUsageLogsDto> {
+  ): Promise<CommandsUsageLogItemsDto> {
     return this.metricsService.getCommandsUsageLogs(input);
   }
 }

@@ -63,7 +63,7 @@ export class MessageOkDto {
 }
 
 @InputType()
-export class BulkLinksInputDto {
+export class GetLinksInputDto {
   @Field(() => [String])
   @ValidateIf((body) => !!(body.playerTags && !body.userIds))
   @IsString({ each: true })

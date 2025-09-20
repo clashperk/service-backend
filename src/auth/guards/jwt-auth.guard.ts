@@ -6,7 +6,7 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { AuthGuardStrategies } from '../app.constants';
-import { PUBLIC_METADATA, USE_API_KEY_METADATA } from '../decorators';
+import { PUBLIC_METADATA } from '../decorators';
 import { fallbackUser } from '../dto';
 
 @Injectable()
@@ -38,21 +38,14 @@ export class JwtAuthGuard extends AuthGuard(AuthGuardStrategies.JWT) {
 
     if (isPublic) return true;
 
-    const useApiKey = this.reflector.getAllAndOverride<boolean>(USE_API_KEY_METADATA, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
-    if (useApiKey) return this.canUseApiKey(context);
-
-    return super.canActivate(context);
+    return this.useMasterKey(context);
   }
 
-  public canUseApiKey(context: ExecutionContext) {
+  public useMasterKey(context: ExecutionContext) {
     const req = this.getRequest(context);
 
-    const key = (req.headers?.['x-api-key'] || req.query['apiKey']) as string;
-    const userId = (req.headers?.['x-user-id'] || req.query['userId']) as string;
+    const key = req.headers?.['x-api-key'] || req.query['apiKey'] || req.cookies?.['x-api-key'];
+    const userId = req.headers?.['x-user-id'] || req.query['userId'] || req.cookies?.['x-user-id'];
 
     if (!key || key !== this.apiKey) {
       return super.canActivate(context);
