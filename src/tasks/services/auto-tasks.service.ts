@@ -4,7 +4,7 @@ import { Cron } from '@nestjs/schedule';
 import { LegendTasksService } from './legend-tasks.service';
 
 @Injectable()
-export class CronService {
+export class AutoTasksService {
   constructor(private readonly legendTasksService: LegendTasksService) {}
 
   @Cron('59 4 * * *', {

@@ -3,7 +3,7 @@ import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 import moment from 'moment';
-import { CLICKHOUSE_TOKEN, REDIS_TOKEN } from '../db';
+import { CLICKHOUSE_TOKEN, REDIS_TOKEN } from '../../db';
 
 const SNAPSHOT_TTL = 60 * 60 * 24 + 60 * 5; // 1 day + 5 minutes
 const HISTORICAL_SNAPSHOT_TTL = 30 * 60 * 60 * 24 + 60 * 5; // 30 days + 5 minutes

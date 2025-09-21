@@ -1,9 +1,9 @@
 import { QueueTypes } from '@app/constants';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
-import { ExportsConsumer } from './consumer.service';
 import { ExportsController } from './exports.controller';
 import { ExportsService } from './exports.service';
+import { ExportsConsumerService } from './services/exports-consumer.service';
 
 @Module({
   imports: [
@@ -20,6 +20,6 @@ import { ExportsService } from './exports.service';
     }),
   ],
   controllers: [ExportsController],
-  providers: [ExportsService, ExportsConsumer],
+  providers: [ExportsService, ExportsConsumerService],
 })
 export class ExportsModule {}

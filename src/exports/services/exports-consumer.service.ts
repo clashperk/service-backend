@@ -1,10 +1,10 @@
 import { QueueTypes } from '@app/constants';
 import { InjectQueue, Process, Processor } from '@nestjs/bull';
 import { Job, Queue } from 'bull';
-import { ExportSheetInputDto } from './dto';
+import { ExportSheetInputDto } from '../dto';
 
 @Processor(QueueTypes.EXPORT)
-export class ExportsConsumer {
+export class ExportsConsumerService {
   constructor(@InjectQueue(QueueTypes.EXPORT) private queue: Queue<ExportSheetInputDto>) {}
 
   @Process()

@@ -56,13 +56,16 @@ export class ClashClientService {
     );
 
     const payload: {
+      season: string;
       rounds: APIClanWarLeagueRound[];
-      clans: { tag: string; name: string }[];
+      clans: { tag: string; name: string; leagueId: number }[];
       wars: (APIClanWar & { round: number; warTag: string })[];
     } = {
+      season: body.season,
       clans: body.clans.map((clan) => ({
         tag: clan.tag,
         name: clan.name,
+        leagueId: 0,
       })),
       rounds,
       wars: [],
@@ -77,7 +80,7 @@ export class ClashClientService {
     return payload;
   }
 
-  private async getLeagueRoundWithWarTag(warTag: string) {
+  public async getLeagueRoundWithWarTag(warTag: string) {
     const { res, body } = await this.clashClient.getClanWarLeagueRound(warTag);
     if (!res.ok) return { body: null, warTag };
     return { body, warTag };

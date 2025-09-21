@@ -23,7 +23,7 @@ export class LinksController {
     return this.linksService.deleteLink(user.userId, playerTag);
   }
 
-  @Post('/search')
+  @Post('/query')
   @HttpCode(200)
   @ApiOperation({
     summary: 'Get links by playerTags or userIds',

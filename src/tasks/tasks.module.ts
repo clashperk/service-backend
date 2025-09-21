@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { CronService } from './cron.service';
-import { LegendTasksService } from './legend-tasks.service';
+import { AutoTasksService } from './services/auto-tasks.service';
+import { LegendTasksService } from './services/legend-tasks.service';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 
 @Module({
   controllers: [TasksController],
-  providers: [TasksService, CronService, LegendTasksService],
+  providers: [TasksService, AutoTasksService, LegendTasksService],
 })
 export class TasksModule {}

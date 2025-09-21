@@ -1,5 +1,6 @@
 export enum QueueTypes {
   EXPORT = 'export',
+  TASKS = 'tasks',
 }
 
 export enum RedisKeys {

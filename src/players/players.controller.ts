@@ -1,5 +1,15 @@
 import { Cache } from '@app/decorators';
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import {
@@ -8,11 +18,12 @@ import {
   AttackHistoryItemsDto,
   ClanHistoryItemsDto,
   GetLegendAttacksInputDto,
+  LegendAttacksDto,
   LegendAttacksItemsDto,
 } from './dto';
 import { GlobalService } from './services/global.service';
 import { LegendService } from './services/legend.service';
-import { PlayerWarsService } from './services/wars.service';
+import { PlayerWarsService } from './services/player-wars.service';
 
 @Controller('/players')
 @ApiBearerAuth()
@@ -24,10 +35,24 @@ export class PlayersController {
     private legendService: LegendService,
   ) {}
 
-  @Post('/legend-attacks')
-  @Cache(600)
+  @Post('/legend-attacks/query')
+  @HttpCode(200)
+  @Cache(300)
   getLegendAttacks(@Body() body: GetLegendAttacksInputDto): Promise<LegendAttacksItemsDto> {
     return this.legendService.getLegendAttacks(body);
+  }
+
+  @Get('/:playerTag/legend-attacks')
+  @Cache(300)
+  async getLegendAttacksByPlayerTag(
+    @Param('playerTag') playerTag: string,
+  ): Promise<LegendAttacksDto> {
+    const {
+      items: [log],
+    } = await this.legendService.getLegendAttacks({ playerTags: [playerTag] });
+
+    if (log) return log;
+    throw new NotFoundException('Legend attacks not found.');
   }
 
   @Get('/:playerTag/history')

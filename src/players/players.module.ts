@@ -3,7 +3,7 @@ import { PlayersController } from './players.controller';
 import { PlayersService } from './players.service';
 import { GlobalService } from './services/global.service';
 import { LegendService } from './services/legend.service';
-import { PlayerWarsService } from './services/wars.service';
+import { PlayerWarsService } from './services/player-wars.service';
 
 @Global()
 @Module({
