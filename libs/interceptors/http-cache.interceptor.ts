@@ -1,4 +1,4 @@
-import { PRODUCTION_MODE } from '@app/constants';
+import { Config } from '@app/constants';
 import { generateHash } from '@app/helpers';
 import { CACHE_TTL_METADATA, CacheInterceptor } from '@nestjs/cache-manager';
 import { CallHandler, ExecutionContext, Injectable, RawBodyRequest } from '@nestjs/common';
@@ -23,7 +23,7 @@ export class HttpCacheInterceptor extends CacheInterceptor {
     const response = context.switchToHttp().getResponse<Response>();
 
     const cacheKey = this.trackBy(context);
-    if (cacheKey && !PRODUCTION_MODE) {
+    if (cacheKey && !Config.IS_PROD) {
       response.setHeader('X-Cache-Key', cacheKey);
     }
 

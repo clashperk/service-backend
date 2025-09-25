@@ -1,4 +1,4 @@
-import { PRODUCTION_MODE } from '@app/constants';
+import { Config } from '@app/constants';
 import { Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiExcludeController, ApiSecurity } from '@nestjs/swagger';
 import { ApiKeyGuard } from '../auth/guards';
@@ -6,7 +6,7 @@ import { ApiKeyGuard } from '../auth/guards';
 @Controller('/tasks')
 @UseGuards(ApiKeyGuard)
 @ApiSecurity('apiKey')
-@ApiExcludeController(PRODUCTION_MODE)
+@ApiExcludeController(Config.IS_PROD)
 export class TasksController {
   constructor() {}
 

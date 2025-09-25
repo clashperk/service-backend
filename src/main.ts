@@ -7,6 +7,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 
+import { Config } from '@app/constants';
 import { AppModule } from './app.module';
 import * as Swagger from './swagger';
 
@@ -16,7 +17,12 @@ async function bootstrap() {
   const logger = new Logger(AppModule.name);
   const config = app.get(ConfigService);
 
-  app.enableCors();
+  app.enableCors({
+    credentials: true,
+    origin: Config.IS_PROD
+      ? [...Config.ALLOWED_DOMAINS]
+      : [...Config.ALLOWED_DOMAINS, 'http://localhost:3000'],
+  });
   app.use(cookieParser());
   app.set('trust proxy', true);
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));

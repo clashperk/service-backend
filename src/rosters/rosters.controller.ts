@@ -1,9 +1,9 @@
-import { PRODUCTION_MODE } from '@app/constants';
+import { Config } from '@app/constants';
 import { Controller, Get, Param } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
 
 @Controller('/rosters')
-@ApiExcludeController(PRODUCTION_MODE)
+@ApiExcludeController(Config.IS_PROD)
 export class RostersController {
   constructor() {}
 

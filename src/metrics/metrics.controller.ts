@@ -1,4 +1,4 @@
-import { PRODUCTION_MODE } from '@app/constants';
+import { Config } from '@app/constants';
 import { Cache } from '@app/decorators';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiExcludeController } from '@nestjs/swagger';
@@ -10,7 +10,7 @@ import { MetricsService } from './metrics.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 @Roles([UserRoles.ADMIN])
-@ApiExcludeController(PRODUCTION_MODE)
+@ApiExcludeController(Config.IS_PROD)
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 

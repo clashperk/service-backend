@@ -1,4 +1,4 @@
-import { CRONJOB_ENABLED } from '@app/constants';
+import { Config } from '@app/constants';
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { LegendTasksService } from './legend-tasks.service';
@@ -9,7 +9,7 @@ export class AutoTasksService {
 
   @Cron('59 4 * * *', {
     timeZone: 'Etc/UTC',
-    disabled: !CRONJOB_ENABLED,
+    disabled: !Config.CRON_ENABLED,
   })
   runLegendTasks() {
     return this.legendTasksService.takeSnapshot();
@@ -17,7 +17,7 @@ export class AutoTasksService {
 
   @Cron('0 5 22 * *', {
     timeZone: 'Etc/UTC',
-    disabled: !CRONJOB_ENABLED,
+    disabled: !Config.CRON_ENABLED,
   })
   runClanGamesTask() {
     console.log('Running clan games tasks...');

@@ -1,4 +1,4 @@
-import { PRODUCTION_MODE } from '@app/constants';
+import { Config } from '@app/constants';
 import {
   Body,
   Controller,
@@ -14,7 +14,7 @@ import { InteractionType } from 'discord-interactions';
 import { WebhookService } from './webhook.service';
 
 @Controller('/webhook')
-@ApiExcludeController(PRODUCTION_MODE)
+@ApiExcludeController(Config.IS_PROD)
 export class WebhookController {
   constructor(private webhookService: WebhookService) {}
 
