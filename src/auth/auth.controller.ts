@@ -1,10 +1,13 @@
+import { Config } from '@app/constants';
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiSecurity } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
   GenerateTokenDto,
   GenerateTokenInputDto,
+  HandoffTokenInputDto,
+  HandoffUserDto,
   LoginInputDto,
   LoginOkDto,
 } from './dto';
@@ -40,5 +43,21 @@ export class AuthController {
   @ApiSecurity('apiKey')
   async getAuthUser(@Param('userId') userId: string): Promise<AuthUserDto> {
     return this.authService.getAuthUser(userId);
+  }
+
+  @Get('/handoff/:token')
+  @UseGuards(ApiKeyGuard)
+  @ApiExcludeEndpoint(Config.IS_PROD)
+  @ApiSecurity('apiKey')
+  async decodeHandoffToken(@Param('token') token: string): Promise<HandoffUserDto> {
+    return this.authService.decodeHandoffToken(token);
+  }
+
+  @Post('/handoff')
+  @ApiExcludeEndpoint(Config.IS_PROD)
+  @UseGuards(ApiKeyGuard)
+  @ApiSecurity('apiKey')
+  async createHandoffToken(@Body() body: HandoffTokenInputDto) {
+    return this.authService.createHandoffToken(body);
   }
 }

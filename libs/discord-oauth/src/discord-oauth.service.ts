@@ -40,4 +40,11 @@ export class DiscordOauthService {
     });
     return payload as APIGuildMember[];
   }
+
+  public buildAvatarUrl(userId: string, avatar: string | null) {
+    if (!avatar) {
+      return `https://cdn.discordapp.com/embed/avatars/${BigInt(userId) % BigInt(5)}.png`;
+    }
+    return `https://cdn.discordapp.com/avatars/${userId}/${avatar}${avatar.startsWith('a_') ? '.gif' : '.png'}`;
+  }
 }

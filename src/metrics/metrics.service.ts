@@ -14,6 +14,10 @@ export class MetricsService {
       where += ` AND commandId='${input.commandId}'`;
     }
 
+    if (input.query) {
+      where += ` AND commandId ILIKE '%${input.query}%'`;
+    }
+
     if (input.userId) {
       where += ` AND userId='${input.userId}'`;
     }
@@ -40,7 +44,8 @@ export class MetricsService {
           FROM bot_command_logs
           WHERE
             1=1 ${where}
-          ORDER BY createdAt DESC
+          ORDER BY
+            createdAt DESC
           LIMIT {limit: Int32}
           OFFSET {offset: Int32}
         `,

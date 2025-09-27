@@ -4,6 +4,10 @@ import Redis from 'ioredis';
 
 export const REDIS_TOKEN = 'REDIS_TOKEN';
 
+export const REDIS_PUB_TOKEN = 'REDIS_PUB_TOKEN';
+
+export const REDIS_SUB_TOKEN = 'REDIS_SUB_TOKEN';
+
 @Global()
 @Module({
   providers: [
@@ -14,8 +18,22 @@ export const REDIS_TOKEN = 'REDIS_TOKEN';
       },
       inject: [ConfigService],
     },
+    {
+      provide: REDIS_PUB_TOKEN,
+      useFactory: (configService: ConfigService): Redis => {
+        return new Redis(configService.getOrThrow('REDIS_URL'));
+      },
+      inject: [ConfigService],
+    },
+    {
+      provide: REDIS_SUB_TOKEN,
+      useFactory: (configService: ConfigService): Redis => {
+        return new Redis(configService.getOrThrow('REDIS_URL'));
+      },
+      inject: [ConfigService],
+    },
   ],
-  exports: [REDIS_TOKEN],
+  exports: [REDIS_TOKEN, REDIS_PUB_TOKEN, REDIS_SUB_TOKEN],
 })
 export class RedisClientModule {
   constructor(@Inject(REDIS_TOKEN) private redis: Redis) {}

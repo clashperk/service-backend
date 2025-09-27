@@ -19,6 +19,9 @@ export class GetCommandsUsageLogsInputDto {
   @DateTime()
   endDate?: number;
 
+  @IsOptional()
+  query?: string;
+
   @NumberString(100)
   @Max(1000)
   @Min(1)

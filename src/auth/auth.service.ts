@@ -16,6 +16,8 @@ import {
   AuthUserDto,
   GenerateTokenDto,
   GenerateTokenInputDto,
+  HandoffTokenInputDto,
+  HandoffUserDto,
   JwtUser,
   JwtUserInput,
   LoginOkDto,
@@ -89,6 +91,44 @@ export class AuthService {
       isBot: user.isBot,
       displayName: user.displayName,
     };
+  }
+
+  async decodeHandoffToken(token: string): Promise<HandoffUserDto> {
+    const payload = await this.redis.get(`${RedisKeys.HANDOFF_TOKEN}:${token}`);
+    if (!payload) throw new NotFoundException();
+
+    const user = JSON.parse(payload) as {
+      userId: string;
+      guildId: string;
+      avatar: string | null;
+      displayName: string;
+    };
+
+    return {
+      isBot: false,
+      userId: user.userId,
+      roles: [UserRoles.USER],
+      displayName: user.displayName,
+      avatarUrl: this.discordOauthService.buildAvatarUrl(user.userId, user.avatar),
+    };
+  }
+
+  async createHandoffToken(payload: HandoffTokenInputDto) {
+    const token = randomBytes(16).toString('hex');
+    const user = await this.discordOauthService.getUser(payload.userId);
+
+    await this.redis.set(
+      `${RedisKeys.HANDOFF_TOKEN}:${token}`,
+      JSON.stringify({
+        userId: user.id,
+        guildId: payload.guildId,
+        avatar: user.avatar || null,
+        displayName: user.global_name || user.username,
+      }),
+      'EX',
+      60 * 60,
+    );
+    return { token, user };
   }
 
   async revalidateJwtUser(payload: JwtUser) {

@@ -49,3 +49,24 @@ export class AuthUserDto {
 
   isBot: boolean;
 }
+
+export class HandoffTokenInputDto {
+  @IsString()
+  userId: string;
+
+  @IsString()
+  guildId: string;
+}
+
+export class HandoffUserDto {
+  @EnumArray(UserRoles, 'UserRoles')
+  roles: UserRoles[];
+
+  userId: string;
+
+  displayName: string;
+
+  isBot: boolean;
+
+  avatarUrl: string | null;
+}
