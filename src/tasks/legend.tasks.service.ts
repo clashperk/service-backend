@@ -82,7 +82,12 @@ export class LegendTasksService {
       (rank) => rank <= limit,
     );
 
-    const seasonId = this.clashClient.util.getSeasonId();
+    const seasonId = this.clashClient.util.getSeason();
+    const where =
+      new Date() > new Date('2025-10-06T05:00:00.000Z') &&
+      new Date() <= new Date('2025-10-27T05:00:00.000Z')
+        ? `createdAt >= {startTime: DateTime}`
+        : `seasonId = {seasonId: String}`;
 
     const rows = await this.clickhouseClient
       .query({
@@ -95,14 +100,18 @@ export class LegendTasksService {
                 row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
               FROM legend_players
               FINAL
-              WHERE seasonId = {seasonId: String} AND createdAt >= toStartOfDay(now() - INTERVAL 1 DAY)
+              WHERE ${where}
             )
             SELECT *
             FROM ranked
             WHERE rank IN {ranks: Array(String)}
             ORDER BY rank;
           `,
-        query_params: { ranks: ranks.map(String), seasonId },
+        query_params: {
+          ranks: ranks.map(String),
+          seasonId,
+          startTime: new Date('2025-10-06T05:00:00.000Z'),
+        },
       })
       .then((res) => res.json<{ rank: string; trophies: string }>());
 
