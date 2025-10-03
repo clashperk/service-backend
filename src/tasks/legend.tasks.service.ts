@@ -110,7 +110,7 @@ export class LegendTasksService {
         query_params: {
           ranks: ranks.map(String),
           seasonId,
-          startTime: new Date('2025-10-06T05:00:00.000Z'),
+          startTime: Math.floor(new Date('2025-10-06T05:00:00.000Z').getTime() / 1000),
         },
       })
       .then((res) => res.json<{ rank: string; trophies: string }>());
