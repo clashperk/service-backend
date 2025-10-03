@@ -6,7 +6,7 @@ export const Config = {
     'https://dash.clashperk.com',
     'https://dashboard.clashperk.com',
     'https://staging.clashperk.com',
-  ],
+  ] as const,
   CRON_ENABLED: process.env.CRONJOB_ENABLED === '1',
 };
 
