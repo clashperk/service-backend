@@ -32,7 +32,7 @@ export class Season {
     ) {
       return {
         startTime: new Date('2025-08-25T05:00:00.000Z'),
-        endTime: new Date('2025-10-06T04:59:59.999Z'),
+        endTime: new Date('2025-10-06T05:00:00.000Z'),
       };
     }
 
@@ -42,7 +42,7 @@ export class Season {
     ) {
       return {
         startTime: new Date('2025-10-06T05:00:00.000Z'),
-        endTime: new Date('2025-10-27T04:59:59.999Z'),
+        endTime: new Date('2025-10-27T05:00:00.000Z'),
       };
     }
 

@@ -10,8 +10,10 @@ const SNAPSHOT_TTL = 60 * 60 * 24 + 60 * 5; // 1 day + 5 minutes
 const HISTORICAL_SNAPSHOT_TTL = 45 * 60 * 60 * 24 + 60 * 5; // 45 days + 5 minutes
 const CACHED_RANKS_TTL = 60 * 10; // 10 minutes
 
-const POSSIBLE_RANKS = [1, 3, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
-const MAX_LIMIT = 50000;
+const POSSIBLE_RANKS = [
+  1, 3, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000,
+];
+const MAX_LIMIT = 100000;
 
 @Injectable()
 export class LegendTasksService {
