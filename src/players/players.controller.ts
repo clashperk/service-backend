@@ -7,11 +7,12 @@ import {
   NotFoundException,
   Param,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth';
+import { JwtAuthGuard, Roles, UserRoles } from '../auth';
 import { LegendTasksService } from '../tasks/services/legend-tasks.service';
 import {
   AggregateAttackHistoryDto,
@@ -23,6 +24,7 @@ import {
   LegendAttacksItemsDto,
   LegendRankingThresholdsDto,
 } from './dto';
+import { PlayersService } from './players.service';
 import { GlobalService } from './services/global.service';
 import { LegendService } from './services/legend.service';
 import { PlayerWarsService } from './services/player-wars.service';
@@ -33,6 +35,7 @@ import { PlayerWarsService } from './services/player-wars.service';
 export class PlayersController {
   constructor(
     private playerWarsService: PlayerWarsService,
+    private playersService: PlayersService,
     private globalService: GlobalService,
     private legendService: LegendService,
     private legendTasksService: LegendTasksService,
@@ -91,5 +94,11 @@ export class PlayersController {
     @Query() query: AttackHistoryInputDto,
   ): Promise<AggregateAttackHistoryDto> {
     return this.playerWarsService.aggregateAttackHistory({ playerTag, startDate: query.startDate });
+  }
+
+  @Put('/:playerTag')
+  @Roles([UserRoles.ADMIN])
+  async addPlayerAccount(@Param('playerTag') playerTag: string) {
+    return this.playersService.addPlayer(playerTag);
   }
 }

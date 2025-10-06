@@ -14,7 +14,7 @@ export function Cache(seconds: number): MethodDecorator {
 
   return applyDecorators(
     UseInterceptors(HttpCacheInterceptor),
-    CacheTTL(30 * 1000),
+    CacheTTL(5 * 1000),
     Header('Cache-Control', 'no-store'),
   );
 }
