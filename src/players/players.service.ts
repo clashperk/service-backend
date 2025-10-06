@@ -15,11 +15,14 @@ export class PlayersService {
 
   async addPlayer(tag: string) {
     const player = await this.clashClientService.getPlayerOrThrow(tag);
-    await this.redis.sadd('legend_player_tags', player.tag);
 
-    if (Util.getSeasonId() !== '2025-10') {
-      return { message: 'Ok' };
-    }
+    const hasMigrated = await this.redis.sismember('migrated_legend_player_tags', player.tag);
+    if (hasMigrated) return { message: 'already_migrated' };
+
+    await this.redis.sadd('legend_player_tags', player.tag);
+    await this.redis.sadd('migrated_legend_player_tags', player.tag);
+
+    if (Util.getSeasonId() !== '2025-10') return { message: 'no_longer_required' };
 
     const [season] = await this.db
       .collection('LegendAttacksOld')
@@ -95,9 +98,7 @@ export class PlayersService {
       ])
       .toArray();
 
-    if (!season) {
-      return { message: 'Ok' };
-    }
+    if (!season) return { message: 'season_not_found' };
 
     season.logs.sort((a, b) => a.timestamp - b.timestamp);
     season.logs = season.logs.filter(
@@ -112,6 +113,6 @@ export class PlayersService {
         { upsert: true },
       );
 
-    return { message: 'Ok' };
+    return { message: 'migrated' };
   }
 }

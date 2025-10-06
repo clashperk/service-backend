@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { APIClanWar, APIClanWarLeagueRound } from 'clashofclans.js';
+import { APIClanWar, APIClanWarLeagueRound, SearchOptions } from 'clashofclans.js';
 import { ClashClient } from './client';
 
 @Injectable()
@@ -18,6 +18,10 @@ export class ClashClientService {
     if (!res.ok) return null;
 
     return body;
+  }
+
+  async getSeasonRankings(seasonId: string, opts: SearchOptions) {
+    return this.clashClient.getSeasonRankings(29000022, seasonId, opts);
   }
 
   async getClanOrThrow(clanTag: string) {
