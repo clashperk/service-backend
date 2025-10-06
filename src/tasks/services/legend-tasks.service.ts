@@ -1,6 +1,7 @@
 import { ClashClient } from '@app/clash-client';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Util } from 'clashofclans.js';
 import Redis from 'ioredis';
 import moment from 'moment';
 import { CLICKHOUSE_TOKEN, REDIS_TOKEN } from '../../db';
@@ -84,13 +85,7 @@ export class LegendTasksService {
 
   private async aggregateRanksThresholds() {
     const ranks = POSSIBLE_RANKS.filter((rank) => rank <= MAX_LIMIT);
-
-    const seasonId = this.clashClient.util.getSeasonId();
-    const where =
-      new Date() > new Date('2025-10-06T05:00:00.000Z') &&
-      new Date() <= new Date('2025-10-27T05:00:00.000Z')
-        ? `createdAt >= {startTime: DateTime}`
-        : `seasonId = {seasonId: String}`;
+    const seasonId = Util.getSeasonId();
 
     const rows = await this.clickhouseClient
       .query({
@@ -103,7 +98,7 @@ export class LegendTasksService {
               row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
             FROM legend_players
             FINAL
-            WHERE ${where}
+            WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}
           )
           SELECT *
           FROM ranking_query
