@@ -1,4 +1,4 @@
-import { ClashClient, Season } from '@app/clash-client';
+import { ClashClient } from '@app/clash-client';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
@@ -63,10 +63,9 @@ export class LegendTasksService {
   }
 
   public async getHistoricalRanksThresholds() {
-    const { endTime, startTime } = Season.getSeason();
-    const timestamps = Array.from({ length: moment(endTime).diff(startTime, 'days') + 1 }, (_, i) =>
-      moment(startTime).add(i, 'days'),
-    ).filter((mts) => mts.isSameOrBefore(moment()));
+    const timestamps = Array.from({ length: 45 }, (_, i) => moment().subtract(i, 'days'))
+      .filter((mts) => mts.isSameOrBefore(moment()))
+      .reverse();
 
     const thresholdRecords = await this.redis.mget(
       timestamps.map((mts) => `RAW:LEGEND-RANKS:${mts.format('YYYY-MM-DD')}`),
