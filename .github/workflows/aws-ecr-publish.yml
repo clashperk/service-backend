@@ -66,3 +66,15 @@ jobs:
           tags: ${{ steps.metadata.outputs.tags }}
           build-args: |
             GIT_SHA=${{ github.sha }}
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd tracking-service
+            docker compose pull
+            docker compose up -d

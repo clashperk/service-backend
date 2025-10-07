@@ -16,10 +16,10 @@ export class PlayersService {
   async addPlayer(tag: string) {
     const player = await this.clashClientService.getPlayerOrThrow(tag);
 
+    await this.redis.sadd('legend_player_tags', player.tag);
+
     const hasMigrated = await this.redis.sismember('migrated_legend_player_tags', player.tag);
     if (hasMigrated) return { message: 'already_migrated' };
-
-    await this.redis.sadd('legend_player_tags', player.tag);
     await this.redis.sadd('migrated_legend_player_tags', player.tag);
 
     if (Util.getSeasonId() !== '2025-10') return { message: 'no_longer_required' };

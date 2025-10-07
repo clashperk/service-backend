@@ -12,7 +12,12 @@ export class TasksController {
   constructor(private tasksService: TasksService) {}
 
   @Post('/bulk-add-legend-players')
-  runTask() {
+  bulkAddLegendPlayers() {
     return this.tasksService.bulkAddLegendPlayers();
+  }
+
+  @Post('/seed-legend-players')
+  seedLegendPlayers() {
+    return this.tasksService.seedLegendPlayers();
   }
 }
