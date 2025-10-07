@@ -4,33 +4,17 @@ import moment from 'moment';
 
 export class Season {
   public static get ID() {
-    if (
-      new Date() > new Date('2025-08-25T05:00:00.000Z') &&
-      new Date() <= new Date('2025-10-06T05:00:00.000Z')
-    ) {
-      return '2025-09';
-    }
-
-    if (
-      new Date() > new Date('2025-10-06T05:00:00.000Z') &&
-      new Date() <= new Date('2025-10-27T05:00:00.000Z')
-    ) {
-      return '2025-10';
-    }
-    return Util.getSeasonId();
+    return this.getSeason().seasonId;
   }
 
-  public static get legendLeagueId() {
-    return Util.getSeasonId();
-  }
-
-  public static getSeason(inputDate?: Date) {
+  public static getSeason(inputDate?: Date | string) {
     const currentDate = inputDate ? moment(inputDate).toDate() : new Date();
     if (
       currentDate > new Date('2025-08-25T05:00:00.000Z') &&
       currentDate <= new Date('2025-10-06T05:00:00.000Z')
     ) {
       return {
+        seasonId: '2025-09',
         startTime: new Date('2025-08-25T05:00:00.000Z'),
         endTime: new Date('2025-10-06T05:00:00.000Z'),
       };
@@ -38,15 +22,31 @@ export class Season {
 
     if (
       currentDate > new Date('2025-10-06T05:00:00.000Z') &&
-      currentDate <= new Date('2025-10-27T05:00:00.000Z')
+      currentDate <= new Date('2025-11-03T05:00:00.000Z')
     ) {
       return {
+        seasonId: '2025-10',
         startTime: new Date('2025-10-06T05:00:00.000Z'),
-        endTime: new Date('2025-10-27T05:00:00.000Z'),
+        endTime: new Date('2025-11-03T05:00:00.000Z'),
       };
     }
 
-    return Util.getSeason(currentDate);
+    if (
+      currentDate > new Date('2025-11-03T05:00:00.000Z') &&
+      currentDate <= new Date('2025-12-01T05:00:00.000Z')
+    ) {
+      return {
+        seasonId: '2025-11',
+        startTime: new Date('2025-11-03T05:00:00.000Z'),
+        endTime: new Date('2025-12-01T05:00:00.000Z'),
+      };
+    }
+
+    const season = Util.getSeason(currentDate);
+    return {
+      ...season,
+      seasonId: moment(season.startTime).format('YYYY-MM'),
+    };
   }
 }
 
