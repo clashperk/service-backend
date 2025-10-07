@@ -1,4 +1,3 @@
-import { ClashClient } from '@app/clash-client';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Util } from 'clashofclans.js';
@@ -9,7 +8,6 @@ import { LegendRankingThresholdsSnapShotDto, ThresholdsDto } from '../dto';
 
 const SNAPSHOT_TTL = 60 * 60 * 24 + 60 * 5; // 1 day + 5 minutes
 const HISTORICAL_SNAPSHOT_TTL = 45 * 60 * 60 * 24 + 60 * 5; // 45 days + 5 minutes
-const CACHED_RANKS_TTL = 60 * 10; // 10 minutes
 
 const POSSIBLE_RANKS = [
   1, 3, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000,
@@ -20,14 +18,13 @@ const MAX_LIMIT = 100000;
 export class LegendTasksService {
   private logger = new Logger(LegendTasksService.name);
   constructor(
-    private clashClient: ClashClient,
     @Inject(REDIS_TOKEN) private redis: Redis,
     @Inject(CLICKHOUSE_TOKEN) private clickhouseClient: ClickHouseClient,
   ) {}
 
   public async takeSnapshot() {
     this.logger.log('Taking legend ranks snapshot...');
-    const thresholds = await this.getRanksThresholds({ useCache: false });
+    const thresholds = await this.getRanksThresholds();
 
     const timestamp = new Date().toISOString();
     const snapshotKey = 'RAW:LEGEND-RANKS';
@@ -44,15 +41,8 @@ export class LegendTasksService {
     return { message: 'Ok' };
   }
 
-  public async getRanksThresholds({ useCache = true }: { useCache?: boolean }) {
-    const key = 'CACHED:LEGEND-RANKS';
-    const cached = await this.redisJSON<ThresholdsDto[]>(key);
-    if (cached && useCache) return cached;
-
-    const result = await this.aggregateRanksThresholds();
-    await this.redis.set(key, JSON.stringify(result), 'EX', CACHED_RANKS_TTL);
-
-    return result;
+  public async getRanksThresholds() {
+    return await this.aggregateRanksThresholds();
   }
 
   public async getEoDThresholds() {
@@ -93,7 +83,6 @@ export class LegendTasksService {
           WITH ranking_query AS (
             SELECT
               trophies,
-              streak,
               seasonId,
               row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
             FROM legend_players

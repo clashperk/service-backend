@@ -12,9 +12,5 @@ export function Cache(seconds: number): MethodDecorator {
     );
   }
 
-  return applyDecorators(
-    UseInterceptors(HttpCacheInterceptor),
-    CacheTTL(5 * 1000),
-    Header('Cache-Control', 'no-store'),
-  );
+  return applyDecorators(Header('Cache-Control', 'no-cache'));
 }

@@ -45,7 +45,7 @@ export class PlayersController {
   @Cache(300)
   async getLegendRankingThresholds(): Promise<LegendRankingThresholdsDto> {
     const [live, history, eod] = await Promise.all([
-      this.legendTasksService.getRanksThresholds({ useCache: true }),
+      this.legendTasksService.getRanksThresholds(),
       this.legendTasksService.getHistoricalRanksThresholds(),
       this.legendTasksService.getEoDThresholds(),
     ]);
