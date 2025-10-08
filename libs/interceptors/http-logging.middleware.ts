@@ -1,5 +1,12 @@
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
+import { ConsoleLogger, Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
+import moment from 'moment';
+
+export class CustomLogger extends ConsoleLogger {
+  getTimestamp(): string {
+    return moment().utcOffset('+05:30').format('DD-MM-YYYY kk:mm:ss');
+  }
+}
 
 @Injectable()
 export class HttpLoggingMiddleware implements NestMiddleware {

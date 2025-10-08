@@ -40,7 +40,7 @@
     "@nestjs/swagger": "^11.2.0",
     "bull": "^4.16.5",
     "cache-manager": "^7.2.0",
-    "clashofclans.js": "3.4.2-dev.559ce53",
+    "clashofclans.js": "3.5.2-dev.50a7e99",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
