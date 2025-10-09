@@ -5,6 +5,7 @@ export const Config = {
     'https://api.clashperk.com',
     'https://app.clashperk.com',
     'https://dash.clashperk.com',
+    'https://docs.clashperk.com',
     'https://dashboard.clashperk.com',
     'https://staging.clashperk.com',
   ] as const,
