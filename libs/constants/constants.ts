@@ -2,6 +2,7 @@ export const Config = {
   IS_PROD: process.env.NODE_ENV === 'production',
   ALLOWED_DOMAINS: [
     'https://clashperk.com',
+    'https://api.clashperk.com',
     'https://app.clashperk.com',
     'https://dash.clashperk.com',
     'https://dashboard.clashperk.com',
