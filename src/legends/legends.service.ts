@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Util } from 'clashofclans.js';
 import { Db } from 'mongodb';
-import { Collections, MONGODB_TOKEN } from '../../db';
-import { GetLegendAttacksInputDto, LegendAttacksDto } from '../dto';
+import { Collections, MONGODB_TOKEN } from '../db';
+import { GetLegendAttacksInputDto, LegendAttacksDto } from '../players/dto';
 
 @Injectable()
-export class LegendService {
+export class LegendsService {
   constructor(@Inject(MONGODB_TOKEN) private db: Db) {}
 
   async getLegendAttacks(input: GetLegendAttacksInputDto) {

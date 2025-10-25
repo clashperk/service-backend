@@ -1,10 +1,10 @@
 import { ClickHouseClient } from '@clickhouse/client';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { Util } from 'clashofclans.js';
 import Redis from 'ioredis';
 import moment from 'moment';
 import { CLICKHOUSE_TOKEN, REDIS_TOKEN } from '../../db';
-import { LegendRankingThresholdsSnapShotDto, ThresholdsDto } from '../dto';
+import { LegendRankingThresholdsSnapShotDto, ThresholdsDto } from '../../tasks/dto';
 
 const SNAPSHOT_TTL = 60 * 60 * 24 + 60 * 5; // 1 day + 5 minutes
 const HISTORICAL_SNAPSHOT_TTL = 45 * 60 * 60 * 24 + 60 * 5; // 45 days + 5 minutes
@@ -75,7 +75,7 @@ export class LegendTasksService {
 
   private async aggregateRanksThresholds() {
     const ranks = POSSIBLE_RANKS.filter((rank) => rank <= MAX_LIMIT);
-    const seasonId = Util.getSeasonId();
+    const { seasonId, startTime } = Util.getSeason();
 
     const rows = await this.clickhouseClient
       .query({
@@ -97,7 +97,7 @@ export class LegendTasksService {
         query_params: {
           ranks: ranks.map(String),
           seasonId,
-          startTime: Math.floor(new Date('2025-10-06T15:00:00.000Z').getTime() / 1000),
+          startTime: Math.floor((startTime.getTime() + 60 * 60 * 1000) / 1000),
         },
       })
       .then((res) => res.json<{ rank: string; trophies: string }>());
@@ -105,6 +105,98 @@ export class LegendTasksService {
     return rows.data.map((row) => ({
       rank: Number(row.rank),
       minTrophies: Number(row.trophies),
+    }));
+  }
+
+  public async getRanksByPlayerTags(tags: string[]) {
+    const { seasonId, startTime } = Util.getSeason();
+
+    const rows = await this.clickhouseClient
+      .query({
+        query: `
+          WITH ranking_query AS (
+            SELECT
+              name,
+              tag,
+              trophies,
+              seasonId,
+              row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
+            FROM legend_players
+            FINAL
+            WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}
+          )
+          SELECT
+            name,
+            tag,
+            trophies,
+            rank
+          FROM ranking_query
+          WHERE tag IN {tags: Array(String)};
+        `,
+        query_params: {
+          tags,
+          seasonId,
+          startTime: Math.floor((startTime.getTime() + 60 * 60 * 1000) / 1000),
+        },
+      })
+      .then((res) => res.json<{ rank: number; trophies: number; name: string; tag: string }>());
+
+    return rows.data.map((row) => ({
+      tag: row.tag,
+      name: row.name,
+      rank: Number(row.rank),
+      trophies: row.trophies,
+    }));
+  }
+
+  public async getRanksByRange(minRank: number, maxRank: number) {
+    const { seasonId, startTime } = Util.getSeason();
+
+    const maxDiff = 1000;
+    if (maxRank < minRank) {
+      throw new BadRequestException('Invalid rank range. maxRank must be greater than minRank.');
+    }
+    if (maxRank - minRank > maxDiff) {
+      throw new BadRequestException(`Range too large. Max difference is ${maxDiff} ranks.`);
+    }
+
+    const rows = await this.clickhouseClient
+      .query({
+        query: `
+          WITH ranking_query AS (
+            SELECT
+              name,
+              tag,
+              trophies,
+              seasonId,
+              row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
+            FROM legend_players
+            FINAL
+            WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}
+          )
+          SELECT
+            name,
+            tag,
+            trophies,
+            rank
+          FROM ranking_query
+          WHERE rank BETWEEN {minRank: Int32} AND {maxRank: Int32}
+          ORDER BY rank;
+        `,
+        query_params: {
+          minRank,
+          maxRank,
+          seasonId,
+          startTime: Math.floor((startTime.getTime() + 60 * 60 * 1000) / 1000),
+        },
+      })
+      .then((res) => res.json<{ rank: number; trophies: number; name: string; tag: string }>());
+
+    return rows.data.map((row) => ({
+      tag: row.tag,
+      name: row.name,
+      rank: Number(row.rank),
+      trophies: row.trophies,
     }));
   }
 

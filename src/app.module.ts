@@ -18,6 +18,7 @@ import { ClansModule } from './clans/clans.module';
 import { ClickhouseModule, MongoDbModule, RedisClientModule } from './db';
 import { ExportsModule } from './exports/exports.module';
 import { GuildsModule } from './guilds/guilds.module';
+import { LegendsModule } from './legends/legends.module';
 import { LinksModule } from './links/links.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { PlayersModule } from './players/players.module';
@@ -74,6 +75,7 @@ import { WebhookModule } from './webhook/webhook.module';
     LinksModule,
     MetricsModule,
     PlayersModule,
+    LegendsModule,
     RostersModule,
     TasksModule,
     UsersModule,

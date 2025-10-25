@@ -11,9 +11,10 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, UserRoles } from '../auth';
-import { LegendTasksService } from '../tasks/services/legend-tasks.service';
+import { LegendsService } from '../legends/legends.service';
+import { LegendTasksService } from '../legends/services/legend-tasks.service';
 import {
   AggregateAttackHistoryDto,
   AttackHistoryInputDto,
@@ -26,7 +27,6 @@ import {
 } from './dto';
 import { PlayersService } from './players.service';
 import { GlobalService } from './services/global.service';
-import { LegendService } from './services/legend.service';
 import { PlayerWarsService } from './services/player-wars.service';
 
 @Controller('/players')
@@ -37,12 +37,13 @@ export class PlayersController {
     private playerWarsService: PlayerWarsService,
     private playersService: PlayersService,
     private globalService: GlobalService,
-    private legendService: LegendService,
+    private legendService: LegendsService,
     private legendTasksService: LegendTasksService,
   ) {}
 
   @Get('/legend-ranking-thresholds')
   @Cache(300)
+  @ApiExcludeEndpoint()
   async getLegendRankingThresholds(): Promise<LegendRankingThresholdsDto> {
     const [live, history, eod] = await Promise.all([
       this.legendTasksService.getRanksThresholds(),
@@ -55,12 +56,14 @@ export class PlayersController {
   @Post('/legend-attacks/query')
   @HttpCode(200)
   @Cache(300)
+  @ApiExcludeEndpoint()
   getLegendAttacks(@Body() body: GetLegendAttacksInputDto): Promise<LegendAttacksItemsDto> {
     return this.legendService.getLegendAttacks(body);
   }
 
   @Get('/:playerTag/legend-attacks')
   @Cache(300)
+  @ApiExcludeEndpoint()
   async getLegendAttacksByPlayerTag(
     @Param('playerTag') playerTag: string,
   ): Promise<LegendAttacksDto> {

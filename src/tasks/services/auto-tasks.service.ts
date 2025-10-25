@@ -1,7 +1,7 @@
 import { Config } from '@app/constants';
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { LegendTasksService } from './legend-tasks.service';
+import { LegendTasksService } from '../../legends/services/legend-tasks.service';
 
 @Injectable()
 export class AutoTasksService {
