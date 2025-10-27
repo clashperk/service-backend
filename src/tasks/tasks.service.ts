@@ -111,6 +111,29 @@ export class TasksService {
     this.logger.debug(`Inserted players into ClickHouse: ${values.length}`);
     return { message: 'Ok', inserted: values.length };
   }
+
+  async migrateLegendPlayers() {
+    const items = await this.db
+      .collection(Collections.LEGEND_ATTACKS)
+      .aggregate([
+        { $match: { seasonId: '2025-11' } },
+        { $project: { tag: 1, logs: 1, trophies: 1 } },
+      ])
+      .toArray();
+    this.logger.debug(`Fetched legend players from db: ${items.length}`);
+
+    for (const item of items) {
+      await this.db
+        .collection(Collections.LEGEND_ATTACKS)
+        .updateOne(
+          { tag: item.tag, seasonId: '2025-10' },
+          { $push: { logs: { $each: item.logs } }, $set: { trophies: item.trophies } },
+        );
+    }
+    this.logger.debug(`Migrated legend players: ${items.length}`);
+
+    return { message: 'Ok', migrated: items.length };
+  }
 }
 
 interface ClickHousePlayersEntity {

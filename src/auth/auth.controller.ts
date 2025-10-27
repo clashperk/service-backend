@@ -1,6 +1,6 @@
 import { Config } from '@app/constants';
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiExcludeEndpoint, ApiOperation, ApiSecurity } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiSecurity } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
@@ -17,17 +17,13 @@ import { ApiKeyGuard } from './guards';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @ApiOperation({
-    summary: `Authenticates a user and returns login information.`,
-  })
+  /** Authenticates a user and returns login information. */
   @Post('/login')
   async login(@Body() body: LoginInputDto): Promise<LoginOkDto> {
     return this.authService.login(body.passKey);
   }
 
-  @ApiOperation({
-    summary: `Generates a JWT token with specified user roles.`,
-  })
+  /** Generates a JWT token with specified user roles. */
   @UseGuards(ApiKeyGuard)
   @Post('/generate-token')
   @ApiSecurity('apiKey')
@@ -35,9 +31,7 @@ export class AuthController {
     return this.authService.generateToken(body);
   }
 
-  @ApiOperation({
-    summary: `Retrieves authenticated user information based on userId.`,
-  })
+  /** Retrieves authenticated user information based on userId. */
   @Get('/users/:userId')
   @UseGuards(ApiKeyGuard)
   @ApiSecurity('apiKey')

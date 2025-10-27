@@ -20,4 +20,9 @@ export class TasksController {
   seedLegendPlayers() {
     return this.tasksService.seedLegendPlayers();
   }
+
+  @Post('/migrate-legend-players')
+  LegendPlayers() {
+    return this.tasksService.migrateLegendPlayers();
+  }
 }

@@ -10,7 +10,8 @@ const SNAPSHOT_TTL = 60 * 60 * 24 + 60 * 5; // 1 day + 5 minutes
 const HISTORICAL_SNAPSHOT_TTL = 45 * 60 * 60 * 24 + 60 * 5; // 45 days + 5 minutes
 
 const POSSIBLE_RANKS = [
-  1, 3, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000,
+  1, 3, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 99800, 99900, 99990,
+  100000,
 ];
 const MAX_LIMIT = 100000;
 
@@ -83,8 +84,12 @@ export class LegendTasksService {
           WITH ranking_query AS (
             SELECT
               trophies,
+              tag,
               seasonId,
-              row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
+              ROW_NUMBER() OVER (
+                PARTITION BY seasonId
+                ORDER BY trophies DESC, createdAt DESC
+              ) AS rank
             FROM legend_players
             FINAL
             WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}
@@ -100,9 +105,10 @@ export class LegendTasksService {
           startTime: Math.floor((startTime.getTime() + 60 * 60 * 1000) / 1000),
         },
       })
-      .then((res) => res.json<{ rank: string; trophies: string }>());
+      .then((res) => res.json<{ rank: string; trophies: string; tag: string }>());
 
     return rows.data.map((row) => ({
+      tag: row.tag,
       rank: Number(row.rank),
       minTrophies: Number(row.trophies),
     }));
@@ -120,7 +126,10 @@ export class LegendTasksService {
               tag,
               trophies,
               seasonId,
-              row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
+              ROW_NUMBER() OVER (
+                PARTITION BY seasonId
+                ORDER BY trophies DESC, createdAt DESC
+              ) AS rank
             FROM legend_players
             FINAL
             WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}

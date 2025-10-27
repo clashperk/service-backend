@@ -1,29 +1,12 @@
 import { Cache } from '@app/decorators';
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  NotFoundException,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiExcludeEndpoint } from '@nestjs/swagger';
+import { Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, UserRoles } from '../auth';
-import { LegendsService } from '../legends/legends.service';
-import { LegendTasksService } from '../legends/services/legend-tasks.service';
 import {
   AggregateAttackHistoryDto,
   AttackHistoryInputDto,
   AttackHistoryItemsDto,
   ClanHistoryItemsDto,
-  GetLegendAttacksInputDto,
-  LegendAttacksDto,
-  LegendAttacksItemsDto,
-  LegendRankingThresholdsDto,
 } from './dto';
 import { PlayersService } from './players.service';
 import { GlobalService } from './services/global.service';
@@ -37,43 +20,7 @@ export class PlayersController {
     private playerWarsService: PlayerWarsService,
     private playersService: PlayersService,
     private globalService: GlobalService,
-    private legendService: LegendsService,
-    private legendTasksService: LegendTasksService,
   ) {}
-
-  @Get('/legend-ranking-thresholds')
-  @Cache(300)
-  @ApiExcludeEndpoint()
-  async getLegendRankingThresholds(): Promise<LegendRankingThresholdsDto> {
-    const [live, history, eod] = await Promise.all([
-      this.legendTasksService.getRanksThresholds(),
-      this.legendTasksService.getHistoricalRanksThresholds(),
-      this.legendTasksService.getEoDThresholds(),
-    ]);
-    return { live: { timestamp: new Date().toISOString(), thresholds: live }, eod, history };
-  }
-
-  @Post('/legend-attacks/query')
-  @HttpCode(200)
-  @Cache(300)
-  @ApiExcludeEndpoint()
-  getLegendAttacks(@Body() body: GetLegendAttacksInputDto): Promise<LegendAttacksItemsDto> {
-    return this.legendService.getLegendAttacks(body);
-  }
-
-  @Get('/:playerTag/legend-attacks')
-  @Cache(300)
-  @ApiExcludeEndpoint()
-  async getLegendAttacksByPlayerTag(
-    @Param('playerTag') playerTag: string,
-  ): Promise<LegendAttacksDto> {
-    const {
-      items: [log],
-    } = await this.legendService.getLegendAttacks({ playerTags: [playerTag] });
-
-    if (log) return log;
-    throw new NotFoundException('Legend attacks not found.');
-  }
 
   @Get('/:playerTag/history')
   @Cache(600)
