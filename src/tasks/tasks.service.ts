@@ -19,7 +19,7 @@ export class TasksService {
     @Inject(CLICKHOUSE_TOKEN) private clickhouse: ClickHouseClient,
   ) {}
 
-  async updatePlayersDb() {
+  async updateLegendPlayers() {
     const BATCH_SIZE = 10000;
 
     const lastIdHex = await this.redis.get('player_update_progress');

@@ -22,7 +22,12 @@ export class TasksController {
   }
 
   @Post('/migrate-legend-players')
-  LegendPlayers() {
+  migrateLegendPlayers() {
     return this.tasksService.migrateLegendPlayers();
+  }
+
+  @Post('/update-legend-players')
+  updateLegendPlayers() {
+    return this.tasksService.updateLegendPlayers();
   }
 }
