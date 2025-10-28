@@ -1,10 +1,11 @@
 import { ClashClientService } from '@app/clash-client';
+import { UNRANKED_TIER_ID } from '@app/constants';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { APICursors } from 'clashofclans.js';
 import Redis from 'ioredis';
 import { isNil, omitBy } from 'lodash';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { CLICKHOUSE_TOKEN, Collections, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
 
 @Injectable()
@@ -17,6 +18,84 @@ export class TasksService {
     @Inject(MONGODB_TOKEN) private db: Db,
     @Inject(CLICKHOUSE_TOKEN) private clickhouse: ClickHouseClient,
   ) {}
+
+  async updatePlayersDb() {
+    const BATCH_SIZE = 10000;
+
+    const lastIdHex = await this.redis.get('player_update_progress');
+    let lastId: ObjectId | null = lastIdHex ? new ObjectId(lastIdHex) : null;
+    let hasMore = true;
+    let cycle = 0;
+
+    while (hasMore) {
+      const query = lastId ? { _id: { $gt: lastId } } : {};
+
+      const docs = await this.db
+        .collection(Collections.PLAYERS)
+        .find(query)
+        .sort({ _id: 1 })
+        .limit(BATCH_SIZE)
+        .toArray();
+
+      if (docs.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      cycle += 1;
+      this.logger.log(`Cycle ${cycle}: Processing batch of ${docs.length} players...`);
+
+      const op = this.db.collection(Collections.PLAYERS).initializeUnorderedBulkOp();
+      for (const doc of docs) {
+        const lastSeen = Math.max(
+          doc.lastSeen ? new Date(doc.lastSeen).getTime() : 0,
+          doc.lastSearched ? new Date(doc.lastSearched).getTime() : 0,
+        );
+
+        if (lastSeen) {
+          const lastSeenDate = new Date(lastSeen);
+          const sevenDaysAgo = new Date();
+          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 1);
+          if (lastSeenDate >= sevenDaysAgo) {
+            continue;
+          }
+        }
+
+        const player = await this.clashClientService.getPlayer(doc.tag);
+        if (
+          player?.name === doc.name &&
+          player?.townHallLevel === doc.townHallLevel &&
+          (player?.leagueTier?.id || UNRANKED_TIER_ID) === doc.leagueId
+        ) {
+          continue;
+        }
+
+        if (player) {
+          op.find({ _id: doc._id }).updateOne({
+            $set: {
+              name: player.name,
+              trophies: player.trophies,
+              townHallLevel: player.townHallLevel,
+              leagueId: player?.leagueTier?.id || UNRANKED_TIER_ID,
+              ...(player.clan && {
+                clan: {
+                  tag: player.clan.tag,
+                  name: player.clan.name,
+                },
+              }),
+              ...(player ? {} : { deleted: true }),
+            },
+          });
+        }
+      }
+
+      if (op.length) await op.execute();
+
+      console.log(`Processing ${docs.length} docs...`);
+      lastId = docs[docs.length - 1]._id;
+      if (lastId) await this.redis.set('player_update_progress', lastId.toHexString());
+    }
+  }
 
   async bulkAddLegendPlayers() {
     const cursors = {} as APICursors;

@@ -9,4 +9,5 @@ export class PlayersEntity {
   townHallLevel: number;
   seasons: Record<string, number>;
   lastSeen: Date;
+  lastSearched: Date;
 }
