@@ -91,7 +91,7 @@ export class TasksService {
 
       if (op.length) await op.execute();
 
-      console.log(`Processing ${docs.length} docs...`);
+      this.logger.log(`Processing ${op.length}/${docs.length} docs...`);
       lastId = docs[docs.length - 1]._id;
       if (lastId) await this.redis.set('player_update_progress', lastId.toHexString());
     }
