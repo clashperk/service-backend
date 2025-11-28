@@ -35,7 +35,9 @@
       "@app/google-sheet": ["./libs/google-sheet/src"],
       "@app/google-sheet/*": ["./libs/google-sheet/src/*"],
       "@app/helpers": ["./libs/helpers"],
-      "@app/helpers/*": ["./libs/helpers/*"]
+      "@app/helpers/*": ["./libs/helpers/*"],
+      "@app/dto": ["./libs/dto"],
+      "@app/dto/*": ["./libs/dto/*"]
     }
   }
 }

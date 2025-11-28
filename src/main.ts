@@ -8,7 +8,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 
 import { Config } from '@app/constants';
-import { CustomLogger } from '@app/interceptors';
+import { CustomLogger, HttpExceptionsFilter } from '@app/interceptors';
 import { AppModule } from './app.module';
 import * as Swagger from './swagger';
 
@@ -17,6 +17,7 @@ async function bootstrap() {
     rawBody: true,
     logger: new CustomLogger(),
   });
+  app.useGlobalFilters(new HttpExceptionsFilter());
 
   const logger = new Logger(AppModule.name);
   const config = app.get(ConfigService);

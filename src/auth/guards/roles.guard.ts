@@ -1,3 +1,4 @@
+import { ErrorCodes } from '@app/dto';
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
@@ -28,7 +29,9 @@ export class RolesGuard implements CanActivate {
     const { user } = this.getRequest(context);
 
     if (!user?.roles || !Array.isArray(user.roles)) {
-      throw new ForbiddenException('Insufficient access or malformed JWT');
+      throw new ForbiddenException(ErrorCodes.FORBIDDEN, {
+        description: 'Insufficient access or malformed JWT',
+      });
     }
 
     if (user.roles.includes(UserRoles.ADMIN)) return true;

@@ -8,7 +8,7 @@ export class MetricsService {
   constructor(@Inject(CLICKHOUSE_TOKEN) private clickhouse: ClickHouseClient) {}
 
   async getCommandsUsageLogs(input: GetCommandsUsageLogsInputDto) {
-    let where = '';
+    let where = ''; // `AND JSONExtractString(args, 'tag') = '#UQP0G09P'`;
 
     if (input.commandId) {
       where += ` AND commandId='${input.commandId}'`;

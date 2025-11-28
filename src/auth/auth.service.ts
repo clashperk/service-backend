@@ -1,5 +1,6 @@
 import { RedisKeys } from '@app/constants';
 import { DiscordOauthService } from '@app/discord-oauth';
+import { ErrorCodes } from '@app/dto';
 import {
   Inject,
   Injectable,
@@ -10,8 +11,8 @@ import {
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { randomBytes, randomUUID } from 'crypto';
 import Redis from 'ioredis';
-import { Db, ObjectId } from 'mongodb';
-import { ApiUsersEntity, Collections, MONGODB_TOKEN, REDIS_TOKEN } from '../db';
+import { Db } from 'mongodb';
+import { Collections, MONGODB_TOKEN, REDIS_TOKEN } from '../db';
 import {
   AuthUserDto,
   GenerateTokenDto,
@@ -36,7 +37,7 @@ export class AuthService {
 
   async login(passKey: string): Promise<LoginOkDto> {
     const user = await this.users.findOne({ passKey });
-    if (!user) throw new UnauthorizedException('Invalid');
+    if (!user) throw new UnauthorizedException(ErrorCodes.INVALID_PASSKEY);
 
     return {
       userId: user.userId,
@@ -68,7 +69,7 @@ export class AuthService {
     );
 
     if (!dto) {
-      throw new UnauthorizedException('Failed');
+      throw new UnauthorizedException(ErrorCodes.NOT_FOUND);
     }
 
     return {
@@ -83,7 +84,7 @@ export class AuthService {
 
   async getAuthUser(userId: string): Promise<AuthUserDto> {
     const user = await this.users.findOne({ userId });
-    if (!user) throw new NotFoundException();
+    if (!user) throw new NotFoundException(ErrorCodes.NOT_FOUND);
 
     return {
       userId: user.userId,
@@ -95,12 +96,13 @@ export class AuthService {
 
   async decodeHandoffToken(token: string): Promise<HandoffUserDto> {
     const payload = await this.redis.get(`${RedisKeys.HANDOFF_TOKEN}:${token}`);
-    if (!payload) throw new NotFoundException();
+    if (!payload) throw new NotFoundException(ErrorCodes.HANDOFF_TOKEN_EXPIRED);
 
     const user = JSON.parse(payload) as {
       userId: string;
       guildId: string;
       avatar: string | null;
+      username: string;
       displayName: string;
     };
 
@@ -108,6 +110,7 @@ export class AuthService {
       isBot: false,
       userId: user.userId,
       roles: [UserRoles.USER],
+      username: user.username,
       displayName: user.displayName,
       avatarUrl: this.discordOauthService.buildAvatarUrl(user.userId, user.avatar),
     };
@@ -122,6 +125,7 @@ export class AuthService {
       JSON.stringify({
         userId: user.id,
         guildId: payload.guildId,
+        username: user.username,
         avatar: user.avatar || null,
         displayName: user.global_name || user.username,
       }),
@@ -135,7 +139,7 @@ export class AuthService {
     if (payload.roles.includes(UserRoles.ADMIN)) return payload;
 
     const isBlocked = await this.redis.get(`${RedisKeys.USER_BLOCKED}:${payload.userId}`);
-    if (isBlocked) throw new UnauthorizedException('Blocked');
+    if (isBlocked) throw new UnauthorizedException(ErrorCodes.USER_BLOCKED);
 
     return payload;
   }
@@ -153,25 +157,5 @@ export class AuthService {
 
   private get users() {
     return this.db.collection(Collections.PORTAL_USERS);
-  }
-
-  private async _update() {
-    const users = await this.users.find().toArray();
-
-    for (const user of users) {
-      if (user.userId === 'vercel-user') continue;
-      const discordUser = await this.discordOauthService.getUser(user.userId);
-
-      const update: Partial<ApiUsersEntity> = {
-        isBot: !!discordUser.bot,
-        deletedAt: null,
-        updatedAt: new Date(),
-        displayName: discordUser.global_name || discordUser.username,
-      };
-
-      if (!user.createdAt) update.createdAt = new ObjectId(user._id).getTimestamp();
-
-      await this.users.updateOne({ userId: user.userId }, { $set: update });
-    }
   }
 }

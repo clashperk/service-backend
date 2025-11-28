@@ -1,14 +1,16 @@
 import { EnumArray } from '@app/decorators';
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 import { UserRoles } from './user-roles.dto';
 
 export class LoginInputDto {
   @IsString()
+  @IsNotEmpty()
   passKey: string;
 }
 
 export class GenerateTokenInputDto {
   @IsString()
+  @IsNotEmpty()
   userId: string;
 
   @EnumArray(UserRoles, 'UserRoles')
@@ -52,9 +54,11 @@ export class AuthUserDto {
 
 export class HandoffTokenInputDto {
   @IsString()
+  @IsNotEmpty()
   userId: string;
 
   @IsString()
+  @IsNotEmpty()
   guildId: string;
 }
 
@@ -65,6 +69,8 @@ export class HandoffUserDto {
   userId: string;
 
   displayName: string;
+
+  username: string;
 
   isBot: boolean;
 

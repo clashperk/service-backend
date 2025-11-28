@@ -82,12 +82,12 @@ export const GLOBAL_MONGODB_TOKEN = 'GLOBAL_MONGODB_TOKEN';
 })
 export class MongoDbModule {
   constructor(
-    @Inject(MONGODB_TOKEN) private mainDb: Db,
+    @Inject(MONGODB_TOKEN) private primaryDb: Db,
     @Inject(GLOBAL_MONGODB_TOKEN) private globalDb: Db,
   ) {}
 
   onModuleInit() {
-    this.mainDb.command({ ping: 1 }); // eslint-disable-line
+    this.primaryDb.command({ ping: 1 }); // eslint-disable-line
     this.globalDb.command({ ping: 1 }); // eslint-disable-line
   }
 }
