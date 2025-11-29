@@ -24,9 +24,16 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+
+    const req = this.getRequest(context);
+
+    if (!this.checkGuildPermission(req)) {
+      throw new ForbiddenException(ErrorCodes.GUILD_ACCESS_FORBIDDEN);
+    }
+
     if (!roles?.length) return true;
 
-    const { user } = this.getRequest(context);
+    const { user } = req;
 
     if (!user?.roles || !Array.isArray(user.roles)) {
       throw new ForbiddenException(ErrorCodes.FORBIDDEN, {
@@ -40,5 +47,14 @@ export class RolesGuard implements CanActivate {
     if (!isOk) throw new ForbiddenException();
 
     return isOk;
+  }
+
+  checkGuildPermission(req: Request): boolean {
+    if (req.user?.roles.includes(UserRoles.ADMIN)) return true;
+
+    const guildId = req.params?.guildId || req.body?.guildId || req.query?.guildId;
+    if (guildId && !req.user?.guildIds?.includes(guildId)) return false;
+
+    return true;
   }
 }

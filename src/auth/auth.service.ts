@@ -120,8 +120,9 @@ export class AuthService {
     const token = randomBytes(16).toString('hex');
     const user = await this.discordOauthService.getUser(payload.userId);
 
+    const redisKey = `${RedisKeys.HANDOFF_TOKEN}:${token}`;
     await this.redis.set(
-      `${RedisKeys.HANDOFF_TOKEN}:${token}`,
+      redisKey,
       JSON.stringify({
         userId: user.id,
         guildId: payload.guildId,
@@ -150,6 +151,7 @@ export class AuthService {
       roles: input.roles,
       version: '1',
       jti: randomUUID(),
+      guildIds: [],
     } satisfies JwtUserInput;
 
     return this.jwtService.sign(payload, options);
