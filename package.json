@@ -37,7 +37,7 @@
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.6",
     "@nestjs/schedule": "^6.0.0",
-    "@nestjs/swagger": "^11.2.0",
+    "@nestjs/swagger": "^11.2.3",
     "bull": "^4.16.5",
     "cache-manager": "^7.2.0",
     "clashofclans.js": "3.5.2-dev.50a7e99",

@@ -13,7 +13,9 @@ export class GenerateTokenInputDto {
   @IsNotEmpty()
   userId: string;
 
-  @EnumArray(UserRoles, 'UserRoles')
+  @EnumArray(UserRoles, 'UserRoles', {
+    default: Object.values(UserRoles),
+  })
   roles: UserRoles[];
 }
 

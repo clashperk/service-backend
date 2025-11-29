@@ -24,7 +24,7 @@ class AttackRecordDto {
 export class AttackHistoryDto {
   id: number;
 
-  @EnumString(WarTypes, 'WarTypes', 'Regular = 1, Friendly = 2, CWL = 3')
+  @EnumString(WarTypes, 'WarTypes')
   warType: WarTypes;
 
   @ApiProperty({ type: String, format: 'date-time' })

@@ -1,10 +1,9 @@
-import { Config } from '@app/constants';
+import { ApiExcludeRoute } from '@app/decorators';
 import { Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
-import { ApiExcludeController } from '@nestjs/swagger';
 import { RostersService } from './rosters.service';
 
 @Controller('/rosters')
-@ApiExcludeController(Config.IS_PROD)
+@ApiExcludeRoute()
 export class RostersController {
   constructor(private rostersService: RostersService) {}
 

@@ -1,6 +1,6 @@
 import { Cache } from '@app/decorators';
 import { Controller, Get, Post, Req, VERSION_NEUTRAL } from '@nestjs/common';
-import { ApiExcludeController, ApiExcludeEndpoint, ApiResponse } from '@nestjs/swagger';
+import { ApiExcludeController, ApiResponse } from '@nestjs/swagger';
 @Controller({
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
@@ -10,7 +10,6 @@ export class AppController {
   constructor() {}
 
   @Get('/')
-  @ApiExcludeEndpoint()
   getHello(): string {
     return 'Hello World!';
   }

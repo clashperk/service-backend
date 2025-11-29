@@ -1,7 +1,6 @@
-import { Config } from '@app/constants';
-import { Cache } from '@app/decorators';
+import { ApiExcludeRoute, Cache } from '@app/decorators';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiExcludeController } from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import { CommandsUsageLogItemsDto, GetCommandsUsageLogsInputDto } from './dto';
 import { MetricsService } from './metrics.service';
@@ -10,7 +9,7 @@ import { MetricsService } from './metrics.service';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 @Roles([UserRoles.ADMIN])
-@ApiExcludeController(Config.IS_PROD)
+@ApiExcludeRoute()
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 

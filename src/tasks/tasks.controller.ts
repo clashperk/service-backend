@@ -1,13 +1,13 @@
-import { Config } from '@app/constants';
+import { ApiExcludeRoute } from '@app/decorators';
 import { Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiExcludeController, ApiSecurity } from '@nestjs/swagger';
+import { ApiSecurity } from '@nestjs/swagger';
 import { ApiKeyGuard } from '../auth/guards';
 import { TasksService } from './tasks.service';
 
 @Controller('/tasks')
 @UseGuards(ApiKeyGuard)
 @ApiSecurity('apiKey')
-@ApiExcludeController(Config.IS_PROD)
+@ApiExcludeRoute()
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 

@@ -1,7 +1,15 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptions } from '@nestjs/swagger';
 import { IsEnum } from 'class-validator';
 
-export function EnumString(enumType: object, enumName: string, description?: string) {
-  return applyDecorators(IsEnum(enumType), ApiProperty({ enum: enumType, enumName, description }));
+export function EnumString(enumType: object, enumName: string, props?: ApiPropertyOptions) {
+  return applyDecorators(
+    IsEnum(enumType),
+    ApiProperty({
+      'enum': enumType,
+      enumName,
+      'x-enumNames': Object.keys(enumType).filter((k) => isNaN(Number(k))),
+      ...props,
+    }),
+  );
 }

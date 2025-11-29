@@ -1,4 +1,4 @@
-import { Config } from '@app/constants';
+import { ApiExcludeRoute } from '@app/decorators';
 import {
   Body,
   Controller,
@@ -9,12 +9,11 @@ import {
   RawBodyRequest,
   Req,
 } from '@nestjs/common';
-import { ApiExcludeController } from '@nestjs/swagger';
 import { InteractionType } from 'discord-interactions';
 import { WebhookService } from './webhook.service';
 
 @Controller('/webhook')
-@ApiExcludeController(Config.IS_PROD)
+@ApiExcludeRoute()
 export class WebhookController {
   constructor(private webhookService: WebhookService) {}
 

@@ -1,3 +1,5 @@
+import { EnumString } from '@app/decorators';
+
 export enum ErrorCodes {
   FORBIDDEN = 'FORBIDDEN',
   UNAUTHORIZED = 'UNAUTHORIZED',
@@ -9,4 +11,17 @@ export enum ErrorCodes {
   USER_BLOCKED = 'USER_BLOCKED',
   INVALID_PASSKEY = 'INVALID_PASSKEY',
   GUILD_ACCESS_FORBIDDEN = 'GUILD_ACCESS_FORBIDDEN',
+}
+
+export class ErrorResponseDto {
+  @EnumString(ErrorCodes, 'ErrorCodes', { example: 'string' })
+  code: ErrorCodes;
+
+  message: string;
+
+  statusCode: number;
+
+  method: string;
+
+  path: string;
 }

@@ -1,6 +1,6 @@
-import { Config } from '@app/constants';
+import { ApiExcludeRoute } from '@app/decorators';
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiExcludeEndpoint, ApiSecurity } from '@nestjs/swagger';
+import { ApiSecurity } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
@@ -25,6 +25,7 @@ export class AuthController {
 
   /** Generates a JWT token with specified user roles. */
   @UseGuards(ApiKeyGuard)
+  @ApiExcludeRoute()
   @Post('/generate-token')
   @ApiSecurity('apiKey')
   async generateToken(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
@@ -34,6 +35,7 @@ export class AuthController {
   /** Retrieves authenticated user information based on userId. */
   @Get('/users/:userId')
   @UseGuards(ApiKeyGuard)
+  @ApiExcludeRoute()
   @ApiSecurity('apiKey')
   async getAuthUser(@Param('userId') userId: string): Promise<AuthUserDto> {
     return this.authService.getAuthUser(userId);
@@ -41,14 +43,14 @@ export class AuthController {
 
   @Get('/handoff/:token')
   @UseGuards(ApiKeyGuard)
-  @ApiExcludeEndpoint(Config.IS_PROD)
+  @ApiExcludeRoute()
   @ApiSecurity('apiKey')
   async decodeHandoffToken(@Param('token') token: string): Promise<HandoffUserDto> {
     return this.authService.decodeHandoffToken(token);
   }
 
   @Post('/handoff')
-  @ApiExcludeEndpoint(Config.IS_PROD)
+  @ApiExcludeRoute()
   @UseGuards(ApiKeyGuard)
   @ApiSecurity('apiKey')
   async createHandoffToken(@Body() body: HandoffTokenInputDto) {
