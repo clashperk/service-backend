@@ -16,7 +16,7 @@ function filterProtectedRoutes(document: OpenAPIObject): OpenAPIObject {
     const pathItem = document.paths[path];
 
     const options = Object.entries(pathItem).filter(([_, operation]) => {
-      return !operation?.['x-protected'];
+      return !operation?.['x-internal'];
     });
 
     if (options.length > 0) {
@@ -75,6 +75,7 @@ export function build(app: NestExpressApplication) {
       displayRequestDuration: true,
       deepLinking: true,
       displayOperationId: !Config.IS_PROD,
+      showExtensions: !Config.IS_PROD,
     },
     patchDocumentOnRequest(req, res, document) {
       const config = app.get(ConfigService);

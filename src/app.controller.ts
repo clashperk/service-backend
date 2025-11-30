@@ -1,3 +1,4 @@
+import { Config } from '@app/constants';
 import { Cache } from '@app/decorators';
 import { Controller, Get, Post, Req, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController } from '@nestjs/swagger';
@@ -6,7 +7,7 @@ import { ApiExcludeController } from '@nestjs/swagger';
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
 })
-@ApiExcludeController(false)
+@ApiExcludeController(Config.IS_PROD)
 export class AppController {
   constructor() {}
 

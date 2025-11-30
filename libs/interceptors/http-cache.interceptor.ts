@@ -14,23 +14,23 @@ export class HttpCacheInterceptor extends CacheInterceptor {
     ]);
     if (!ttl) return;
 
-    const request = context.switchToHttp().getRequest<RawBodyRequest<Request>>();
+    const req = context.switchToHttp().getRequest<RawBodyRequest<Request>>();
 
-    return this.createCacheKey(request);
+    return this.createCacheKey(req);
   }
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
-    const response = context.switchToHttp().getResponse<Response>();
+    const res = context.switchToHttp().getResponse<Response>();
     const cacheKey = this.trackBy(context);
 
     if (cacheKey && !Config.IS_PROD) {
-      response.setHeader('x-cache-key', cacheKey);
+      res.setHeader('x-cache-key', cacheKey);
     }
 
-    if (cacheKey) {
+    if (cacheKey && !Config.IS_PROD) {
       const timestamp = await this.cacheManager.ttl(cacheKey);
       if (typeof timestamp === 'number' && timestamp > Date.now()) {
-        response.setHeader(
+        res.setHeader(
           'Cache-Control',
           `public, max-age=${Math.floor((timestamp - Date.now()) / 1000)}`,
         );
@@ -40,15 +40,15 @@ export class HttpCacheInterceptor extends CacheInterceptor {
     return super.intercept(context, next);
   }
 
-  private createCacheKey(request: RawBodyRequest<Request>): string {
-    if (request.method === 'GET') {
-      return `cache:${request.originalUrl}`;
+  private createCacheKey(req: RawBodyRequest<Request>): string {
+    if (req.method === 'GET') {
+      return `cache:${req.originalUrl}`;
     }
 
-    const params = request.path !== request.originalUrl ? request.originalUrl : ``;
-    const body = (request.rawBody?.toString('utf-8') ?? ``).concat(params);
+    const params = req.path !== req.originalUrl ? req.originalUrl : ``;
+    const body = (req.rawBody?.toString('utf-8') ?? ``).concat(params);
     const hash = body.length ? `?${generateHash(body)}` : ``;
 
-    return `cache:${request.path}${hash}`;
+    return `cache:${req.path}${hash}`;
   }
 }

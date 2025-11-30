@@ -12,26 +12,26 @@ export class CustomLogger extends ConsoleLogger {
 export class HttpLoggingMiddleware implements NestMiddleware {
   private readonly logger = new Logger();
 
-  use(request: Request, response: Response, next: NextFunction): void {
+  use(req: Request, res: Response, next: NextFunction): void {
     const startTime = Date.now();
 
-    response.on('finish', () => {
-      if (request.originalUrl === '/graphql') {
-        this.logGraphQLRequest(request, response, startTime);
+    res.on('finish', () => {
+      if (req.originalUrl === '/graphql') {
+        this.logGraphQLRequest(req, res, startTime);
       } else {
-        this.logRequest(request, response, startTime);
+        this.logRequest(req, res, startTime);
       }
     });
 
     next();
   }
 
-  private logRequest(request: Request, response: Response, startTime: number) {
-    const { method, originalUrl } = request;
-    const { statusCode } = response;
+  private logRequest(req: Request, res: Response, startTime: number) {
+    const { method, originalUrl } = req;
+    const { statusCode } = res;
     const responseTime = Date.now() - startTime;
-    const remoteAddr = this.formatIp(this.getClientIp(request));
-    const userId = request.user?.userId ?? '0x0';
+    const remoteAddr = this.formatIp(this.getClientIp(req));
+    const userId = req.user?.userId ?? '0x0';
 
     const logMessage = [
       `${statusCode} ${originalUrl}`,
@@ -43,14 +43,14 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     this.logger[logType](logMessage, method);
   }
 
-  private logGraphQLRequest(request: Request, response: Response, startTime: number) {
-    const { statusCode } = response;
+  private logGraphQLRequest(req: Request, res: Response, startTime: number) {
+    const { statusCode } = res;
     const responseTime = Date.now() - startTime;
-    const remoteAddr = this.formatIp(this.getClientIp(request));
-    const userId = request.user?.userId ?? '0x0';
+    const remoteAddr = this.formatIp(this.getClientIp(req));
+    const userId = req.user?.userId ?? '0x0';
 
     const logMessage = [
-      `${statusCode} ${request.body?.operationName || request.originalUrl}`,
+      `${statusCode} ${req.body?.operationName || req.originalUrl}`,
       `${responseTime}ms - ${remoteAddr}`,
       `${userId}`,
     ].join(' ');
@@ -64,7 +64,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     return ip || 'invalid-ip';
   }
 
-  private getClientIp(request: Request): string {
-    return (request.headers['cf-connecting-ip'] || request.ip) as string;
+  private getClientIp(req: Request): string {
+    return (req.headers['cf-connecting-ip'] || req.ip) as string;
   }
 }
