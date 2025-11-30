@@ -7,7 +7,7 @@ import { ApiExcludeController } from '@nestjs/swagger';
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
 })
-@ApiExcludeController(Config.IS_PROD)
+@ApiExcludeController(Config.IS_LOCAL)
 export class AppController {
   constructor() {}
 

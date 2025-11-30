@@ -1,5 +1,6 @@
 export const Config = {
   IS_PROD: process.env.NODE_ENV === 'production',
+  IS_LOCAL: process.env.NODE_ENV === 'local',
   ALLOWED_DOMAINS: [
     'https://clashperk.com',
     'https://api.clashperk.com',
