@@ -12,7 +12,7 @@ const REQUEST_TIMEOUT_SECONDS = 30 * 1000;
 
 @Injectable()
 export class HttpTimeoutInterceptor implements NestInterceptor {
-  intercept(_: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       timeout(REQUEST_TIMEOUT_SECONDS),
       catchError((error: Error) => {

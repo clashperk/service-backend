@@ -16,21 +16,31 @@ export class HttpCacheInterceptor extends CacheInterceptor {
 
     const request = context.switchToHttp().getRequest<RawBodyRequest<Request>>();
 
-    return this.buildCacheKey(request);
+    return this.createCacheKey(request);
   }
 
-  intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
     const response = context.switchToHttp().getResponse<Response>();
-
     const cacheKey = this.trackBy(context);
+
     if (cacheKey && !Config.IS_PROD) {
-      response.setHeader('X-Cache-Key', cacheKey);
+      response.setHeader('x-cache-key', cacheKey);
+    }
+
+    if (cacheKey) {
+      const timestamp = await this.cacheManager.ttl(cacheKey);
+      if (typeof timestamp === 'number' && timestamp > Date.now()) {
+        response.setHeader(
+          'Cache-Control',
+          `public, max-age=${Math.floor((timestamp - Date.now()) / 1000)}`,
+        );
+      }
     }
 
     return super.intercept(context, next);
   }
 
-  private buildCacheKey(request: RawBodyRequest<Request>): string {
+  private createCacheKey(request: RawBodyRequest<Request>): string {
     if (request.method === 'GET') {
       return `cache:${request.originalUrl}`;
     }

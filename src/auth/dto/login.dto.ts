@@ -76,5 +76,7 @@ export class HandoffUserDto {
 
   isBot: boolean;
 
+  guildId: string;
+
   avatarUrl: string | null;
 }

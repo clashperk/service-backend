@@ -45,7 +45,6 @@ export function build(app: NestExpressApplication) {
       ].join('\n\n'),
     )
     .setVersion('v1')
-    .setOpenAPIVersion('3.1')
     .addServer('/v1', '[latest]')
     .addServer('/v2', '[unstable]')
     .addBearerAuth({
@@ -63,7 +62,6 @@ export function build(app: NestExpressApplication) {
 
   const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (_, methodKey) => methodKey,
-    extraModels: [ErrorResponseDto],
   });
   const published = filterProtectedRoutes(document);
 
@@ -72,11 +70,13 @@ export function build(app: NestExpressApplication) {
     yamlDocumentUrl: 'docs/yaml',
     swaggerOptions: {
       persistAuthorization: true,
-      defaultModelsExpandDepth: -1,
+      defaultModelsExpandDepth: 0,
       tryItOutEnabled: true,
       displayRequestDuration: true,
+      deepLinking: true,
+      displayOperationId: !Config.IS_PROD,
     },
-    patchDocumentOnRequest(req, _, document) {
+    patchDocumentOnRequest(req, res, document) {
       const config = app.get(ConfigService);
 
       if (!Config.IS_PROD || req['cookies']?.['x-api-key'] === config.get('API_KEY')) {

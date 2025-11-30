@@ -1,32 +1,21 @@
 import { Cache } from '@app/decorators';
 import { Controller, Get, Post, Req, VERSION_NEUTRAL } from '@nestjs/common';
-import { ApiExcludeController, ApiResponse } from '@nestjs/swagger';
+import { ApiExcludeController } from '@nestjs/swagger';
+
 @Controller({
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
 })
-@ApiExcludeController()
+@ApiExcludeController(false)
 export class AppController {
   constructor() {}
 
   @Get('/')
-  getHello(): string {
+  getHello() {
     return 'Hello World!';
   }
 
   @Get('/health')
-  @ApiResponse({
-    status: 200,
-    schema: {
-      type: 'object',
-      properties: {
-        message: {
-          type: 'string',
-          example: 'Ok',
-        },
-      },
-    },
-  })
   getHealth() {
     return { message: 'Ok' };
   }

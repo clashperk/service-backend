@@ -109,6 +109,7 @@ export class AuthService {
     return {
       isBot: false,
       userId: user.userId,
+      guildId: user.guildId,
       roles: [UserRoles.USER],
       username: user.username,
       displayName: user.displayName,

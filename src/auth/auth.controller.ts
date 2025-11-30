@@ -1,6 +1,5 @@
-import { ApiExcludeRoute } from '@app/decorators';
+import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiSecurity } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
@@ -27,7 +26,7 @@ export class AuthController {
   @UseGuards(ApiKeyGuard)
   @ApiExcludeRoute()
   @Post('/generate-token')
-  @ApiSecurity('apiKey')
+  @ApiKeyAuth()
   async generateToken(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
     return this.authService.generateToken(body);
   }
@@ -36,7 +35,7 @@ export class AuthController {
   @Get('/users/:userId')
   @UseGuards(ApiKeyGuard)
   @ApiExcludeRoute()
-  @ApiSecurity('apiKey')
+  @ApiKeyAuth()
   async getAuthUser(@Param('userId') userId: string): Promise<AuthUserDto> {
     return this.authService.getAuthUser(userId);
   }
@@ -44,7 +43,7 @@ export class AuthController {
   @Get('/handoff/:token')
   @UseGuards(ApiKeyGuard)
   @ApiExcludeRoute()
-  @ApiSecurity('apiKey')
+  @ApiKeyAuth()
   async decodeHandoffToken(@Param('token') token: string): Promise<HandoffUserDto> {
     return this.authService.decodeHandoffToken(token);
   }
@@ -52,7 +51,7 @@ export class AuthController {
   @Post('/handoff')
   @ApiExcludeRoute()
   @UseGuards(ApiKeyGuard)
-  @ApiSecurity('apiKey')
+  @ApiKeyAuth()
   async createHandoffToken(@Body() body: HandoffTokenInputDto) {
     return this.authService.createHandoffToken(body);
   }
