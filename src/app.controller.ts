@@ -1,7 +1,7 @@
 import { Config } from '@app/constants';
 import { Cache } from '@app/decorators';
 import { Controller, Get, Param, Post, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
-import { ApiExcludeController } from '@nestjs/swagger';
+import { ApiExcludeController, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { Response } from 'express';
 
 @Controller({
@@ -12,6 +12,7 @@ import { Response } from 'express';
 export class AppController {
   constructor() {}
 
+  @ApiExcludeEndpoint()
   @Get('/')
   getHello() {
     return 'Hello World!';
@@ -22,6 +23,7 @@ export class AppController {
     return { message: 'Ok' };
   }
 
+  @ApiExcludeEndpoint()
   @Get('/swagger/:apiKey')
   swaggerAuth(@Res() res: Response, @Param('apiKey') apiKey: string) {
     res.cookie('x-api-key', apiKey);
