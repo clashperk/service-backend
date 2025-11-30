@@ -1,5 +1,16 @@
 import { Cache } from '@app/decorators';
-import { Body, Controller, Get, HttpCode, NotFoundException, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  NotFoundException,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth';
 import {
   GetLegendAttacksInputDto,
   LegendAttacksDto,
@@ -11,6 +22,8 @@ import { LegendsService } from './legends.service';
 import { LegendTasksService } from './services/legend-tasks.service';
 
 @Controller('/legends')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class LegendsController {
   constructor(
     private legendService: LegendsService,
