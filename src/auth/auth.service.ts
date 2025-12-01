@@ -36,7 +36,10 @@ export class AuthService {
   ) {}
 
   async login(passKey: string): Promise<LoginOkDto> {
-    const user = await this.users.findOne({ passKey });
+    const user = await this.users.findOneAndUpdate(
+      { passKey },
+      { $set: { lastLoginAt: new Date() } },
+    );
     if (!user) throw new UnauthorizedException(ErrorCodes.INVALID_PASSKEY);
 
     return {
