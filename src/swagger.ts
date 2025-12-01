@@ -10,13 +10,19 @@ import {
   SwaggerModule,
 } from '@nestjs/swagger';
 
-function filterProtectedRoutes(document: OpenAPIObject): OpenAPIObject {
+function filterRoutes({
+  document,
+  extension,
+}: {
+  document: OpenAPIObject;
+  extension: string;
+}): OpenAPIObject {
   const mutated = { ...document, paths: {} };
   for (const path in document.paths) {
     const pathItem = document.paths[path];
 
     const options = Object.entries(pathItem).filter(([_, operation]) => {
-      return !operation?.['x-internal'];
+      return !operation?.[extension];
     });
 
     if (options.length > 0) {
@@ -63,7 +69,7 @@ export function build(app: NestExpressApplication) {
   const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (_, methodKey) => methodKey,
   });
-  const published = filterProtectedRoutes(document);
+  const published = filterRoutes({ document, extension: 'x-internal' });
 
   const customOptions: SwaggerCustomOptions = {
     jsonDocumentUrl: 'docs/json',
@@ -79,6 +85,10 @@ export function build(app: NestExpressApplication) {
     },
     patchDocumentOnRequest(req, res, document) {
       const config = app.get(ConfigService);
+
+      if (req['query']?.['x-typings-ignored']) {
+        return filterRoutes({ document, extension: 'x-typings-ignored' });
+      }
 
       if (!Config.IS_PROD || req['cookies']?.['x-api-key'] === config.get('API_KEY')) {
         return document;

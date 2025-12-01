@@ -1,5 +1,4 @@
-import { Config } from '@app/constants';
-import { Cache } from '@app/decorators';
+import { ApiExcludeTypings, Cache } from '@app/decorators';
 import { Controller, Get, Param, Post, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint } from '@nestjs/swagger';
 import { Response } from 'express';
@@ -8,7 +7,8 @@ import { Response } from 'express';
   path: '/',
   version: ['1', '2', VERSION_NEUTRAL],
 })
-@ApiExcludeController(Config.IS_LOCAL)
+@ApiExcludeController()
+@ApiExcludeTypings()
 export class AppController {
   constructor() {}
 

@@ -1,4 +1,4 @@
-import { ApiExcludeRoute, Cache } from '@app/decorators';
+import { ApiExcludeRoute, ApiExcludeTypings, Cache } from '@app/decorators';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
@@ -10,6 +10,7 @@ import { MetricsService } from './metrics.service';
 @ApiBearerAuth()
 @Roles([UserRoles.ADMIN])
 @ApiExcludeRoute()
+@ApiExcludeTypings()
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 

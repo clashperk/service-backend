@@ -1,7 +1,5 @@
-import { Config } from '@app/constants';
-import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
+import { ApiExcludeRoute, ApiExcludeTypings, ApiKeyAuth } from '@app/decorators';
 import { Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiExcludeController } from '@nestjs/swagger';
 import { ApiKeyGuard } from '../auth/guards';
 import { TasksService } from './tasks.service';
 
@@ -9,7 +7,7 @@ import { TasksService } from './tasks.service';
 @UseGuards(ApiKeyGuard)
 @ApiKeyAuth()
 @ApiExcludeRoute()
-@ApiExcludeController(Config.IS_LOCAL)
+@ApiExcludeTypings()
 export class TasksController {
   constructor(private tasksService: TasksService) {}
 

@@ -1,9 +1,13 @@
 import { ApiExcludeRoute } from '@app/decorators';
-import { Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth';
 import { RostersService } from './rosters.service';
 
 @Controller('/rosters')
 @ApiExcludeRoute()
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 export class RostersController {
   constructor(private rostersService: RostersService) {}
 
