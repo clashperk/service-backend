@@ -12,7 +12,7 @@ export class ClansController {
   constructor(private clansService: ClansService) {}
 
   @Get('/:clanTag/lastseen')
-  @Cache(60)
+  @Cache(600)
   async getLastSeen(@Param('clanTag') clanTag: string): Promise<LastSeenDto> {
     return this.clansService.getLastSeen(clanTag);
   }
