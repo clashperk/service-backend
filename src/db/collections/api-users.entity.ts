@@ -6,6 +6,7 @@ export class ApiUsersEntity {
   passKey: string;
   isBot: boolean;
   displayName: string;
+  username: string;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;

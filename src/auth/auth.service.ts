@@ -42,7 +42,10 @@ export class AuthService {
     return {
       userId: user.userId,
       roles: user.roles,
-      accessToken: this.createJwt({ userId: user.userId, roles: user.roles }, { expiresIn: '2h' }),
+      accessToken: this.createJwt(
+        { userId: user.userId, roles: user.roles, username: user.username },
+        { expiresIn: '2h' },
+      ),
     };
   }
 
@@ -60,6 +63,7 @@ export class AuthService {
           userId: input.userId,
           roles: input.roles,
           isBot: !!user.bot,
+          username: user.username,
           displayName: user.global_name || user.username,
           updatedAt: new Date(),
           deletedAt: null,
@@ -78,7 +82,11 @@ export class AuthService {
       isBot: dto.isBot,
       roles: dto.roles,
       displayName: dto.displayName,
-      accessToken: this.createJwt({ userId: input.userId, roles: input.roles }),
+      accessToken: this.createJwt({
+        userId: input.userId,
+        roles: input.roles,
+        username: dto.displayName,
+      }),
     };
   }
 
@@ -146,13 +154,17 @@ export class AuthService {
     return payload;
   }
 
-  private createJwt(input: { userId: string; roles: UserRoles[] }, options?: JwtSignOptions) {
+  private createJwt(
+    input: { userId: string; roles: UserRoles[]; username: string },
+    options?: JwtSignOptions,
+  ) {
     const payload = {
       userId: input.userId,
       roles: input.roles,
       version: '1',
       jti: randomUUID(),
       guildIds: [],
+      username: input.username.toLowerCase(),
     } satisfies JwtUserInput;
 
     return this.jwtService.sign(payload, options);

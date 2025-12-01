@@ -31,7 +31,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     const { statusCode } = res;
     const responseTime = Date.now() - startTime;
     const remoteAddr = this.formatIp(this.getClientIp(req));
-    const userId = req.user?.userId ?? '0x0';
+    const userId = `@${req.user?.username || req.user?.userId || 'unauthenticated'}`;
 
     const logMessage = [
       `${statusCode} ${originalUrl}`,

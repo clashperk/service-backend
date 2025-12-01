@@ -4,6 +4,7 @@ import { UserRoles } from './user-roles.dto';
 export class JwtUserInput {
   jti: string;
   userId: string;
+  username?: string;
   version: string;
   roles: UserRoles[];
   guildIds: string[];
@@ -11,6 +12,7 @@ export class JwtUserInput {
 
 export class JwtUser implements JwtUserInput {
   userId: string;
+  username?: string;
   jti: string;
   iat: number;
   exp: number;
@@ -25,6 +27,7 @@ export class JwtUser implements JwtUserInput {
 
 export const fallbackUser: JwtUser = {
   userId: '526971716711350273',
+  username: 'clashperk',
   roles: [UserRoles.ADMIN],
   jti: randomUUID(),
   guildIds: [],
