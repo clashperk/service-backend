@@ -17,14 +17,6 @@ import { RostersService } from './rosters.service';
 export class RostersController {
   constructor(private rostersService: RostersService) {}
 
-  @Get('/:guildId/:rosterId')
-  getRoster(
-    @Param('rosterId') rosterId: string,
-    @Param('guildId') guildId: string,
-  ): Promise<RostersEntity> {
-    return this.rostersService.getRoster({ rosterId, guildId });
-  }
-
   @Get('/:guildId/list')
   getRosters(@Param('guildId') guildId: string): Promise<GetRostersDto> {
     return this.rostersService.getRosters(guildId);
@@ -33,6 +25,14 @@ export class RostersController {
   @Post('/:guildId/create')
   createRoster(@Param('rosterId') rosterId: string) {
     return Promise.resolve({ rosterId });
+  }
+
+  @Get('/:guildId/:rosterId')
+  getRoster(
+    @Param('rosterId') rosterId: string,
+    @Param('guildId') guildId: string,
+  ): Promise<RostersEntity> {
+    return this.rostersService.getRoster({ rosterId, guildId });
   }
 
   @Patch('/:guildId/:rosterId')

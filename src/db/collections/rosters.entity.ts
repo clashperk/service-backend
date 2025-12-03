@@ -42,7 +42,10 @@ export class RosterMemberOfRostersEntity {
   tag: string;
   userId: string | null;
   username: string | null;
+
+  @ApiProperty({ type: String })
   warPreference: 'in' | 'out' | null;
+
   role: string | null;
   townHallLevel: number;
   heroes: Record<string, number>;
