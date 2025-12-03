@@ -16,7 +16,7 @@ export class ClanStoresEntity {
   lastRan?: Date;
   channels?: string[];
   color?: number;
-  order?: number;
+  order: number;
   categoryId?: ObjectId | null;
   secureRole: boolean;
   warRole?: string;

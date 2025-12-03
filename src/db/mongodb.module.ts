@@ -6,6 +6,7 @@ import {
   ClanCategoriesEntity,
   ClanStoresEntity,
   ClanWarsEntity,
+  CustomBotsEntity,
   CWLGroupsEntity,
   GlobalClanEntity,
   GlobalClanHistoryEntity,
@@ -13,11 +14,16 @@ import {
   LegendAttacksEntity,
   PlayerLinksEntity,
   PlayersEntity,
+  RosterGroupsEntity,
+  RostersEntity,
+  SettingsEntity,
 } from './collections';
 
 export enum Collections {
   CLAN_STORES = 'ClanStores',
   CLAN_CATEGORIES = 'ClanCategories',
+  SETTINGS = 'Settings',
+  CUSTOM_BOTS = 'CustomBots',
 
   PORTAL_USERS = 'PortalUsers',
   PLAYER_LINKS = 'PlayerLinks',
@@ -27,6 +33,9 @@ export enum Collections {
 
   PLAYERS = 'Players',
 
+  ROSTERS = 'Rosters',
+  ROSTER_GROUPS = 'RosterCategories',
+
   GLOBAL_CLANS = 'global_clans',
   GLOBAL_PLAYERS = 'global_players',
   GLOBAL_CLAN_HISTORY = 'global_clan_history',
@@ -35,6 +44,9 @@ export enum Collections {
 interface CollectionRecords {
   [Collections.CLAN_STORES]: ClanStoresEntity;
   [Collections.CLAN_CATEGORIES]: ClanCategoriesEntity;
+  [Collections.SETTINGS]: SettingsEntity;
+  [Collections.CUSTOM_BOTS]: CustomBotsEntity;
+
   [Collections.PORTAL_USERS]: ApiUsersEntity;
   [Collections.PLAYER_LINKS]: PlayerLinksEntity;
   [Collections.CLAN_WARS]: ClanWarsEntity;
@@ -45,6 +57,9 @@ interface CollectionRecords {
   [Collections.GLOBAL_CLAN_HISTORY]: GlobalClanHistoryEntity;
   [Collections.LEGEND_ATTACKS]: LegendAttacksEntity;
   [Collections.CWL_GROUPS]: CWLGroupsEntity;
+
+  [Collections.ROSTERS]: RostersEntity;
+  [Collections.ROSTER_GROUPS]: RosterGroupsEntity;
 }
 
 declare module 'mongodb' {

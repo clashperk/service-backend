@@ -7,8 +7,8 @@ import { MetricsService } from './metrics.service';
 
 @Controller('/metrics')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
 @Roles([UserRoles.ADMIN])
+@ApiBearerAuth()
 @ApiExcludeRoute()
 @ApiExcludeTypings()
 export class MetricsController {

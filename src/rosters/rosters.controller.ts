@@ -1,24 +1,28 @@
-import { ApiExcludeRoute } from '@app/decorators';
-import { Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth';
+import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
+import {
+  RemoveMembersBulkInput,
+  TransferRosterMembersDto,
+  TransferRosterMembersInput,
+} from './dto';
 import { RostersService } from './rosters.service';
 
 @Controller('/rosters')
-@ApiExcludeRoute()
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@Roles([UserRoles.USER])
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class RostersController {
   constructor(private rostersService: RostersService) {}
 
   @Get('/:guildId/:rosterId')
-  getRoster(@Param('rosterId') rosterId: string) {
-    return Promise.resolve({ rosterId });
+  getRoster(@Param('rosterId') rosterId: string, @Param('guildId') guildId: string) {
+    return this.rostersService.getRoster({ rosterId, guildId });
   }
 
-  @Get('/:guildId/:rosterId/list')
-  getRosters(@Param('rosterId') rosterId: string) {
-    return Promise.resolve({ rosterId });
+  @Get('/:guildId/list')
+  getRosters(@Param('guildId') guildId: string) {
+    return this.rostersService.getRosters(guildId);
   }
 
   @Post('/:guildId/create')
@@ -47,8 +51,16 @@ export class RostersController {
   }
 
   @Delete('/:guildId/:rosterId/members')
-  deleteRosterMembers(@Param('rosterId') rosterId: string) {
-    return Promise.resolve({ rosterId });
+  deleteRosterMembers(
+    @Param('rosterId') rosterId: string,
+    @Param('guildId') guildId: string,
+    @Body() body: RemoveMembersBulkInput,
+  ) {
+    return this.rostersService.deleteRosterMembers({
+      rosterId,
+      guildId,
+      playerTags: body.playerTags,
+    });
   }
 
   @Post('/:guildId/:rosterId/members/refresh')
@@ -57,7 +69,15 @@ export class RostersController {
   }
 
   @Put('/:guildId/:rosterId/members/transfer')
-  manageRoster(@Param('rosterId') rosterId: string) {
-    return Promise.resolve({ rosterId });
+  transferRosterMembers(
+    @Param('rosterId') rosterId: string,
+    @Param('guildId') guildId: string,
+    @Body() body: TransferRosterMembersInput,
+  ): Promise<TransferRosterMembersDto> {
+    return this.rostersService.transferRosterMembers({
+      ...body,
+      rosterId,
+      guildId,
+    });
   }
 }

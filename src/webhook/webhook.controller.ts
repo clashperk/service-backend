@@ -18,7 +18,7 @@ import { WebhookService } from './webhook.service';
 export class WebhookController {
   constructor(private webhookService: WebhookService) {}
 
-  @Post('/discord/interactions')
+  @Post('/discord/interactions/incoming')
   @HttpCode(200)
   async handleDiscordInteractions(
     @Req() req: RawBodyRequest<Request>,

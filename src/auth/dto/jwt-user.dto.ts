@@ -8,6 +8,7 @@ export class JwtUserInput {
   version: string;
   roles: UserRoles[];
   guildIds: string[];
+  applicationId?: string;
 }
 
 export class JwtUser implements JwtUserInput {
@@ -19,6 +20,7 @@ export class JwtUser implements JwtUserInput {
   version: string;
   roles: UserRoles[];
   guildIds: string[];
+  applicationId?: string;
 
   static isAdmin(user: JwtUser) {
     return user.roles.includes(UserRoles.ADMIN);
