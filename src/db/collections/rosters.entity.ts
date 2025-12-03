@@ -2,6 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ObjectId } from 'mongodb';
 
 export class RostersEntity {
+  @ApiProperty({ type: String })
+  _id: ObjectId;
+
   name: string;
   guildId: string;
   maxMembers?: number;

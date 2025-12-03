@@ -1,11 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
+import { RostersEntity } from '../db';
 import {
   RemoveMembersBulkInput,
   TransferRosterMembersDto,
   TransferRosterMembersInput,
 } from './dto';
+import { GetRostersDto } from './dto/rosters.dto';
 import { RostersService } from './rosters.service';
 
 @Controller('/rosters')
@@ -16,12 +18,15 @@ export class RostersController {
   constructor(private rostersService: RostersService) {}
 
   @Get('/:guildId/:rosterId')
-  getRoster(@Param('rosterId') rosterId: string, @Param('guildId') guildId: string) {
+  getRoster(
+    @Param('rosterId') rosterId: string,
+    @Param('guildId') guildId: string,
+  ): Promise<RostersEntity> {
     return this.rostersService.getRoster({ rosterId, guildId });
   }
 
   @Get('/:guildId/list')
-  getRosters(@Param('guildId') guildId: string) {
+  getRosters(@Param('guildId') guildId: string): Promise<GetRostersDto> {
     return this.rostersService.getRosters(guildId);
   }
 

@@ -316,7 +316,7 @@ export class RostersService {
   }
 
   private get groups() {
-    return this.db.collection(Collections.ROSTERS);
+    return this.db.collection(Collections.ROSTER_GROUPS);
   }
 
   private get links() {
