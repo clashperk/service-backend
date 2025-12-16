@@ -3,7 +3,7 @@ name: aws-ecr-publish
 on:
   push:
     branches:
-      - rewrite
+      - main
   workflow_dispatch:
 
 env:
