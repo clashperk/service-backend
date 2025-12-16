@@ -10,7 +10,6 @@ export function DateTime() {
       description: 'Date string or timestamp in milliseconds',
       format: 'date-time',
       type: 'string',
-      required: false,
     }),
     Transform(({ value }) => {
       if (!value) return null;

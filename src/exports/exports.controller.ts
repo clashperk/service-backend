@@ -1,5 +1,5 @@
 import { ApiExcludeRoute } from '@app/decorators';
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { ExportsService } from './exports.service';
 
 @Controller('/exports')
@@ -7,7 +7,7 @@ import { ExportsService } from './exports.service';
 export class ExportsController {
   constructor(private readonly exportsService: ExportsService) {}
 
-  @Post('/members')
+  @Get('/members')
   exportClanMembers() {
     return this.exportsService.exportClanMembers();
   }

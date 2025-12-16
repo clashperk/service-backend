@@ -3,7 +3,7 @@ import { Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, UserRoles } from '../auth';
 import {
-  AggregateAttackHistoryDto,
+  AggregateAttackHistoryItemsDto,
   AttackHistoryInputDto,
   AttackHistoryItemsDto,
   ClanHistoryItemsDto,
@@ -42,8 +42,20 @@ export class PlayersController {
   aggregateAttackHistory(
     @Param('playerTag') playerTag: string,
     @Query() query: AttackHistoryInputDto,
-  ): Promise<AggregateAttackHistoryDto> {
+  ): Promise<AggregateAttackHistoryItemsDto> {
     return this.playerWarsService.aggregateAttackHistory({ playerTag, startDate: query.startDate });
+  }
+
+  @Get('/:playerTag/clan-war-leagues/aggregate')
+  @Cache(600)
+  aggregateClanWarLeagueHistory(
+    @Param('playerTag') playerTag: string,
+    @Query() query: AttackHistoryInputDto,
+  ) {
+    return this.playerWarsService.aggregateClanWarLeagueHistory({
+      playerTag,
+      startDate: query.startDate,
+    });
   }
 
   @Put('/:playerTag')

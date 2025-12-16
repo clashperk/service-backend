@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { APIClanWar, APIClanWarLeagueRound, SearchOptions } from 'clashofclans.js';
+import { APIClanWarLeagueRound, getWarResult, SearchOptions } from 'clashofclans.js';
+import moment from 'moment';
+import { ClanWarDto } from '../../../src/wars/dto/clan-wars.dto';
 import { ClashClient } from './client';
 
 @Injectable()
@@ -52,8 +54,8 @@ export class ClashClientService {
   async getClanWarLeague(clanTag: string) {
     const { body, res } = await this.clashClient.getClanWarLeagueGroup(clanTag);
     if (!res.ok) throw new NotFoundException(`Clan ${clanTag} is not in CWL.`);
-    const rounds = body.rounds.filter((round) => !round.warTags.includes('#0'));
 
+    const rounds = body.rounds.filter((round) => !round.warTags.includes('#0'));
     const warTags = rounds.map((round) => round.warTags).flat();
     const result = await Promise.all(
       warTags.map((warTag) => this.getLeagueRoundWithWarTag(warTag)),
@@ -63,7 +65,7 @@ export class ClashClientService {
       season: string;
       rounds: APIClanWarLeagueRound[];
       clans: { tag: string; name: string; leagueId: number }[];
-      wars: (APIClanWar & { round: number; warTag: string })[];
+      wars: ClanWarDto[];
     } = {
       season: body.season,
       clans: body.clans.map((clan) => ({
@@ -78,7 +80,19 @@ export class ClashClientService {
     for (const { body, warTag } of result) {
       if (!body) continue;
       const round = rounds.findIndex(({ warTags }) => warTags.includes(warTag)) + 1;
-      payload.wars.push({ ...body, round, warTag });
+      const clan = body.clan.tag === clanTag ? body.clan : body.opponent;
+      const opponent = body.clan.tag === clan.tag ? body.opponent : body.clan;
+      payload.wars.push({
+        ...body,
+        startTime: moment(body.startTime).toDate(),
+        preparationStartTime: moment(body.preparationStartTime).toDate(),
+        endTime: moment(body.endTime).toDate(),
+        clan,
+        opponent,
+        round,
+        warTag,
+        result: getWarResult(clan, opponent),
+      });
     }
 
     return payload;

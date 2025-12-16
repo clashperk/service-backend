@@ -85,8 +85,8 @@ export class DiscordLinkService {
         tag: this.clashClient.util.parseTag(en.playerTag),
         userId: en.discordId,
         verified: false,
-        displayName: 'Unknown',
         username: 'unknown',
+        displayName: 'Unknown',
       }));
   }
 }

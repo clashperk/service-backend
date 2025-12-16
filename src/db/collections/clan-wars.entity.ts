@@ -5,6 +5,7 @@ export interface ClanWarsEntity
   warTag: string | null;
   uid: string;
   id: number;
+  season: string;
   warType: number;
   leagueGroupId: number | null;
   preparationStartTime: Date;

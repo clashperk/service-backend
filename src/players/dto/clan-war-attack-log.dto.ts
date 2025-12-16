@@ -11,7 +11,7 @@ class AttackRecordDto {
   stars: number;
   trueStars: number;
   defenderTag: string;
-  destructionPercentage: number;
+  destruction: number;
 
   @ApiProperty()
   defender: {
@@ -22,6 +22,8 @@ class AttackRecordDto {
 }
 
 export class AttackHistoryDto {
+  season: string;
+
   id: number;
 
   @EnumString(WarTypes, 'WarTypes')
@@ -58,7 +60,12 @@ export class AttackHistoryItemsDto {
   items: AttackHistoryDto[];
 }
 
+export class AggregateAttackHistoryItemsDto {
+  items: AggregateAttackHistoryDto[];
+}
+
 export class AggregateAttackHistoryDto {
+  season: string;
   totalWars: number;
   totalAttacks: number;
   total3Stars: number;

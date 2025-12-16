@@ -1,5 +1,5 @@
 export enum WarTypes {
   REGULAR = 1,
-  FRIENDLY,
-  CWL,
+  FRIENDLY = 2,
+  CWL = 3,
 }

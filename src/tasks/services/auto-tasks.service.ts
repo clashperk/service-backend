@@ -2,10 +2,14 @@ import { Config } from '@app/constants';
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { LegendTasksService } from '../../legends/services/legend-tasks.service';
+import { ClanGamesTasksService } from './clan-games-tasks.service';
 
 @Injectable()
 export class AutoTasksService {
-  constructor(private readonly legendTasksService: LegendTasksService) {}
+  constructor(
+    private readonly legendTasksService: LegendTasksService,
+    private clanGamesTasksService: ClanGamesTasksService,
+  ) {}
 
   @Cron('59 4 * * *', {
     timeZone: 'Etc/UTC',
@@ -20,6 +24,6 @@ export class AutoTasksService {
     disabled: !Config.CRON_ENABLED,
   })
   runClanGamesTask() {
-    console.log('Running clan games tasks...');
+    return this.clanGamesTasksService.runClanGamesTask();
   }
 }

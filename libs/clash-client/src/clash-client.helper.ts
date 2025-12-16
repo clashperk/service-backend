@@ -1,15 +1,24 @@
 import { APIClanWarAttack } from 'clashofclans.js';
 
-export function getPreviousBestAttack(
+export function isFreshAttack(
   attacks: APIClanWarAttack[],
-  { defenderTag, attackerTag, order }: { defenderTag: string; attackerTag: string; order: number },
+  { defenderTag, order }: { defenderTag: string; order: number },
 ) {
   const defenderDefenses = attacks.filter((atk) => atk.defenderTag === defenderTag);
   const isFresh =
     defenderDefenses.length === 0 ||
     order === Math.min(...defenderDefenses.map((def) => def.order));
 
-  if (isFresh) return null;
+  return isFresh;
+}
+
+export function getPreviousBestAttack(
+  attacks: APIClanWarAttack[],
+  atk: { defenderTag: string; attackerTag: string; order: number },
+) {
+  const { defenderTag, attackerTag, order } = atk;
+
+  if (isFreshAttack(attacks, atk)) return null;
 
   return (
     attacks

@@ -30,23 +30,21 @@ export class LinksService {
   }
 
   public async createLink(userId: string, input: CreateLinkInputDto) {
-    const existing = await this.links.findOne({ tag: input.playerTag });
-    const isVerified = await this.clashClientService.verifyPlayerOrThrow(
-      input.playerTag,
-      input.apiToken,
-    );
+    const { apiToken, playerTag, userId: targetUserId } = input;
+    const existing = await this.links.findOne({ tag: playerTag });
+    const isVerified = await this.clashClientService.verifyPlayerOrThrow(playerTag, apiToken);
 
-    if (existing && existing.userId !== input.userId && !isVerified) {
+    if (existing && existing.userId !== targetUserId && !isVerified) {
       throw new ConflictException('Player tag already linked to another user.');
     }
 
     const [user, player] = await Promise.all([
-      this.discordOauthService.getUser(input.userId),
-      this.clashClientService.getPlayerOrThrow(input.playerTag),
+      this.discordOauthService.getUser(targetUserId),
+      this.clashClientService.getPlayerOrThrow(playerTag),
     ]);
 
     await this.links.updateOne(
-      { tag: input.playerTag, userId: input.userId },
+      { tag: playerTag, userId: targetUserId },
       {
         name: player.name,
         username: user.username,

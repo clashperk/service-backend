@@ -33,6 +33,8 @@ export enum Collections {
 
   PLAYERS = 'Players',
 
+  CLAN_GAMES_POINTS = 'ClanGamesPoints',
+
   ROSTERS = 'Rosters',
   ROSTER_GROUPS = 'RosterCategories',
 

@@ -3,6 +3,7 @@ import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import { ClanWarLeaguesDto } from './dto';
+import { ClanWarDto } from './dto/clan-wars.dto';
 import { WarsService } from './wars.service';
 
 @Controller('/wars')
@@ -21,5 +22,14 @@ export class WarsController {
   @Cache(60 * 5)
   async getClanWarLeagueForClan(@Param('clanTag') clanTag: string): Promise<ClanWarLeaguesDto> {
     return this.warsService.getClanWarLeagueForClan(clanTag);
+  }
+
+  @Get('/:clanTag/:warId')
+  @Cache(60 * 5)
+  async getClanWar(
+    @Param('clanTag') clanTag: string,
+    @Param('warId') warId: string,
+  ): Promise<ClanWarDto> {
+    return this.warsService.getClanWar({ clanTag, warId });
   }
 }
