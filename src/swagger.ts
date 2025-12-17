@@ -9,6 +9,9 @@ import {
   SwaggerCustomOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
+import { readFileSync } from 'node:fs';
+
+const version = JSON.parse(readFileSync('./package.json', 'utf-8')).version;
 
 function filterRoutes({
   document,
@@ -50,7 +53,7 @@ export function build(app: NestExpressApplication) {
         '[Join our Discord](https://discord.gg/ppuppun) | [Terms of Service](https://clashperk.com/terms) | [Privacy Policy](https://clashperk.com/privacy)',
       ].join('\n\n'),
     )
-    .setVersion('v1')
+    .setVersion(`v${version}`)
     .addServer('/v1', '[latest]')
     .addServer('/v2', '[unstable]')
     .addBearerAuth({
@@ -61,7 +64,7 @@ export function build(app: NestExpressApplication) {
       type: 'apiKey',
       in: 'header',
       name: 'x-api-key',
-      description: 'in header (x-api-key: [key]) or query param (?apiKey=[key])',
+      description: 'in header (x-api-key: [key]) or in query (?apiKey=[key])',
     })
     .addGlobalResponse({ type: ErrorResponseDto, status: 500 })
     .build();

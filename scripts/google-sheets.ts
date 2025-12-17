@@ -3,10 +3,14 @@ import { sheets as _sheets } from '@googleapis/sheets';
 import fs from 'node:fs';
 
 function authorize() {
+  const oauth2 = JSON.parse(fs.readFileSync(__dirname + '/oauth2_keys.json', 'utf8'));
   const credentials = JSON.parse(fs.readFileSync(__dirname + '/authorized_tokens.json', 'utf8'));
 
-  const client = new _auth.OAuth2();
-  client.setCredentials(credentials);
+  const client = new _auth.OAuth2({
+    client_secret: oauth2.client_secret,
+    client_id: oauth2.client_id,
+  });
+  client.setCredentials({ refresh_token: credentials.refresh_token });
 
   return client;
 }

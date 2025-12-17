@@ -13,15 +13,15 @@ function authorize() {
   return client;
 }
 
-async function attachScriptToSheet(spreadsheetId, scriptTitle) {
+async function attachScriptToSheet(spreadsheetId: string) {
   const scriptService = _script({ version: 'v1', auth: authorize() });
 
   try {
-    console.log(`Creating script "${scriptTitle}" attached to Sheet: ${spreadsheetId}...`);
+    console.log(`Creating script attached to Sheet: ${spreadsheetId}...`);
 
     const createResponse = await scriptService.projects.create({
       requestBody: {
-        title: scriptTitle,
+        title: 'Test Script',
         parentId: spreadsheetId,
       },
     });
@@ -73,4 +73,4 @@ async function attachScriptToSheet(spreadsheetId, scriptTitle) {
 }
 
 const TARGET_SHEET_ID = '1GAbJ5m_jnimFr2bi7VS65Dthb7mYV7h2BztRun1gPak';
-attachScriptToSheet(TARGET_SHEET_ID, 'My Node Attached Script').catch(console.error);
+attachScriptToSheet(TARGET_SHEET_ID).catch(console.error);
