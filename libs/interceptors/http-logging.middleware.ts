@@ -1,5 +1,4 @@
 import { ConsoleLogger, Injectable, Logger, NestMiddleware } from '@nestjs/common';
-import * as Sentry from '@sentry/nestjs';
 import { NextFunction, Request, Response } from 'express';
 import moment from 'moment';
 
@@ -14,14 +13,6 @@ export class HttpLoggingMiddleware implements NestMiddleware {
   private readonly logger = new Logger();
 
   use(req: Request, res: Response, next: NextFunction): void {
-    if (req.user) {
-      Sentry.setUser({
-        id: req.user.userId,
-        username: req.user.username,
-        ip_address: this.formatIp(this.getClientIp(req)),
-      });
-    }
-
     const startTime = Date.now();
     res.on('finish', () => {
       if (req.originalUrl === '/graphql') {

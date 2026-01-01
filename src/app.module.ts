@@ -11,7 +11,11 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { ClashClientModule } from '@app/clash-client';
 import { DiscordOauthModule } from '@app/discord-oauth';
-import { HttpLoggingMiddleware, HttpTimeoutInterceptor } from '@app/interceptors';
+import {
+  HttpLoggingMiddleware,
+  HttpTimeoutInterceptor,
+  SentryUserInterceptor,
+} from '@app/interceptors';
 import { SentryModule } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
@@ -91,6 +95,10 @@ import { WebhookModule } from './webhook/webhook.module';
     {
       provide: APP_INTERCEPTOR,
       useClass: HttpTimeoutInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SentryUserInterceptor,
     },
   ],
 })
