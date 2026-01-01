@@ -7,7 +7,10 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
+import { SentryExceptionCaptured } from '@sentry/nestjs';
 import { Request, Response } from 'express';
+import mapKeys from 'lodash/mapKeys';
 
 const ErrorCodesMap = Object.fromEntries(
   Object.entries(ErrorCodes).map(([key, value]) => [value, key]),
@@ -17,6 +20,7 @@ const ErrorCodesMap = Object.fromEntries(
 export class HttpExceptionsFilter implements ExceptionFilter {
   private logger = new Logger('ExceptionsHandler');
 
+  @SentryExceptionCaptured()
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const res = ctx.getResponse<Response>();
@@ -37,9 +41,20 @@ export class HttpExceptionsFilter implements ExceptionFilter {
       : typeof error === 'string'
         ? error
         : (error?.['message'] ?? exception.message);
+    const code = error?.['code'] || HttpStatus[status];
+
+    Sentry.logger.error(`[${req.method}] ${status} ${req.url}`, {
+      message,
+      code,
+      status,
+      method: req.method,
+      path: req.url,
+      ip: req.ip,
+      ...mapKeys(req.user || { userId: 'unauthorized' }, (_, key) => `user.${key}`),
+    });
 
     return res.status(status).json({
-      code: error?.['code'] || HttpStatus[status],
+      code,
       message,
       statusCode: status,
       method: req.method,

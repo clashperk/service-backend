@@ -1,5 +1,6 @@
 process.env.TZ = 'UTC';
 import 'dotenv/config';
+import './sentry.instrument';
 
 import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

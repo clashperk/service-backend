@@ -12,6 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ClashClientModule } from '@app/clash-client';
 import { DiscordOauthModule } from '@app/discord-oauth';
 import { HttpLoggingMiddleware, HttpTimeoutInterceptor } from '@app/interceptors';
+import { SentryModule } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { ClansModule } from './clans/clans.module';
@@ -30,6 +31,7 @@ import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
 
