@@ -1,3 +1,4 @@
+import { ResultOkDto } from '@app/dto';
 import { codeBlock } from '@app/helpers';
 import { Body, Controller, Delete, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -13,13 +14,16 @@ export class LinksController {
 
   @Post('/')
   @Roles([UserRoles.MANAGE_LINKS])
-  async link(@CurrentUser() user: JwtUser, @Body() body: CreateLinkInputDto) {
+  async link(@CurrentUser() user: JwtUser, @Body() body: CreateLinkInputDto): Promise<ResultOkDto> {
     return this.linksService.createLink(user.userId, body);
   }
 
   @Delete('/:playerTag')
   @Roles([UserRoles.MANAGE_LINKS])
-  async unlink(@CurrentUser() user: JwtUser, @Param('playerTag') playerTag: string) {
+  async unlink(
+    @CurrentUser() user: JwtUser,
+    @Param('playerTag') playerTag: string,
+  ): Promise<ResultOkDto> {
     return this.linksService.deleteLink(user.userId, playerTag);
   }
 

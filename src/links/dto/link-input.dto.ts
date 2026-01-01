@@ -69,7 +69,7 @@ export class GetLinksInputDto {
   @IsString({ each: true })
   @ArrayMaxSize(100)
   @ArrayMinSize(1)
-  @ApiProperty({ example: ['#2PP'] })
+  @ApiProperty({ example: ['#2PP'], required: false })
   playerTags: string[];
 
   @Field(() => [String])
@@ -77,7 +77,7 @@ export class GetLinksInputDto {
   @IsString({ each: true })
   @ArrayMaxSize(100)
   @ArrayMinSize(1)
-  @ApiProperty({ example: ['444432489818357760'] })
+  @ApiProperty({ example: ['444432489818357760'], required: false })
   userIds: string[];
 
   @ApiHideProperty()
