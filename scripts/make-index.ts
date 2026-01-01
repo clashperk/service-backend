@@ -9,7 +9,9 @@ const makeIndex = (directory: string) => {
   const dirPath = path.join(__dirname, '..', directory);
   console.log(`Making index file in: ${directory}`);
 
-  const files = fs.readdirSync(dirPath).filter((file) => file !== INDEX_FILE_NAME);
+  const files = fs
+    .readdirSync(dirPath)
+    .filter((file) => file !== INDEX_FILE_NAME && !file.endsWith('.json'));
   console.log(`Found ${files.length} files`);
 
   if (!files.length) return;
