@@ -44,7 +44,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
     const code = error?.['code'] || HttpStatus[status];
 
     Sentry.logger.error(`[${req.method}] ${status} ${req.url}`, {
-      message,
+      error: message,
       code,
       status,
       method: req.method,
