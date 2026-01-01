@@ -6,3 +6,8 @@ export class ExportMembersInput {
   @ArrayMinSize(1)
   clanTags: string[];
 }
+
+export class ExportMembersOutputDto {
+  spreadsheetId: string;
+  spreadsheetUrl: string;
+}
