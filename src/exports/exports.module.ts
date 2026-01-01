@@ -1,6 +1,8 @@
 import { QueueTypes } from '@app/constants';
+import { GoogleSheetModule } from '@app/google-sheet';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
+import { ExportsMembersService } from './exports-members.service';
 import { ExportsController } from './exports.controller';
 import { ExportsService } from './exports.service';
 import { ExportsConsumerService } from './services/exports-consumer.service';
@@ -18,8 +20,9 @@ import { ExportsConsumerService } from './services/exports-consumer.service';
         stackTraceLimit: 1,
       },
     }),
+    GoogleSheetModule,
   ],
   controllers: [ExportsController],
-  providers: [ExportsService, ExportsConsumerService],
+  providers: [ExportsService, ExportsMembersService, ExportsConsumerService],
 })
 export class ExportsModule {}

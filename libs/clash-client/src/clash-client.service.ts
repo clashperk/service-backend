@@ -1,5 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { APIClanWarLeagueRound, getWarResult, SearchOptions } from 'clashofclans.js';
+import {
+  APIClan,
+  APIClanWarLeagueRound,
+  APIPlayer,
+  getWarResult,
+  SearchOptions,
+} from 'clashofclans.js';
 import moment from 'moment';
 import { ClanWarDto } from '../../../src/wars/dto/clan-wars.dto';
 import { ClashClient } from './client';
@@ -20,6 +26,16 @@ export class ClashClientService {
     if (!res.ok) return null;
 
     return body;
+  }
+
+  public async getPlayers(playerTags: string[]) {
+    const result = await Promise.all(playerTags.map((tag) => this.getPlayer(tag)));
+    return result.filter((body): body is APIPlayer => !!body);
+  }
+
+  public async getClans(clanTags: string[]) {
+    const result = await Promise.all(clanTags.map((tag) => this.getClan(tag)));
+    return result.filter((body): body is APIClan => !!body);
   }
 
   async getSeasonRankings(seasonId: string, opts: SearchOptions) {

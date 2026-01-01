@@ -1,0 +1,4 @@
+export const REDIS_TOKEN = 'REDIS_TOKEN';
+export const REDIS_PUB_TOKEN = 'REDIS_PUB_TOKEN';
+export const REDIS_SUB_TOKEN = 'REDIS_SUB_TOKEN';
+export const GO_REDIS_TOKEN = 'GO_REDIS_TOKEN';

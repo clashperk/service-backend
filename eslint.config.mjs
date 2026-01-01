@@ -44,4 +44,10 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['src/**/*.controller.ts'],
+    rules: {
+      '@typescript-eslint/explicit-function-return-type': 'error',
+    },
+  },
 );

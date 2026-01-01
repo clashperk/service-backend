@@ -1,11 +1,8 @@
 import { Global, Inject, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
-
-export const REDIS_TOKEN = 'REDIS_TOKEN';
-export const REDIS_PUB_TOKEN = 'REDIS_PUB_TOKEN';
-export const REDIS_SUB_TOKEN = 'REDIS_SUB_TOKEN';
-export const GO_REDIS_TOKEN = 'GO_REDIS_TOKEN';
+import { GO_REDIS_TOKEN, REDIS_PUB_TOKEN, REDIS_SUB_TOKEN, REDIS_TOKEN } from './redis.constants';
+import { RedisService } from './redis.service';
 
 @Global()
 @Module({
@@ -38,8 +35,9 @@ export const GO_REDIS_TOKEN = 'GO_REDIS_TOKEN';
       },
       inject: [ConfigService],
     },
+    RedisService,
   ],
-  exports: [REDIS_TOKEN, REDIS_PUB_TOKEN, REDIS_SUB_TOKEN, GO_REDIS_TOKEN],
+  exports: [REDIS_TOKEN, REDIS_PUB_TOKEN, REDIS_SUB_TOKEN, GO_REDIS_TOKEN, RedisService],
 })
 export class RedisClientModule {
   constructor(@Inject(REDIS_TOKEN) private redis: Redis) {}
