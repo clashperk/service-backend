@@ -6,6 +6,7 @@ import { ClanWarsEntity, Collections, MONGODB_TOKEN } from '../../db';
 import {
   AggregateAttackHistoryDto,
   AggregateAttackHistoryItemsDto,
+  AggregateClanWarLeagueHistoryDto,
   AttackHistoryDto,
   WarTypes,
 } from '../dto';
@@ -231,8 +232,8 @@ export class PlayerWarsService {
       { $sort: { season: -1 } },
     ]);
 
-    const result = await cursor.toArray();
-    return result;
+    const items = await cursor.toArray();
+    return { items: items as AggregateClanWarLeagueHistoryDto[] };
   }
 
   private get wars() {

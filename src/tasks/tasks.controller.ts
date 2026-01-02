@@ -12,22 +12,22 @@ export class TasksController {
   constructor(private tasksService: TasksService) {}
 
   @Post('/bulk-add-legend-players')
-  bulkAddLegendPlayers() {
+  bulkAddLegendPlayers(): unknown {
     return this.tasksService.bulkAddLegendPlayers();
   }
 
   @Post('/seed-legend-players')
-  seedLegendPlayers() {
+  seedLegendPlayers(): unknown {
     return this.tasksService.seedLegendPlayers();
   }
 
   @Post('/migrate-legend-players')
-  migrateLegendPlayers() {
+  migrateLegendPlayers(): unknown {
     return this.tasksService.migrateLegendPlayers();
   }
 
   @Post('/update-legend-players')
-  updateLegendPlayers() {
+  updateLegendPlayers(): unknown {
     return this.tasksService.updateLegendPlayers();
   }
 }

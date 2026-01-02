@@ -7,6 +7,7 @@ import {
   AuthUserDto,
   GenerateTokenDto,
   GenerateTokenInputDto,
+  HandoffTokenDto,
   HandoffTokenInputDto,
   HandoffUserDto,
   LoginInputDto,
@@ -61,7 +62,7 @@ export class AuthController {
   @ApiExcludeRoute()
   @UseGuards(ApiKeyGuard)
   @ApiKeyAuth()
-  async createHandoffToken(@Body() body: HandoffTokenInputDto) {
+  async createHandoffToken(@Body() body: HandoffTokenInputDto): Promise<HandoffTokenDto> {
     return this.authService.createHandoffToken(body);
   }
 }

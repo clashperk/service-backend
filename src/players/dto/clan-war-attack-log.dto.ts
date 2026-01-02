@@ -60,10 +60,6 @@ export class AttackHistoryItemsDto {
   items: AttackHistoryDto[];
 }
 
-export class AggregateAttackHistoryItemsDto {
-  items: AggregateAttackHistoryDto[];
-}
-
 export class AggregateAttackHistoryDto {
   season: string;
   totalWars: number;
@@ -71,4 +67,22 @@ export class AggregateAttackHistoryDto {
   total3Stars: number;
   totalMissed: number;
   totalStars: number;
+}
+
+export class AggregateAttackHistoryItemsDto {
+  items: AggregateAttackHistoryDto[];
+}
+
+export class AggregateClanWarLeagueHistoryDto {
+  season: string;
+  totalAttacks: number;
+  totalMissed: number;
+  totalDestruction: number;
+  totalStars: number;
+  totalWars: number;
+  rounds: number;
+}
+
+export class AggregateClanWarLeagueHistoryItemsDto {
+  items: AggregateClanWarLeagueHistoryDto[];
 }

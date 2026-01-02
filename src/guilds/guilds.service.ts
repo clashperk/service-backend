@@ -18,11 +18,17 @@ export class GuildsService {
       ? await this.bots.findOne({ serviceId: input.applicationId })
       : null;
 
-    return this.discordOauthService.listMembers({
+    const members = await this.discordOauthService.listMembers({
       guildId: input.guildId,
       query: input.query,
       token: bot ? bot.token : null,
     });
+
+    return members.map((member) => ({
+      id: member.user.id,
+      username: member.user.username,
+      displayName: member.user.global_name || member.user.username,
+    }));
   }
 
   async getGuildClans(guildId: string) {

@@ -1,9 +1,11 @@
 import { Cache } from '@app/decorators';
+import { ResultOkDto } from '@app/dto';
 import { Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, UserRoles } from '../auth';
 import {
   AggregateAttackHistoryItemsDto,
+  AggregateClanWarLeagueHistoryItemsDto,
   AttackHistoryInputDto,
   AttackHistoryItemsDto,
   ClanHistoryItemsDto,
@@ -51,7 +53,7 @@ export class PlayersController {
   aggregateClanWarLeagueHistory(
     @Param('playerTag') playerTag: string,
     @Query() query: AttackHistoryInputDto,
-  ) {
+  ): Promise<AggregateClanWarLeagueHistoryItemsDto> {
     return this.playerWarsService.aggregateClanWarLeagueHistory({
       playerTag,
       startDate: query.startDate,
@@ -60,7 +62,7 @@ export class PlayersController {
 
   @Put('/:playerTag')
   @Roles([UserRoles.ADMIN])
-  async addPlayerAccount(@Param('playerTag') playerTag: string) {
+  async addPlayerAccount(@Param('playerTag') playerTag: string): Promise<ResultOkDto> {
     return this.playersService.addPlayer(playerTag);
   }
 }

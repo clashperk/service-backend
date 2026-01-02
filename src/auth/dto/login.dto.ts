@@ -64,6 +64,11 @@ export class HandoffTokenInputDto {
   guildId: string;
 }
 
+export class HandoffTokenDto {
+  @IsString()
+  token: string;
+}
+
 export class HandoffUserDto {
   @EnumArray(UserRoles, 'UserRoles')
   roles: UserRoles[];

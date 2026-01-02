@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
-import { GuildClansDto, ReorderClanCategoriesInput } from './dto';
+import { GuildClansDto, ListMemberDto, ReorderClanCategoriesInput } from './dto';
 import { GuildsService } from './guilds.service';
 
 @Controller('/guilds')
@@ -20,7 +20,7 @@ export class GuildsController {
   async reorderGuildClans(
     @Param('guildId') guildId: string,
     @Body() body: ReorderClanCategoriesInput,
-  ) {
+  ): Promise<GuildClansDto> {
     return this.guildsService.reorderGuildClans({ categories: body.categories, guildId });
   }
 
@@ -29,7 +29,7 @@ export class GuildsController {
     @Param('guildId') guildId: string,
     @Query('query') query: string,
     @CurrentUser() user: JwtUser,
-  ) {
+  ): Promise<ListMemberDto[]> {
     return this.guildsService.listMembers({
       guildId,
       query,

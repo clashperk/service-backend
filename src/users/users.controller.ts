@@ -12,7 +12,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('/:userId')
-  async getUser() {
+  async getUser(): Promise<unknown> {
     return Promise.resolve({ version: 'v1' });
   }
 }

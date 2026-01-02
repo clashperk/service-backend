@@ -14,25 +14,25 @@ export class AppController {
 
   @ApiExcludeEndpoint()
   @Get('/')
-  getHello() {
+  getHello(): unknown {
     return 'Hello World!';
   }
 
   @Get('/health')
-  getHealth() {
+  getHealth(): unknown {
     return { message: 'Ok' };
   }
 
   @ApiExcludeEndpoint()
   @Get('/swagger/:apiKey')
-  swaggerAuth(@Res() res: Response, @Param('apiKey') apiKey: string) {
+  swaggerAuth(@Res() res: Response, @Param('apiKey') apiKey: string): unknown {
     res.cookie('x-api-key', apiKey);
-    res.redirect('/docs');
+    return res.redirect('/docs');
   }
 
   @Post('/cache-status-check')
   @Cache(30)
-  cacheStatusCheckPOST(@Req() req: Request) {
+  cacheStatusCheckPOST(@Req() req: Request): unknown {
     return {
       headers: { ...req.headers },
     };
@@ -40,7 +40,7 @@ export class AppController {
 
   @Get('/cache-status-check')
   @Cache(30)
-  cacheStatusCheckGET(@Req() req: Request) {
+  cacheStatusCheckGET(@Req() req: Request): unknown {
     return {
       headers: { ...req.headers },
     };

@@ -20,13 +20,13 @@ export class WebhookController {
 
   @Post('/discord/interactions/incoming')
   @HttpCode(200)
-  async handleDiscordInteractions(
+  handleDiscordInteractions(
     @Req() req: RawBodyRequest<Request>,
     @Body() body: Record<string, string | number>,
     @Headers('X-Signature-Ed25519') signature: string,
     @Headers('X-Signature-Timestamp') timestamp: string,
     @Query('message') message: string,
-  ) {
+  ): unknown {
     return this.webhookService.handleDiscordInteractions({
       rawBody: req.rawBody as Buffer,
       interactionType: body.type as InteractionType,
@@ -37,5 +37,7 @@ export class WebhookController {
   }
 
   @Post('/patreon/incoming')
-  async handlePatreonWebhook() {}
+  handlePatreonWebhook(): unknown {
+    return {};
+  }
 }

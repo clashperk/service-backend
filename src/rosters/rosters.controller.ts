@@ -23,7 +23,7 @@ export class RostersController {
   }
 
   @Post('/:guildId/create')
-  createRoster(@Param('rosterId') rosterId: string) {
+  createRoster(@Param('rosterId') rosterId: string): unknown {
     return Promise.resolve({ rosterId });
   }
 
@@ -36,22 +36,22 @@ export class RostersController {
   }
 
   @Patch('/:guildId/:rosterId')
-  updateRoster(@Param('rosterId') rosterId: string) {
+  updateRoster(@Param('rosterId') rosterId: string): unknown {
     return Promise.resolve({ rosterId });
   }
 
   @Delete('/:guildId/:rosterId')
-  deleteRoster(@Param('rosterId') rosterId: string) {
+  deleteRoster(@Param('rosterId') rosterId: string): unknown {
     return Promise.resolve({ rosterId });
   }
 
   @Post('/:guildId/:rosterId/clone')
-  cloneRoster(@Param('rosterId') rosterId: string) {
+  cloneRoster(@Param('rosterId') rosterId: string): unknown {
     return Promise.resolve({ rosterId });
   }
 
   @Put('/:guildId/:rosterId/members')
-  addRosterMembers(@Param('rosterId') rosterId: string) {
+  addRosterMembers(@Param('rosterId') rosterId: string): unknown {
     return Promise.resolve({ rosterId });
   }
 
@@ -60,7 +60,7 @@ export class RostersController {
     @Param('rosterId') rosterId: string,
     @Param('guildId') guildId: string,
     @Body() body: RemoveMembersBulkInput,
-  ) {
+  ): unknown {
     return this.rostersService.deleteRosterMembers({
       rosterId,
       guildId,
@@ -69,7 +69,7 @@ export class RostersController {
   }
 
   @Post('/:guildId/:rosterId/members/refresh')
-  refreshRosterMembers(@Param('rosterId') rosterId: string) {
+  refreshRosterMembers(@Param('rosterId') rosterId: string): unknown {
     return Promise.resolve({ rosterId });
   }
 
