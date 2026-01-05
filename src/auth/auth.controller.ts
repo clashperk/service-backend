@@ -1,7 +1,7 @@
 import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { paragraph } from '@app/helpers';
 import { Body, Controller, Get, Headers, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
@@ -20,9 +20,10 @@ import { ApiKeyGuard } from './guards';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  /** Authenticate with your passKey to receive an accessToken required for authorized API requests. */
   @Post('/login')
   @ApiOperation({
+    summary:
+      'Authenticate with your passKey to receive an accessToken required for authorized API requests.',
     description: paragraph(
       'Authenticates a user using a `passKey` and returns an `accessToken` with a limited validity period (2 hours). Once the token expires, a new token must be generated.',
       '',
@@ -33,16 +34,14 @@ export class AuthController {
     return this.authService.login(body.passKey);
   }
 
-  /** Generates a JWT token with specified user roles. */
+  @ApiOperation({ summary: 'Generate a passKey required for authentication.' })
   @UseGuards(ApiKeyGuard)
-  @ApiExcludeRoute()
-  @Post('/generate-token')
+  @Post('/generate-passkey')
   @ApiKeyAuth()
-  async generateToken(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
+  async generatePasskey(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
     return this.authService.generateToken(body);
   }
 
-  /** Retrieves authenticated user information based on userId. */
   @Get('/users/:userId')
   @UseGuards(ApiKeyGuard)
   @ApiExcludeRoute()
@@ -51,9 +50,8 @@ export class AuthController {
     return this.authService.getAuthUser(userId);
   }
 
-  /** Authenticate with Turnstile token to receive an accessToken required for authorized API requests. */
   @Post('/turnstile')
-  @ApiExcludeRoute()
+  @ApiExcludeEndpoint()
   async loginWithTurnstile(
     @Body() body: TurnstileLoginDto,
     @Headers('cf-connecting-ip') remoteIp: string,
