@@ -1,7 +1,6 @@
 import { ErrorCodes } from '@app/dto';
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { Request } from 'express';
 import { ROLES_METADATA } from '../decorators/roles.decorator';
 import { UserRoles } from '../dto/user-roles.dto';
@@ -11,12 +10,7 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   getRequest(context: ExecutionContext): Request {
-    if (context.getType() === 'http') {
-      return context.switchToHttp().getRequest<Request>();
-    }
-
-    const ctx = GqlExecutionContext.create(context);
-    return ctx.getContext().req as Request;
+    return context.switchToHttp().getRequest<Request>();
   }
 
   canActivate(context: ExecutionContext): boolean {

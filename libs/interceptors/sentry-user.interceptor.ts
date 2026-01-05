@@ -1,5 +1,4 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
-import { GqlContextType, GqlExecutionContext } from '@nestjs/graphql';
 import * as Sentry from '@sentry/nestjs';
 import { Request } from 'express';
 
@@ -20,10 +19,6 @@ export class SentryUserInterceptor implements NestInterceptor {
   }
 
   private getRequest(context: ExecutionContext): Request {
-    if (context.getType<GqlContextType>() === 'graphql') {
-      const gqlContext = GqlExecutionContext.create(context);
-      return gqlContext.getContext().req as Request;
-    }
     return context.switchToHttp().getRequest();
   }
 }

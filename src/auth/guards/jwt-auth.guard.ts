@@ -2,7 +2,6 @@ import { SNOWFLAKE_REGEX } from '@app/constants';
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { AuthGuardStrategies } from '../app.constants';
@@ -22,12 +21,7 @@ export class JwtAuthGuard extends AuthGuard(AuthGuardStrategies.JWT) {
   }
 
   getRequest(context: ExecutionContext): Request {
-    if (context.getType() === 'http') {
-      return context.switchToHttp().getRequest<Request>();
-    }
-
-    const ctx = GqlExecutionContext.create(context);
-    return ctx.getContext().req as Request;
+    return context.switchToHttp().getRequest<Request>();
   }
 
   canActivate(context: ExecutionContext) {

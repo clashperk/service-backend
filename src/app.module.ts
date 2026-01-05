@@ -1,12 +1,9 @@
-import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import KeyvRedis from '@keyv/redis';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { BullModule } from '@nestjs/bull';
 import { CacheModule } from '@nestjs/cache-manager';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { GraphQLModule } from '@nestjs/graphql';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { ClashClientModule } from '@app/clash-client';
@@ -51,21 +48,6 @@ import { WebhookModule } from './webhook/webhook.module';
       useFactory: (configService: ConfigService) => ({
         ttl: 10 * 60 * 1000,
         stores: [new KeyvRedis(configService.getOrThrow('REDIS_URL'))],
-      }),
-      inject: [ConfigService],
-    }),
-
-    GraphQLModule.forRootAsync<ApolloDriverConfig>({
-      imports: [],
-      driver: ApolloDriver,
-      useFactory: () => ({
-        persistedQueries: false,
-        autoSchemaFile: true,
-        sortSchema: true,
-        playground: false,
-        introspection: true,
-        context: ({ req, res }) => ({ req, res }),
-        plugins: [ApolloServerPluginLandingPageLocalDefault()],
       }),
       inject: [ConfigService],
     }),

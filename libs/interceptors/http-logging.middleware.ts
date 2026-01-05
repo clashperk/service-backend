@@ -15,11 +15,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction): void {
     const startTime = Date.now();
     res.on('finish', () => {
-      if (req.originalUrl === '/graphql') {
-        this.logGraphQLRequest(req, res, startTime);
-      } else {
-        this.logRequest(req, res, startTime);
-      }
+      this.logRequest(req, res, startTime);
     });
 
     next();
@@ -40,22 +36,6 @@ export class HttpLoggingMiddleware implements NestMiddleware {
 
     const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'debug';
     this.logger[logType](logMessage, method);
-  }
-
-  private logGraphQLRequest(req: Request, res: Response, startTime: number) {
-    const { statusCode } = res;
-    const responseTime = Date.now() - startTime;
-    const remoteAddr = this.formatIp(this.getClientIp(req));
-    const userId = req.user?.userId ?? '0x0';
-
-    const logMessage = [
-      `${statusCode} ${req.body?.operationName || req.originalUrl}`,
-      `${responseTime}ms - ${remoteAddr}`,
-      `${userId}`,
-    ].join(' ');
-
-    const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'debug';
-    this.logger[logType](logMessage, 'GRAPHQL');
   }
 
   private formatIp(ip?: string): string {

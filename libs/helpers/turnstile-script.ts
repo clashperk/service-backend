@@ -18,14 +18,7 @@ export function getTurnstileScript(turnstileSiteKey: string) {
         container.style.display = 'flex';
         container.style.alignItems = 'center';
         container.style.justifyContent = 'center';
-
         document.body.appendChild(container);
-
-        const script = document.createElement('script');
-        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback';
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
 
         window.onloadTurnstileCallback = function() {
           const widgetId = turnstile.render('#cf-turnstile', {
@@ -66,6 +59,12 @@ export function getTurnstileScript(turnstileSiteKey: string) {
             }
           });
         };
+
+        const script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback';
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
       }, 100);
     })();
   `;

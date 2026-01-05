@@ -1,4 +1,3 @@
-import { Field, InputType, ObjectType } from '@nestjs/graphql';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import {
   ArrayMaxSize,
@@ -38,33 +37,23 @@ export class DeleteLinkInputDto {
   playerTag: string;
 }
 
-@ObjectType()
 export class LinksDto {
-  @Field()
   tag: string;
 
-  @Field()
   name: string;
 
-  @Field()
   userId: string;
 
-  @Field()
   username: string;
 
-  @Field()
   verified: boolean;
 }
 
-@ObjectType()
 export class MessageOkDto {
-  @Field()
   message: string;
 }
 
-@InputType()
 export class GetLinksInputDto {
-  @Field(() => [String])
   @ValidateIf((body) => !!(body.playerTags && !body.userIds))
   @IsString({ each: true })
   @ArrayMaxSize(100)
@@ -72,7 +61,6 @@ export class GetLinksInputDto {
   @ApiProperty({ example: ['#2PP'], required: false })
   playerTags: string[];
 
-  @Field(() => [String])
   @ValidateIf((body) => !!(body.userIds && !body.playerTags))
   @IsString({ each: true })
   @ArrayMaxSize(100)
