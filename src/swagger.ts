@@ -10,6 +10,7 @@ import {
   SwaggerCustomOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
+import { Response } from 'express';
 import { readFileSync } from 'node:fs';
 
 const version = JSON.parse(readFileSync('./package.json', 'utf-8')).version;
@@ -96,6 +97,7 @@ export function build(app: NestExpressApplication) {
     },
     customJsStr: getTurnstileScript(turnstileSiteKey),
     patchDocumentOnRequest(req, res, document) {
+      (res as Response).setHeader('Access-Control-Allow-Origin', '*');
       const config = app.get(ConfigService);
 
       if (req['query']?.['x-typings-ignored']) {
