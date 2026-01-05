@@ -4,6 +4,7 @@ import { nodeProfilingIntegration } from '@sentry/profiling-node';
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   enabled: !!process.env.SENTRY_DSN,
+  serverName: 'clashperk_backend',
 
   integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 1.0,
