@@ -5,6 +5,7 @@ Sentry.init({
   dsn: process.env.SENTRY_DSN,
   enabled: !!process.env.SENTRY_DSN,
   serverName: 'clashperk_backend',
+  environment: process.env.NODE_ENV || 'development',
 
   integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 1.0,
