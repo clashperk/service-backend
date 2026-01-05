@@ -1,6 +1,7 @@
 import { RedisKeys } from '@app/constants';
 import { DiscordOauthService } from '@app/discord-oauth';
 import { ErrorCodes } from '@app/dto';
+import { HttpService } from '@nestjs/axios';
 import {
   Inject,
   Injectable,
@@ -8,10 +9,12 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { randomBytes, randomUUID } from 'crypto';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
+import { firstValueFrom } from 'rxjs';
 import { Collections, MONGODB_TOKEN, REDIS_TOKEN } from '../db';
 import {
   AuthUserDto,
@@ -33,6 +36,8 @@ export class AuthService {
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private jwtService: JwtService,
     private discordOauthService: DiscordOauthService,
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
   ) {}
 
   async login(passKey: string): Promise<LoginOkDto> {
@@ -50,6 +55,55 @@ export class AuthService {
         { expiresIn: '2h' },
       ),
     };
+  }
+
+  async loginWithTurnstile(token: string, remoteIp: string): Promise<LoginOkDto> {
+    await this.verifyTurnstile(token, remoteIp);
+    const swaggerUserId = '000000000000000000';
+
+    return {
+      userId: swaggerUserId,
+      roles: [UserRoles.VIEWER],
+      accessToken: this.createJwt(
+        {
+          userId: swaggerUserId,
+          roles: [UserRoles.VIEWER],
+          username: 'swagger_user',
+        },
+        { expiresIn: '1m' },
+      ),
+    };
+  }
+
+  private async verifyTurnstile(token: string, remoteIp: string) {
+    const secret = this.configService.getOrThrow('CLOUDFLARE_TURNSTILE_SECRET_KEY');
+
+    const body = new URLSearchParams();
+    body.append('secret', secret);
+    body.append('response', token);
+    body.append('remoteip', remoteIp);
+
+    const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+    const { data: validation } = await firstValueFrom(
+      this.httpService.post<{ success: boolean; challenge_ts: string; hostname: string }>(
+        url,
+        body,
+      ),
+    );
+
+    if (!validation.success) {
+      throw new UnauthorizedException('Invalid Turnstile Token');
+    }
+
+    if (Date.now() - new Date(validation.challenge_ts).getTime() > 5000) {
+      throw new UnauthorizedException('Invalid Turnstile Token (Expired)');
+    }
+
+    if (!validation.hostname.includes('clashperk.com')) {
+      throw new UnauthorizedException('Invalid Turnstile Token (Hostname)');
+    }
+
+    return { message: 'Ok' };
   }
 
   async generateToken(input: GenerateTokenInputDto): Promise<GenerateTokenDto> {
@@ -158,7 +212,7 @@ export class AuthService {
   }
 
   private createJwt(
-    input: { userId: string; roles: UserRoles[]; username: string },
+    input: { userId: string; roles: UserRoles[]; username: string; remoteIp?: string },
     options?: JwtSignOptions,
   ) {
     const payload = {
@@ -167,6 +221,7 @@ export class AuthService {
       version: '1',
       jti: randomUUID(),
       guildIds: [],
+      remoteIp: input.remoteIp,
       username: input.username.toLowerCase(),
     } satisfies JwtUserInput;
 

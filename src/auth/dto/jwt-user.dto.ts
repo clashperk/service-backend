@@ -4,16 +4,17 @@ import { UserRoles } from './user-roles.dto';
 export class JwtUserInput {
   jti: string;
   userId: string;
-  username?: string;
+  username: string;
   version: string;
   roles: UserRoles[];
   guildIds: string[];
   applicationId?: string;
+  remoteIp?: string;
 }
 
 export class JwtUser implements JwtUserInput {
   userId: string;
-  username?: string;
+  username: string;
   jti: string;
   iat: number;
   exp: number;

@@ -1,5 +1,17 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Request } from 'express';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import { RostersEntity } from '../db';
 import {
@@ -41,7 +53,8 @@ export class RostersController {
   }
 
   @Delete('/:guildId/:rosterId')
-  deleteRoster(@Param('rosterId') rosterId: string): unknown {
+  deleteRoster(@Param('rosterId') rosterId: string, @Req() req: Request): unknown {
+    console.log(req.headers);
     return Promise.resolve({ rosterId });
   }
 

@@ -8,6 +8,12 @@ export class LoginInputDto {
   passKey: string;
 }
 
+export class TurnstileLoginDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+}
+
 export class GenerateTokenInputDto {
   @IsString()
   @IsNotEmpty()

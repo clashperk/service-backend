@@ -1,6 +1,6 @@
 import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { paragraph } from '@app/helpers';
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import {
@@ -12,6 +12,7 @@ import {
   HandoffUserDto,
   LoginInputDto,
   LoginOkDto,
+  TurnstileLoginDto,
 } from './dto';
 import { ApiKeyGuard } from './guards';
 
@@ -48,6 +49,16 @@ export class AuthController {
   @ApiKeyAuth()
   async getAuthUser(@Param('userId') userId: string): Promise<AuthUserDto> {
     return this.authService.getAuthUser(userId);
+  }
+
+  /** Authenticate with Turnstile token to receive an accessToken required for authorized API requests. */
+  @Post('/turnstile')
+  @ApiExcludeRoute()
+  async loginWithTurnstile(
+    @Body() body: TurnstileLoginDto,
+    @Headers('cf-connecting-ip') remoteIp: string,
+  ): Promise<LoginOkDto> {
+    return this.authService.loginWithTurnstile(body.token, remoteIp);
   }
 
   @Get('/handoff/:token')

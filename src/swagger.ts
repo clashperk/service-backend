@@ -1,6 +1,7 @@
 import { Config } from '@app/constants';
 import { ErrorResponseDto } from '@app/dto';
 import { paragraph } from '@app/helpers';
+import { getTurnstileScript } from '@app/helpers/turnstile-script';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import {
@@ -56,10 +57,14 @@ export function build(app: NestExpressApplication) {
     .setVersion(`v${version}`)
     .addServer('/v1', '[latest]')
     .addServer('/v2', '[unstable]')
-    .addBearerAuth({
-      type: 'http',
-      description: 'in header (authorization: bearer [token])',
-    })
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        description: 'in header (authorization: bearer [token])',
+      },
+      'bearer',
+    )
     .addSecurity('apiKey', {
       type: 'apiKey',
       in: 'header',
@@ -74,6 +79,9 @@ export function build(app: NestExpressApplication) {
   });
   const published = filterRoutes({ document, extension: 'x-internal' });
 
+  const configService = app.get(ConfigService);
+  const turnstileSiteKey = configService.getOrThrow('CLOUDFLARE_TURNSTILE_SITE_KEY');
+
   const customOptions: SwaggerCustomOptions = {
     jsonDocumentUrl: 'docs/json',
     yamlDocumentUrl: 'docs/yaml',
@@ -86,6 +94,7 @@ export function build(app: NestExpressApplication) {
       displayOperationId: !Config.IS_PROD,
       showExtensions: !Config.IS_PROD,
     },
+    customJsStr: getTurnstileScript(turnstileSiteKey),
     patchDocumentOnRequest(req, res, document) {
       const config = app.get(ConfigService);
 
