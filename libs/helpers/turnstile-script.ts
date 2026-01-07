@@ -51,10 +51,6 @@ export function getTurnstileScript(turnstileSiteKey: string) {
                     value: null,
                   },
                 });
-              } finally {
-                setTimeout(function() {
-                  turnstile.reset(widgetId);
-                }, 55 * 1000);
               }
             }
           });

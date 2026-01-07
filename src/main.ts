@@ -29,7 +29,7 @@ async function bootstrap() {
       ? [...Config.ALLOWED_DOMAINS]
       : [...Config.ALLOWED_DOMAINS, 'http://localhost:3000'],
   });
-  app.use(cookieParser());
+  app.use(cookieParser(config.getOrThrow('COOKIE_SECRET')));
   app.set('trust proxy', true);
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
 

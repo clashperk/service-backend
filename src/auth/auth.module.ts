@@ -1,12 +1,13 @@
 import { HttpModule } from '@nestjs/axios';
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies';
 
+@Global()
 @Module({
   imports: [
     HttpModule,
@@ -20,6 +21,7 @@ import { JwtStrategy } from './strategies';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, JwtService],
+  exports: [AuthService, JwtStrategy, JwtService],
 })
 export class AuthModule {}

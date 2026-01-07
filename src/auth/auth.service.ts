@@ -69,8 +69,9 @@ export class AuthService {
           userId: swaggerUserId,
           roles: [UserRoles.VIEWER],
           username: 'swagger_user',
+          remoteIp,
         },
-        { expiresIn: '1m' },
+        { expiresIn: '5m' },
       ),
     };
   }

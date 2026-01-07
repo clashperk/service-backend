@@ -1,7 +1,8 @@
 import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { paragraph } from '@app/helpers';
-import { Body, Controller, Get, Headers, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Param, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiOperation } from '@nestjs/swagger';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
@@ -53,10 +54,21 @@ export class AuthController {
   @Post('/turnstile')
   @ApiExcludeEndpoint()
   async loginWithTurnstile(
+    @Res() res: Response,
     @Body() body: TurnstileLoginDto,
     @Headers('cf-connecting-ip') remoteIp: string,
   ): Promise<LoginOkDto> {
-    return this.authService.loginWithTurnstile(body.token, remoteIp);
+    const result = await this.authService.loginWithTurnstile(body.token, remoteIp);
+
+    res.cookie('cf.turnstile.auth', remoteIp, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      signed: true,
+      maxAge: 5 * 60 * 60 * 1000,
+    });
+
+    return res.json(result) as unknown as LoginOkDto;
   }
 
   @Get('/handoff/:token')
