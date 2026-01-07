@@ -5,8 +5,16 @@ export function getTurnstileScript(turnstileSiteKey: string) {
         if (!window.ui) return;
         clearInterval(intervalId);
 
-        const authorized = window.ui.authSelectors.authorized().size > 0;
-        if (authorized) return;
+        const isAuthorized = () => {
+          try {
+            const authorized = JSON.parse(localStorage.getItem('authorized') || '{}');
+            return !!(authorized?.bearer?.value || authorized?.apiKey?.value);
+          } catch {
+            return false;
+          }
+        };
+
+        if (isAuthorized()) return;
 
         const container = document.createElement('div');
         container.id = 'cf-turnstile';
@@ -26,8 +34,7 @@ export function getTurnstileScript(turnstileSiteKey: string) {
             theme: 'dark',
             callback: async function(token) {
               try {
-                const authorized = window.ui.authSelectors.authorized().size > 0;
-                if (authorized) return;
+                if (isAuthorized()) return;
 
                 const res = await fetch('/v1/auth/turnstile', {
                   method: 'POST',
