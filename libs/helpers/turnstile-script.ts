@@ -26,6 +26,9 @@ export function getTurnstileScript(turnstileSiteKey: string) {
             theme: 'dark',
             callback: async function(token) {
               try {
+                const authorized = window.ui.authSelectors.authorized().size > 0;
+                if (authorized) return;
+
                 const res = await fetch('/v1/auth/turnstile', {
                   method: 'POST',
                   body: JSON.stringify({ token }),
