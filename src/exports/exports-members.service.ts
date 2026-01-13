@@ -15,6 +15,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Inject, Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { sum } from 'lodash';
+import moment from 'moment';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN, PlayerLinksEntity } from '../db';
 import { ExportMembersInput, ExportSheetInputDto } from './dto';
@@ -231,7 +232,9 @@ export class ExportsMembersService {
       clanTags: input.clanTags,
       sheets,
       guildId: input.guildId,
-      label: 'Clan Members',
+      label: input.scheduled
+        ? `Clan Members [${moment().format('YYYY-MM-DD HH:mm')}]`
+        : 'Clan Members',
       scheduled: input.scheduled,
       sheetType: SheetType.CLAN_MEMBERS,
     });

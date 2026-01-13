@@ -47,19 +47,19 @@ export class ReusableSheetService {
     if (sheet) {
       try {
         spreadsheet = await this.googleSheetService.updateGoogleSheet(sheet.spreadsheetId, sheets, {
-          title: `[${label}]`,
+          title: `${label}`,
           clear: true,
           recreate: sheet && sheetHash !== sheet.sheetHash,
         });
       } catch (error) {
         if (/invalid requests/i.test(error.message)) {
-          spreadsheet = await this.googleSheetService.createGoogleSheet(`[${label}]`, sheets);
+          spreadsheet = await this.googleSheetService.createGoogleSheet(`${label}`, sheets);
         } else {
           throw error;
         }
       }
     } else {
-      spreadsheet = await this.googleSheetService.createGoogleSheet(`[${label}]`, sheets);
+      spreadsheet = await this.googleSheetService.createGoogleSheet(`${label}`, sheets);
     }
 
     await this.googleSheets.updateOne(
@@ -90,10 +90,30 @@ export class ReusableSheetService {
     };
   }
 
+  public async getSheet(input: {
+    guildId: string;
+    clanTags: string[];
+    sheetType: SheetType;
+    scheduled: boolean;
+  }) {
+    if (!input.scheduled) return null;
+
+    const sheet = await this.googleSheets.findOne({
+      hash: this.createSpreadsheetHash(input),
+      scheduled: true,
+    });
+    if (!sheet) return null;
+
+    return {
+      spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${sheet.spreadsheetId}`,
+      spreadsheetId: sheet.spreadsheetId,
+    };
+  }
+
   private createSpreadsheetHash(input: {
     guildId: string;
     clanTags: string[];
-    sheetType: string;
+    sheetType: SheetType;
     scheduled: boolean;
   }) {
     const { guildId, clanTags, sheetType, scheduled } = input;

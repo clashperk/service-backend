@@ -8,6 +8,7 @@ import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN, RedisService } from '../db';
 import { ExportMembersInput } from './dto';
 import { ExportsMembersService } from './exports-members.service';
+import { ReusableSheetService, SheetType } from './services/reusable-sheet.service';
 
 @Injectable()
 export class ExportsService {
@@ -17,6 +18,7 @@ export class ExportsService {
     private clashClientService: ClashClientService,
     private redisService: RedisService,
     private exportsMembersService: ExportsMembersService,
+    private reusableSheetService: ReusableSheetService,
   ) {}
 
   @CronTab('55 4 * * 0', {
@@ -34,6 +36,14 @@ export class ExportsService {
   }
 
   async exportClanMembers(input: ExportMembersInput) {
+    const scheduled = await this.reusableSheetService.getSheet({
+      scheduled: true,
+      clanTags: input.clanTags,
+      guildId: input.guildId,
+      sheetType: SheetType.CLAN_MEMBERS,
+    });
+    if (scheduled) return scheduled;
+
     return this.exportsMembersService.exportClanMembers(input);
   }
 
