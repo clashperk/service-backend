@@ -14,8 +14,8 @@ import { ReusableSheetService } from './services/reusable-sheet.service';
       name: QueueTypes.EXPORT,
       defaultJobOptions: {
         attempts: 3,
-        backoff: 5000,
-        timeout: 15000,
+        backoff: 3 * 1000,
+        timeout: 5 * 60 * 1000,
         removeOnComplete: true,
         removeOnFail: true,
         stackTraceLimit: 1,

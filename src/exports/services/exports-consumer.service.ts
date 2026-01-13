@@ -16,7 +16,7 @@ export class ExportsConsumerService {
       await this.exportsMembersService.exportClanMembers(job.data);
     } catch (error) {
       this.logger.error(error.message);
-      await job.moveToFailed({ message: error.message });
+      throw error;
     }
   }
 }
