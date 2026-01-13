@@ -38,3 +38,14 @@ export const fallbackUser: JwtUser = {
   exp: 0,
   iat: 0,
 };
+
+export const swaggerUser: JwtUser = {
+  userId: '000000000000000000',
+  username: 'swagger_user',
+  roles: [UserRoles.VIEWER],
+  jti: randomUUID(),
+  guildIds: [],
+  version: '1',
+  exp: 0,
+  iat: 0,
+};

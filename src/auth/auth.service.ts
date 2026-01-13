@@ -25,6 +25,7 @@ import {
   JwtUser,
   JwtUserInput,
   LoginOkDto,
+  swaggerUser,
   UserRoles,
 } from './dto';
 
@@ -59,16 +60,15 @@ export class AuthService {
 
   async loginWithTurnstile(token: string, remoteIp: string): Promise<LoginOkDto> {
     await this.verifyTurnstile(token, remoteIp);
-    const swaggerUserId = '000000000000000000';
 
     return {
-      userId: swaggerUserId,
-      roles: [UserRoles.VIEWER],
+      userId: swaggerUser.userId,
+      roles: swaggerUser.roles,
       accessToken: this.createJwt(
         {
-          userId: swaggerUserId,
-          roles: [UserRoles.VIEWER],
-          username: 'swagger_user',
+          userId: swaggerUser.userId,
+          roles: swaggerUser.roles,
+          username: swaggerUser.username,
           remoteIp,
         },
         { expiresIn: '5m' },

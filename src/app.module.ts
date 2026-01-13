@@ -38,7 +38,7 @@ import { WebhookModule } from './webhook/webhook.module';
 
     BullModule.forRootAsync({
       useFactory: (configService: ConfigService) => ({
-        url: configService.getOrThrow('REDIS_URL'),
+        url: `${configService.getOrThrow('REDIS_URL')}/1`,
       }),
       inject: [ConfigService],
     }),
@@ -47,7 +47,7 @@ import { WebhookModule } from './webhook/webhook.module';
       isGlobal: true,
       useFactory: (configService: ConfigService) => ({
         ttl: 10 * 60 * 1000,
-        stores: [new KeyvRedis(configService.getOrThrow('REDIS_URL'))],
+        stores: [new KeyvRedis(`${configService.getOrThrow('REDIS_URL')}/2`)],
       }),
       inject: [ConfigService],
     }),

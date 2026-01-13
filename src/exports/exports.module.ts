@@ -6,6 +6,7 @@ import { ExportsMembersService } from './exports-members.service';
 import { ExportsController } from './exports.controller';
 import { ExportsService } from './exports.service';
 import { ExportsConsumerService } from './services/exports-consumer.service';
+import { ReusableSheetService } from './services/reusable-sheet.service';
 
 @Module({
   imports: [
@@ -23,6 +24,6 @@ import { ExportsConsumerService } from './services/exports-consumer.service';
     GoogleSheetModule,
   ],
   controllers: [ExportsController],
-  providers: [ExportsService, ExportsMembersService, ExportsConsumerService],
+  providers: [ExportsService, ExportsMembersService, ReusableSheetService, ExportsConsumerService],
 })
 export class ExportsModule {}

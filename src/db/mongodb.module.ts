@@ -33,6 +33,8 @@ export enum Collections {
 
   PLAYERS = 'Players',
 
+  GOOGLE_SHEETS = 'GoogleSheets',
+
   CLAN_GAMES_POINTS = 'ClanGamesPoints',
 
   ROSTERS = 'Rosters',

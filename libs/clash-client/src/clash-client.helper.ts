@@ -1,9 +1,10 @@
 import { APIClanWarAttack, APIPlayer, RawData } from 'clashofclans.js';
-import { SUPER_TROOPS } from './constants';
+import { HOME_TROOPS, SUPER_TROOPS } from './constants';
 
-export const RAW_TROOPS_FILTERED = RawData.RawUnits.filter(
-  (unit) => !unit.seasonal && unit.category !== 'equipment' && !(unit.name in SUPER_TROOPS),
-);
+export const RAW_TROOPS_FILTERED = RawData.RawUnits.filter((unit) => !unit.seasonal)
+  .filter((unit) => unit.category !== 'equipment')
+  .filter((unit) => !SUPER_TROOPS.includes(unit.name))
+  .filter((unit) => HOME_TROOPS.includes(unit.name));
 
 const getUnitLevelsMap = (data: APIPlayer) => {
   const map = new Map<string, number>();
@@ -31,13 +32,13 @@ export function remainingHeroUpgrades(data: APIPlayer) {
   const unitLevels = getUnitLevelsMap(data);
 
   const rem = RAW_TROOPS_FILTERED.reduce(
-    (prev, unit) => {
+    (record, unit) => {
       if (unit.category === 'hero' && unit.village === 'home') {
         const level = unitLevels.get(`${unit.name}:${unit.village}:${unit.category}`) ?? 0;
-        prev.levels += level;
-        prev.total += unit.levels[data.townHallLevel - 1];
+        record.levels += level;
+        record.total += unit.levels[data.townHallLevel - 1];
       }
-      return prev;
+      return record;
     },
     { total: 0, levels: 0 },
   );
@@ -49,13 +50,13 @@ export function remainingHeroUpgrades(data: APIPlayer) {
 export function remainingLabUpgrades(data: APIPlayer) {
   const unitLevels = getUnitLevelsMap(data);
   const rem = RAW_TROOPS_FILTERED.reduce(
-    (prev, unit) => {
+    (record, unit) => {
       if (unit.category !== 'hero' && unit.village === 'home') {
         const level = unitLevels.get(`${unit.name}:${unit.village}:${unit.category}`) ?? 0;
-        prev.levels += level;
-        prev.total += unit.levels[data.townHallLevel - 1];
+        record.levels += level;
+        record.total += unit.levels[data.townHallLevel - 1];
       }
-      return prev;
+      return record;
     },
     { total: 0, levels: 0 },
   );
@@ -66,7 +67,7 @@ export function remainingLabUpgrades(data: APIPlayer) {
 export function calculateRushedPercentage(data: APIPlayer) {
   const unitLevels = getUnitLevelsMap(data);
   const rem = RAW_TROOPS_FILTERED.reduce(
-    (prev, unit) => {
+    (record, unit) => {
       if (unit.village === 'home') {
         const level = unitLevels.get(`${unit.name}:${unit.village}:${unit.category}`) ?? 0;
         // Check levels for previous TH (TH-2 index)
@@ -74,10 +75,10 @@ export function calculateRushedPercentage(data: APIPlayer) {
         // If target level exists (might be undefined for low THs i.e. TH1), default to 0 to be safe
         const safeTargetLevel = targetLevel ?? 0;
 
-        prev.levels += Math.min(level, safeTargetLevel);
-        prev.total += safeTargetLevel;
+        record.levels += Math.min(level, safeTargetLevel);
+        record.total += safeTargetLevel;
       }
-      return prev;
+      return record;
     },
     { total: 0, levels: 0 },
   );

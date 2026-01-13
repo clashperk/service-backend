@@ -1,15 +1,18 @@
-import { QueueTypes } from '@app/constants';
-import { InjectQueue, Process, Processor } from '@nestjs/bull';
-import { Job, Queue } from 'bull';
-import { ExportSheetInputDto } from '../dto';
+import { JobTypes, QueueTypes } from '@app/constants';
+import { Process, Processor } from '@nestjs/bull';
+import { Job } from 'bull';
+import { ExportMembersInput } from '../dto';
+import { ExportsMembersService } from '../exports-members.service';
 
 @Processor(QueueTypes.EXPORT)
 export class ExportsConsumerService {
-  constructor(@InjectQueue(QueueTypes.EXPORT) private queue: Queue<ExportSheetInputDto>) {}
+  constructor(private exportsMembersService: ExportsMembersService) {}
 
-  @Process()
-  async process(job: Job<ExportSheetInputDto>) {
-    console.log(job.data);
+  @Process({ name: JobTypes.EXPORT_MEMBERS, concurrency: 100 })
+  async process(job: Job<ExportMembersInput>) {
+    const result = await this.exportsMembersService.exportClanMembers(job.data);
+    console.log(result);
+
     return job.progress(100);
   }
 }

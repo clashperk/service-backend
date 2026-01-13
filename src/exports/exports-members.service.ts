@@ -1,13 +1,16 @@
 import {
+  calculateRushedPercentage,
   ClashClientService,
   HERO_EQUIPMENT,
   HERO_PETS,
   HOME_HEROES,
   HOME_TROOPS,
+  remainingHeroUpgrades,
+  remainingLabUpgrades,
   ROLES_MAP,
 } from '@app/clash-client';
 import { QueueTypes } from '@app/constants';
-import { CreateGoogleSheet, GoogleSheetService } from '@app/google-sheet';
+import { CreateGoogleSheet } from '@app/google-sheet';
 import { InjectQueue } from '@nestjs/bull';
 import { Inject, Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
@@ -15,6 +18,7 @@ import { sum } from 'lodash';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN, PlayerLinksEntity } from '../db';
 import { ExportMembersInput, ExportSheetInputDto } from './dto';
+import { ReusableSheetService, SheetType } from './services/reusable-sheet.service';
 
 const ALLOWED_ACHIEVEMENTS = [
   'Gold Grab',
@@ -37,7 +41,7 @@ export class ExportsMembersService {
     @InjectQueue(QueueTypes.EXPORT) private queue: Queue<ExportSheetInputDto>,
     @Inject(MONGODB_TOKEN) private db: Db,
     private clashClientService: ClashClientService,
-    private googleSheetService: GoogleSheetService,
+    private reusableSheetService: ReusableSheetService,
   ) {}
 
   async exportClanMembers(input: ExportMembersInput) {
@@ -133,6 +137,10 @@ export class ExportsMembersService {
           heroes: HOME_HEROES.map((name) => ({ name, level: heroes[name] || 0 })),
           equipment: HERO_EQUIPMENT.map((name) => ({ name, level: equipment[name] || 0 })),
 
+          rushedPercentage: Number(calculateRushedPercentage(player)),
+          remainingHeroUpgradesPercentage: Number(remainingHeroUpgrades(player)),
+          remainingLabUpgradesPercentage: Number(remainingLabUpgrades(player)),
+
           userId: linksMap[player.tag]?.userId,
           username: linksMap[player.tag]?.username,
           displayName: linksMap[player.tag]?.displayName,
@@ -176,12 +184,9 @@ export class ExportsMembersService {
           m.leagueTier,
           m.warPreference,
           m.townHallLevel,
-          0,
-          0,
-          0,
-          // m.rushed,
-          // m.labRem,
-          // m.heroRem,
+          m.rushedPercentage,
+          m.remainingLabUpgradesPercentage,
+          m.remainingHeroUpgradesPercentage,
           ...m.heroes.map((h) => h.level),
           ...m.pets.map((h) => h.level),
           ...m.achievements.map((v) => v.value),
@@ -201,8 +206,7 @@ export class ExportsMembersService {
           m.name,
           m.tag,
           m.townHallLevel,
-          // m.rushed,
-          0,
+          m.rushedPercentage,
           ...m.troops.map((h) => h.level),
         ]),
       },
@@ -223,7 +227,14 @@ export class ExportsMembersService {
       },
     ];
 
-    return await this.googleSheetService.createGoogleSheet('Clan Members', sheets);
+    return this.reusableSheetService.createOrUpdateSheet({
+      clanTags: input.clanTags,
+      sheets,
+      guildId: input.guildId,
+      label: 'Clan Members',
+      scheduled: input.scheduled,
+      sheetType: SheetType.CLAN_MEMBERS,
+    });
   }
 
   private get links() {
@@ -244,6 +255,10 @@ interface MembersChunk {
   leagueTier: string;
   warPreference: string;
   townHallLevel: number;
+
+  rushedPercentage: number;
+  remainingHeroUpgradesPercentage: number;
+  remainingLabUpgradesPercentage: number;
 
   userId: string;
   username: string;
