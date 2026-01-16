@@ -41,7 +41,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'debug';
     this.logger[logType](logMessage, method);
 
-    if (req.user?.userId !== fallbackUser.userId) {
+    if (req.user?.userId !== fallbackUser.userId && statusCode < 400) {
       Sentry.logger.info(`[${req.method}] ${statusCode} ${req.url}`, {
         status: statusCode,
         method: req.method,
