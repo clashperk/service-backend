@@ -53,13 +53,12 @@ export class HttpExceptionsFilter implements ExceptionFilter {
       ip: req.ip,
       ...mapKeys(
         req.user || {
-          userId: 'unauthorized',
           body: pick(req.body || {}, ['passKey']),
           headers: pick(req.headers || {}, ['x-access-token', 'authorization']),
         },
         (_, key) => `user.${key}`,
       ),
-      userAgent: req.headers['user-agent'],
+      user_agent: req.headers['user-agent'],
     });
 
     return res.status(status).json({

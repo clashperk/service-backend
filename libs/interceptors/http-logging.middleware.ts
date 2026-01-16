@@ -1,6 +1,10 @@
 import { ConsoleLogger, Injectable, Logger, NestMiddleware } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { NextFunction, Request, Response } from 'express';
+import mapKeys from 'lodash/mapKeys';
+import pick from 'lodash/pick';
 import moment from 'moment';
+import { fallbackUser } from '../../src/auth';
 
 export class CustomLogger extends ConsoleLogger {
   getTimestamp(): string {
@@ -36,6 +40,22 @@ export class HttpLoggingMiddleware implements NestMiddleware {
 
     const logType = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'debug';
     this.logger[logType](logMessage, method);
+
+    if (req.user?.userId !== fallbackUser.userId) {
+      Sentry.logger.info(`[${req.method}] ${statusCode} ${req.url}`, {
+        status: statusCode,
+        method: req.method,
+        path: req.url,
+        ip: req.ip,
+        ...mapKeys(
+          req.user || {
+            body: pick(req.body || {}, ['passKey']),
+          },
+          (_, key) => `user.${key}`,
+        ),
+        user_agent: req.headers['user-agent'],
+      });
+    }
   }
 
   private formatIp(ip?: string): string {

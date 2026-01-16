@@ -10,7 +10,7 @@ import { ExportsService } from './exports.service';
 export class ExportsController {
   constructor(private readonly exportsService: ExportsService) {}
 
-  @Cache(10 * 60 * 1000)
+  @Cache(10 * 60)
   @Post('/members')
   exportClanMembers(@Body() body: ExportMembersInput): Promise<ExportMembersOutputDto> {
     return this.exportsService.exportClanMembers(body);

@@ -55,7 +55,7 @@ export class AuthController {
   @ApiExcludeEndpoint()
   async loginWithTurnstile(
     @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
     @Body() body: TurnstileLoginDto,
   ): Promise<LoginOkDto> {
     const remoteIp = (req.headers['cf-connecting-ip'] || req.ip) as string;
@@ -66,10 +66,10 @@ export class AuthController {
       secure: true,
       sameSite: 'strict',
       signed: true,
-      maxAge: 5 * 60 * 60 * 1000,
+      maxAge: 5 * 60 * 1000,
     });
 
-    return res.json(result) as unknown as LoginOkDto;
+    return result;
   }
 
   @Get('/handoff/:token')
