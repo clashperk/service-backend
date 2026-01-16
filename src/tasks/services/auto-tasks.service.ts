@@ -1,6 +1,5 @@
-import { Config } from '@app/constants';
+import { CronTab } from '@app/decorators';
 import { Injectable } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { LegendTasksService } from '../../legends/services/legend-tasks.service';
 import { ClanGamesTasksService } from './clan-games-tasks.service';
 
@@ -11,17 +10,15 @@ export class AutoTasksService {
     private clanGamesTasksService: ClanGamesTasksService,
   ) {}
 
-  @Cron('59 4 * * *', {
-    timeZone: 'Etc/UTC',
-    disabled: !Config.CRON_ENABLED,
+  @CronTab('59 4 * * *', {
+    monitor: 'legend-ranking-snapshot',
   })
   runLegendTasks() {
     return this.legendTasksService.takeSnapshot();
   }
 
-  @Cron('0 5 22 * *', {
-    timeZone: 'Etc/UTC',
-    disabled: !Config.CRON_ENABLED,
+  @CronTab('0 5 22 * *', {
+    monitor: 'clan-games-log-cleanup',
   })
   runClanGamesTask() {
     return this.clanGamesTasksService.runClanGamesTask();
