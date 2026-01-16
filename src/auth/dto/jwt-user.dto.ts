@@ -10,6 +10,7 @@ export class JwtUserInput {
   guildIds: string[];
   applicationId?: string;
   remoteIp?: string;
+  cacheMultiplier?: number;
 }
 
 export class JwtUser implements JwtUserInput {
@@ -22,6 +23,7 @@ export class JwtUser implements JwtUserInput {
   roles: UserRoles[];
   guildIds: string[];
   applicationId?: string;
+  cacheMultiplier?: number;
 
   static isAdmin(user: JwtUser) {
     return user.roles.includes(UserRoles.ADMIN);
