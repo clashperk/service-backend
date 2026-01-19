@@ -21,7 +21,7 @@ export class ExportsService {
     private reusableSheetService: ReusableSheetService,
   ) {}
 
-  @CronTab('55 4 * * 0', {
+  @CronTab('55 4 * * 1', {
     monitor: 'auto-export-clan-members',
   })
   async autoExportClanMembers() {
