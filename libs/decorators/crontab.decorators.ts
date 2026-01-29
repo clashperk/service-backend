@@ -7,7 +7,7 @@ export function CronTab(cronTime: string, options: { monitor: string }): MethodD
   return applyDecorators(
     Cron(cronTime, {
       timeZone: 'Etc/UTC',
-      disabled: !Config.CRON_ENABLED,
+      disabled: !Config.CRON_ENABLED && Config.IS_PROD,
     }),
     SentryCron(options.monitor, {
       schedule: {

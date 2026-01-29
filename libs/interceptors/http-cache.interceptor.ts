@@ -27,16 +27,6 @@ export class HttpCacheInterceptor extends CacheInterceptor {
       res.setHeader('x-cache-key', cacheKey);
     }
 
-    if (cacheKey && !Config.IS_PROD) {
-      const timestamp = await this.cacheManager.ttl(cacheKey);
-      if (typeof timestamp === 'number' && timestamp > Date.now()) {
-        res.setHeader(
-          'Cache-Control',
-          `public, max-age=${Math.floor((timestamp - Date.now()) / 1000)}`,
-        );
-      }
-    }
-
     return super.intercept(context, next);
   }
 

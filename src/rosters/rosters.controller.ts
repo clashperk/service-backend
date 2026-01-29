@@ -35,8 +35,8 @@ export class RostersController {
   }
 
   @Post('/:guildId/create')
-  createRoster(@Param('rosterId') rosterId: string): unknown {
-    return Promise.resolve({ rosterId });
+  createRoster(@Param('guildId') guildId: string): unknown {
+    return Promise.resolve({ guildId });
   }
 
   @Get('/:guildId/:rosterId')

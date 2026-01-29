@@ -62,16 +62,28 @@ export class LinksService {
     return { message: 'Ok' };
   }
 
-  public async deleteLink(userId: string, playerTag: string) {
-    const { deletedCount } = await this.links.deleteOne({
+  public async deleteLink(input: { userId: string; playerTag: string; isAdmin: boolean }) {
+    const { userId, playerTag, isAdmin } = input;
+
+    const link = await this.links.findOne({
       tag: playerTag,
-      $or: [{ userId }, { linkedBy: userId }],
+      userId,
     });
-    if (!deletedCount) {
+
+    if (link && link.linkedBy !== userId && !isAdmin) {
       throw new ForbiddenException('You do not have permission to unlink this playerTag.');
     }
 
+    await this.links.deleteOne({ tag: playerTag, userId });
     await this.discordLinkService.unlinkPlayerTag(playerTag);
+
+    await this.auditLogs.insertOne({
+      tag: playerTag,
+      userId,
+      link,
+      action: 'unlink',
+      createdAt: new Date(),
+    });
 
     return { message: 'Ok' };
   }
@@ -82,5 +94,9 @@ export class LinksService {
 
   private get links() {
     return this.db.collection(Collections.PLAYER_LINKS);
+  }
+
+  private get auditLogs() {
+    return this.db.collection(Collections.PLAYER_LINK_AUDIT_LOGS);
   }
 }

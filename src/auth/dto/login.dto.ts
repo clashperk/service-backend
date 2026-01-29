@@ -1,5 +1,5 @@
 import { EnumArray } from '@app/decorators';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { UserRoles } from './user-roles.dto';
 
 export class LoginInputDto {
@@ -68,6 +68,10 @@ export class HandoffTokenInputDto {
   @IsString()
   @IsNotEmpty()
   guildId: string;
+
+  @IsString()
+  @IsOptional()
+  applicationId: string | null;
 }
 
 export class HandoffTokenDto {
@@ -88,6 +92,8 @@ export class HandoffUserDto {
   isBot: boolean;
 
   guildId: string;
+
+  applicationId: string | null;
 
   avatarUrl: string | null;
 }

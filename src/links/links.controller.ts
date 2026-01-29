@@ -24,7 +24,11 @@ export class LinksController {
     @CurrentUser() user: JwtUser,
     @Param('playerTag') playerTag: string,
   ): Promise<ResultOkDto> {
-    return this.linksService.deleteLink(user.userId, playerTag);
+    return this.linksService.deleteLink({
+      playerTag,
+      userId: user.userId,
+      isAdmin: JwtUser.isAdmin(user),
+    });
   }
 
   @Post('/query')

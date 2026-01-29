@@ -27,6 +27,7 @@ export enum Collections {
 
   PORTAL_USERS = 'PortalUsers',
   PLAYER_LINKS = 'PlayerLinks',
+  PLAYER_LINK_AUDIT_LOGS = 'PlayerLinkAuditLogs',
   CLAN_WARS = 'ClanWars',
   CWL_GROUPS = 'CWLGroups',
   LEGEND_ATTACKS = 'LegendAttacks',

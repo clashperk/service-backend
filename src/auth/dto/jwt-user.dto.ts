@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { randomUUID } from 'node:crypto';
 import { UserRoles } from './user-roles.dto';
 
@@ -6,6 +7,7 @@ export class JwtUserInput {
   userId: string;
   username: string;
   version: string;
+  @ApiProperty({ type: 'array', items: { type: 'string' } })
   roles: UserRoles[];
   guildIds: string[];
   applicationId?: string;

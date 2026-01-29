@@ -1,6 +1,5 @@
 import { Config } from '@app/constants';
 import { ErrorResponseDto } from '@app/dto';
-import { paragraph } from '@app/helpers';
 import { getTurnstileScript } from '@app/helpers/turnstile-script';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -43,15 +42,14 @@ export function build(app: NestExpressApplication) {
       [
         `### API Routes for ClashPerk Discord Bot and Services`,
 
-        paragraph(
-          `API endpoints are protected by **Cloudflare** with a global rate limit of **300 requests per 10 seconds**.`,
-          `Response **caching is enabled**, with duration varying across different endpoints for optimal performance.`,
-          `API **access is limited** and reviewed individually. If you'd like to request access, reach out to us on Discord.`,
-        ),
+        // paragraph(
+        //   `API endpoints are protected by **Cloudflare** with a global rate limit of **300 requests per 10 seconds**.`,
+        //   `Response **caching is enabled**, with duration varying across different endpoints for optimal performance.`,
+        //   `API **access is limited** and reviewed individually. If you'd like to request access, reach out to us on Discord.`,
+        // ),
+        // 'By using this API, you agree to fair usage. Access may be revoked for abuse, misuse, or security violations.',
 
-        'By using this API, you agree to fair usage. Access may be revoked for abuse, misuse, or security violations.',
-
-        '[Join our Discord](https://discord.gg/ppuppun) | [Terms of Service](https://clashperk.com/terms) | [Privacy Policy](https://clashperk.com/privacy)',
+        '[Terms of Service](https://clashperk.com/terms) | [Privacy Policy](https://clashperk.com/privacy)',
       ].join('\n\n'),
     )
     .setVersion(`v${version}`)

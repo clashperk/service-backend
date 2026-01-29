@@ -37,7 +37,7 @@ export class ExportsService {
 
   async exportClanMembers(input: ExportMembersInput) {
     const scheduled = await this.reusableSheetService.getSheet({
-      scheduled: true,
+      scheduled: input.scheduled,
       clanTags: input.clanTags,
       guildId: input.guildId,
       sheetType: SheetType.CLAN_MEMBERS,

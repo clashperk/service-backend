@@ -170,6 +170,7 @@ export class AuthService {
       avatar: string | null;
       username: string;
       displayName: string;
+      applicationId: string | null;
     };
 
     return {
@@ -179,7 +180,8 @@ export class AuthService {
       roles: [UserRoles.USER],
       username: user.username,
       displayName: user.displayName,
-      avatarUrl: this.discordOauthService.buildAvatarUrl(user.userId, user.avatar),
+      applicationId: user.applicationId,
+      avatarUrl: this.discordOauthService.toAvatarUrl(user.userId, user.avatar),
     };
   }
 
@@ -195,6 +197,7 @@ export class AuthService {
         guildId: payload.guildId,
         username: user.username,
         avatar: user.avatar || null,
+        applicationId: payload.applicationId || null,
         displayName: user.global_name || user.username,
       }),
       'EX',

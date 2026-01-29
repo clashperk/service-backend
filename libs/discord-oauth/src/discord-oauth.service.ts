@@ -41,7 +41,7 @@ export class DiscordOauthService {
     return payload as APIGuildMember[];
   }
 
-  public buildAvatarUrl(userId: string, avatar: string | null) {
+  public toAvatarUrl(userId: string, avatar: string | null) {
     if (!avatar) {
       return `https://cdn.discordapp.com/embed/avatars/${BigInt(userId) % BigInt(5)}.png`;
     }

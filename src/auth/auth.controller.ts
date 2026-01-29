@@ -1,7 +1,7 @@
 import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { paragraph } from '@app/helpers';
 import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { ApiExcludeEndpoint, ApiOperation } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiExtraModels, ApiOperation } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import {
@@ -11,12 +11,14 @@ import {
   HandoffTokenDto,
   HandoffTokenInputDto,
   HandoffUserDto,
+  JwtUserInput,
   LoginInputDto,
   LoginOkDto,
   TurnstileLoginDto,
 } from './dto';
 import { ApiKeyGuard } from './guards';
 
+@ApiExtraModels(JwtUserInput)
 @Controller('/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
