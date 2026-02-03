@@ -50,7 +50,10 @@ export class LinksDto {
 }
 
 export class MessageOkDto {
-  message: string;
+  @ApiProperty({ nullable: false, required: true })
+  message?: string;
+
+  [key: string]: unknown;
 }
 
 export class GetLinksInputDto {

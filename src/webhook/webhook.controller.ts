@@ -10,6 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { InteractionType } from 'discord-interactions';
+import { MessageOkDto } from '../links/dto';
 import { WebhookService } from './webhook.service';
 
 @Controller('/webhook')
@@ -26,7 +27,7 @@ export class WebhookController {
     @Headers('X-Signature-Ed25519') signature: string,
     @Headers('X-Signature-Timestamp') timestamp: string,
     @Query('message') message: string,
-  ): unknown {
+  ): Promise<MessageOkDto> {
     return this.webhookService.handleDiscordInteractions({
       rawBody: req.rawBody as Buffer,
       interactionType: body.type as InteractionType,
@@ -37,7 +38,7 @@ export class WebhookController {
   }
 
   @Post('/patreon/incoming')
-  handlePatreonWebhook(): unknown {
-    return {};
+  handlePatreonWebhook(): Promise<MessageOkDto> {
+    return Promise.resolve({ message: 'Ok' });
   }
 }

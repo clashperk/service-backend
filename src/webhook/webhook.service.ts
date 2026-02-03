@@ -22,7 +22,7 @@ export class WebhookService {
     const discordPublicKey = this.configService.getOrThrow<string>('DISCORD_PUBLIC_KEY');
 
     const isValidRequest = await verifyKey(rawBody, signature, timestamp, discordPublicKey);
-    if (!isValidRequest) return new UnauthorizedException();
+    if (!isValidRequest) throw new UnauthorizedException();
 
     if (interactionType === InteractionType.PING) {
       return { type: InteractionResponseType.PONG };

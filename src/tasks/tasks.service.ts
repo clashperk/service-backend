@@ -95,6 +95,8 @@ export class TasksService {
       lastId = docs[docs.length - 1]._id;
       if (lastId) await this.redis.set('player_update_progress', lastId.toHexString());
     }
+
+    return { message: 'Ok' };
   }
 
   async bulkAddLegendPlayers() {

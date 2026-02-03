@@ -14,6 +14,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { Request } from 'express';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import { RostersEntity } from '../db';
+import { MessageOkDto } from '../links/dto';
 import {
   RemoveMembersBulkInput,
   TransferRosterMembersDto,
@@ -35,7 +36,7 @@ export class RostersController {
   }
 
   @Post('/:guildId/create')
-  createRoster(@Param('guildId') guildId: string): unknown {
+  createRoster(@Param('guildId') guildId: string): Promise<MessageOkDto> {
     return Promise.resolve({ guildId });
   }
 
@@ -48,23 +49,23 @@ export class RostersController {
   }
 
   @Patch('/:guildId/:rosterId')
-  updateRoster(@Param('rosterId') rosterId: string): unknown {
+  updateRoster(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
     return Promise.resolve({ rosterId });
   }
 
   @Delete('/:guildId/:rosterId')
-  deleteRoster(@Param('rosterId') rosterId: string, @Req() req: Request): unknown {
+  deleteRoster(@Param('rosterId') rosterId: string, @Req() req: Request): Promise<MessageOkDto> {
     console.log(req.headers);
     return Promise.resolve({ rosterId });
   }
 
   @Post('/:guildId/:rosterId/clone')
-  cloneRoster(@Param('rosterId') rosterId: string): unknown {
+  cloneRoster(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
     return Promise.resolve({ rosterId });
   }
 
   @Put('/:guildId/:rosterId/members')
-  addRosterMembers(@Param('rosterId') rosterId: string): unknown {
+  addRosterMembers(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
     return Promise.resolve({ rosterId });
   }
 
@@ -73,7 +74,7 @@ export class RostersController {
     @Param('rosterId') rosterId: string,
     @Param('guildId') guildId: string,
     @Body() body: RemoveMembersBulkInput,
-  ): unknown {
+  ): Promise<MessageOkDto> {
     return this.rostersService.deleteRosterMembers({
       rosterId,
       guildId,
@@ -82,7 +83,7 @@ export class RostersController {
   }
 
   @Post('/:guildId/:rosterId/members/refresh')
-  refreshRosterMembers(@Param('rosterId') rosterId: string): unknown {
+  refreshRosterMembers(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
     return Promise.resolve({ rosterId });
   }
 
