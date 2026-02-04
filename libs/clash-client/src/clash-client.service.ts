@@ -69,7 +69,9 @@ export class ClashClientService {
 
   async getClanWarLeague(clanTag: string) {
     const { body, res } = await this.clashClient.getClanWarLeagueGroup(clanTag);
-    if (!res.ok) throw new NotFoundException(`Clan ${clanTag} is not in CWL.`);
+    if (!res.ok || body.state === 'notInWar') {
+      throw new NotFoundException(`Clan ${clanTag} is not in CWL.`);
+    }
 
     const rounds = body.rounds.filter((round) => !round.warTags.includes('#0'));
     const warTags = rounds.map((round) => round.warTags).flat();
@@ -116,7 +118,7 @@ export class ClashClientService {
 
   public async getLeagueRoundWithWarTag(warTag: string) {
     const { res, body } = await this.clashClient.getClanWarLeagueRound(warTag);
-    if (!res.ok) return { body: null, warTag };
+    if (!res.ok || body.state === 'notInWar') return { body: null, warTag };
     return { body, warTag };
   }
 }

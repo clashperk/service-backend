@@ -33,5 +33,6 @@ COPY --chown=node:node --from=pruner /app/package*.json ./
 EXPOSE 8080
 ENV PORT=8080
 ENV NODE_ENV=production
+ENV NODE_OPTIONS="--trace-warnings --enable-source-maps"
 
 CMD ["node", "dist/src/main.js"]
