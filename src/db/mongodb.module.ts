@@ -25,6 +25,8 @@ export enum Collections {
   SETTINGS = 'Settings',
   CUSTOM_BOTS = 'CustomBots',
 
+  BOT_GUILDS = 'BotGuilds',
+
   PORTAL_USERS = 'PortalUsers',
   PLAYER_LINKS = 'PlayerLinks',
   PLAYER_LINK_AUDIT_LOGS = 'PlayerLinkAuditLogs',

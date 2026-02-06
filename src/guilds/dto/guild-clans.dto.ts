@@ -9,8 +9,12 @@ export class GuildClanDto {
   tag: string;
   order: number;
 
-  @ApiProperty({ type: String, nullable: true })
-  categoryId?: ObjectId | null;
+  league: string;
+  level: number;
+  members: number;
+
+  @ApiProperty({ type: String })
+  categoryId: ObjectId | string;
 }
 
 export class CategoryDto {
@@ -25,6 +29,6 @@ export class CategoryDto {
 export class GuildClansDto {
   guildId: string;
   name: string;
-  clans: GuildClanDto[];
+  // clans: GuildClanDto[];
   categories: CategoryDto[];
 }

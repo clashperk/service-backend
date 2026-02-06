@@ -25,9 +25,7 @@ async function bootstrap() {
 
   app.enableCors({
     credentials: true,
-    origin: Config.IS_PROD
-      ? [...Config.ALLOWED_DOMAINS]
-      : [...Config.ALLOWED_DOMAINS, 'http://localhost:3000'],
+    origin: Config.IS_PROD ? [...Config.ALLOWED_DOMAINS] : true,
   });
   app.use(cookieParser(config.getOrThrow('COOKIE_SECRET')));
   app.set('trust proxy', true);

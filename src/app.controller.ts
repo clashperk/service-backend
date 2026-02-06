@@ -1,7 +1,6 @@
 import { ApiExcludeTypings, Cache } from '@app/decorators';
-import { Controller, Get, Param, Post, Req, Res, VERSION_NEUTRAL } from '@nestjs/common';
+import { Controller, Get, Post, Req, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint } from '@nestjs/swagger';
-import { Response } from 'express';
 
 @Controller({
   path: '/',
@@ -21,13 +20,6 @@ export class AppController {
   @Get('/health')
   getHealth(): unknown {
     return { message: 'Ok' };
-  }
-
-  @ApiExcludeEndpoint()
-  @Get('/swagger/:apiKey')
-  swaggerAuth(@Res() res: Response, @Param('apiKey') apiKey: string): unknown {
-    res.cookie('x-api-key', apiKey);
-    return res.redirect('/docs');
   }
 
   @Post('/cache-status-check')

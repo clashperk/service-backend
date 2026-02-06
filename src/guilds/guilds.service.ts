@@ -52,15 +52,23 @@ export class GuildsService {
     );
     const uncategorized = {
       _id: uncategorizedId,
-      order: 9999,
+      order: -1,
       displayName: 'Uncategorized',
       clans: [] as GuildClanDto[],
     };
 
-    for (const clan of clans) {
-      const category = clan.categoryId
-        ? categoryMap.get(clan.categoryId.toHexString())
-        : uncategorized;
+    const mappedClans = clans.map((clan) => {
+      return {
+        ...clan,
+        league: 'Unknown',
+        level: 10,
+        members: 50,
+        categoryId: clan.categoryId?.toHexString() || uncategorizedId,
+      };
+    });
+
+    for (const clan of mappedClans) {
+      const category = clan.categoryId ? categoryMap.get(clan.categoryId) : uncategorized;
       if (category) {
         category.clans.push(clan);
       } else {
@@ -71,8 +79,7 @@ export class GuildsService {
     return {
       guildId,
       name: 'Unknown',
-      clans,
-      categories: [...categoryMap.values(), uncategorized],
+      categories: [uncategorized, ...categoryMap.values()],
     };
   }
 
@@ -87,12 +94,14 @@ export class GuildsService {
       .flatMap((cg) => cg.clans.map((clan) => ({ ...clan, categoryId: cg._id })))
       .sort((a, b) => {
         if (a.categoryId === uncategorizedId && b.categoryId !== uncategorizedId) {
-          return -1; // a comes before b
-        } else if (a.categoryId !== uncategorizedId && b.categoryId === uncategorizedId) {
-          return 1; // b comes before a
-        } else {
-          return 0; // maintain original order if neither or both are uncategorized
+          return -1;
         }
+
+        if (a.categoryId !== uncategorizedId && b.categoryId === uncategorizedId) {
+          return 1;
+        }
+
+        return 0;
       });
 
     clans.forEach((clan, order) => {

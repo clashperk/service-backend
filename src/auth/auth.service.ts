@@ -20,6 +20,7 @@ import {
   AuthUserDto,
   GenerateTokenDto,
   GenerateTokenInputDto,
+  HandoffGuildDto,
   HandoffTokenInputDto,
   HandoffUserDto,
   JwtUser,
@@ -166,17 +167,17 @@ export class AuthService {
 
     const user = JSON.parse(payload) as {
       userId: string;
-      guildId: string;
       avatar: string | null;
       username: string;
       displayName: string;
       applicationId: string | null;
+      guild: HandoffGuildDto;
     };
 
     return {
       isBot: false,
       userId: user.userId,
-      guildId: user.guildId,
+      guild: user.guild,
       roles: [UserRoles.USER],
       username: user.username,
       displayName: user.displayName,
@@ -189,12 +190,22 @@ export class AuthService {
     const token = randomBytes(16).toString('hex');
     const user = await this.discordOauthService.getUser(payload.userId);
 
+    const guild = await this.guilds.findOne(
+      { guild: payload.guildId },
+      { projection: { _id: 0, name: 1, iconUrl: 1 } },
+    );
+
     const redisKey = `${RedisKeys.HANDOFF_TOKEN}:${token}`;
     await this.redis.set(
       redisKey,
       JSON.stringify({
         userId: user.id,
         guildId: payload.guildId,
+        guild: {
+          id: payload.guildId,
+          name: guild?.name || 'Unknown',
+          iconUrl: guild?.iconUrl || null,
+        },
         username: user.username,
         avatar: user.avatar || null,
         applicationId: payload.applicationId || null,
@@ -203,7 +214,7 @@ export class AuthService {
       'EX',
       60 * 60,
     );
-    return { token, user };
+    return { token, guild: { id: payload.guildId, ...guild }, user };
   }
 
   async revalidateJwtUser(payload: JwtUser) {
@@ -234,5 +245,9 @@ export class AuthService {
 
   private get users() {
     return this.db.collection(Collections.PORTAL_USERS);
+  }
+
+  private get guilds() {
+    return this.db.collection(Collections.BOT_GUILDS);
   }
 }

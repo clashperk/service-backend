@@ -79,6 +79,12 @@ export class HandoffTokenDto {
   token: string;
 }
 
+export class HandoffGuildDto {
+  id: string;
+  name: string;
+  iconUrl: string | null;
+}
+
 export class HandoffUserDto {
   @EnumArray(UserRoles, 'UserRoles')
   roles: UserRoles[];
@@ -91,7 +97,7 @@ export class HandoffUserDto {
 
   isBot: boolean;
 
-  guildId: string;
+  guild: HandoffGuildDto;
 
   applicationId: string | null;
 
