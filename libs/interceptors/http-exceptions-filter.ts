@@ -59,6 +59,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
         (_, key) => `user.${key}`,
       ),
       user_agent: req.headers['user-agent'],
+      referrer: req.headers['referrer'],
     });
 
     return res.status(status).json({
