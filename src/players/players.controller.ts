@@ -8,6 +8,7 @@ import {
   AggregateClanWarLeagueHistoryItemsDto,
   AttackHistoryInputDto,
   AttackHistoryItemsDto,
+  BattleLogItemsDto,
   ClanHistoryItemsDto,
 } from './dto';
 import { PlayersService } from './players.service';
@@ -23,6 +24,12 @@ export class PlayersController {
     private playersService: PlayersService,
     private globalService: GlobalService,
   ) {}
+
+  @Get('/:playerTag/battle-log')
+  @Cache(600)
+  getBattleLog(@Param('playerTag') playerTag: string): Promise<BattleLogItemsDto> {
+    return this.playersService.getPlayerBattleLog(playerTag);
+  }
 
   @Get('/:playerTag/history')
   @Cache(600)
