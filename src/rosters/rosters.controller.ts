@@ -31,6 +31,7 @@ export class RostersController {
   constructor(private rostersService: RostersService) {}
 
   @Get('/:guildId/list')
+  @Roles([UserRoles.USER, UserRoles.FETCH_ROSTERS])
   getRosters(@Param('guildId') guildId: string): Promise<GetRostersDto> {
     return this.rostersService.getRosters(guildId);
   }

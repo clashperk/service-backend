@@ -12,6 +12,8 @@ export enum UserRoles {
   FETCH_LINKS = 'fetch:links',
   MANAGE_LINKS = 'manage:links',
 
+  FETCH_ROSTERS = 'fetch:rosters',
+
   MANAGE_ROSTERS = 'manage:rosters',
 
   MANAGE_REMINDERS = 'manage:reminders',

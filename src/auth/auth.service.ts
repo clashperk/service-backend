@@ -53,7 +53,12 @@ export class AuthService {
       userId: user.userId,
       roles: user.roles,
       accessToken: this.createJwt(
-        { userId: user.userId, roles: user.roles, username: user.username },
+        {
+          userId: user.userId,
+          roles: user.roles,
+          username: user.username,
+          guildIds: user.guildIds,
+        },
         { expiresIn: '2h' },
       ),
     };
@@ -145,6 +150,7 @@ export class AuthService {
         userId: input.userId,
         roles: input.roles,
         username: dto.displayName,
+        guildIds: dto.guildIds,
       }),
     };
   }
@@ -227,7 +233,13 @@ export class AuthService {
   }
 
   private createJwt(
-    input: { userId: string; roles: UserRoles[]; username: string; remoteIp?: string },
+    input: {
+      userId: string;
+      roles: UserRoles[];
+      username: string;
+      remoteIp?: string;
+      guildIds?: string[];
+    },
     options?: JwtSignOptions,
   ) {
     const payload = {
@@ -235,7 +247,7 @@ export class AuthService {
       roles: input.roles,
       version: '1',
       jti: randomUUID(),
-      guildIds: [],
+      guildIds: input.guildIds || [],
       remoteIp: input.remoteIp,
       username: input.username.toLowerCase(),
     } satisfies JwtUserInput;

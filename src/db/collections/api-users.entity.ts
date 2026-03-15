@@ -9,5 +9,6 @@ export class ApiUsersEntity {
   username: string;
   createdAt: Date;
   updatedAt: Date;
+  guildIds: string[];
   deletedAt: Date | null;
 }
