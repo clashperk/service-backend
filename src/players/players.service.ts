@@ -41,7 +41,7 @@ export class PlayersService {
 
     const rows = await result.json<BattleLogDto>();
 
-    return { items: (rows.data || []).reverse() };
+    return { items: rows.data || [] };
   }
 
   async addPlayer(tag: string) {
