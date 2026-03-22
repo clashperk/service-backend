@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { QueueThrottler, RESTManager, RequestHandler, Util } from 'clashofclans.js';
+import { QueueThrottler, RequestHandler, RestManager, Util } from 'clashofclans.js';
 import moment from 'moment';
 
 export class Season {
@@ -51,7 +51,7 @@ export class Season {
 }
 
 @Injectable()
-export class ClashClient extends RESTManager {
+export class ClashClient extends RestManager {
   private logger = new Logger(ClashClient.name);
   public constructor({
     rateLimit,
