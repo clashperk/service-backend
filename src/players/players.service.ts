@@ -45,8 +45,13 @@ export class PlayersService {
   }
 
   async addPlayer(tag: string) {
+    let now = Date.now();
     const player = await this.clashClientService.getPlayerOrThrow(tag);
+    console.log('fetched ', Date.now() - now);
+    now = Date.now();
+
     await this.redis.sadd('legend_player_tags', player.tag);
+    console.log('inserted ', Date.now() - now);
 
     return { message: 'Ok' };
   }
