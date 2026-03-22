@@ -1,7 +1,7 @@
-import { APIClanWarAttack, APIPlayer, RawData } from 'clashofclans.js';
+import { APIClanWarAttack, APIPlayer, RAW_DATA } from 'clashofclans.js';
 import { HOME_TROOPS, SUPER_TROOPS } from './constants';
 
-export const RAW_TROOPS_FILTERED = RawData.RawUnits.filter((unit) => !unit.seasonal)
+export const RAW_TROOPS_FILTERED = RAW_DATA.RAW_UNITS.filter((unit) => !unit.seasonal)
   .filter((unit) => unit.category !== 'equipment')
   .filter((unit) => !SUPER_TROOPS.includes(unit.name))
   .filter((unit) => HOME_TROOPS.includes(unit.name));

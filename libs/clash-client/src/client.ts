@@ -68,8 +68,6 @@ export class ClashClient extends RESTManager {
       rejectIfNotValid: false,
       restRequestTimeout: 10_000,
       retryLimit: 0,
-      connections: 50,
-      pipelining: 10,
       baseURL,
       keys,
       throttler: rateLimit ? new QueueThrottler(rateLimit) : null,
