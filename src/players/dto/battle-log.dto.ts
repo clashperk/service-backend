@@ -7,7 +7,8 @@ export class BattleLogDto {
   destruction: number;
   trophies: number;
   trophyChange: number;
-  createdAt: string;
+  battleDate: string;
+  ingestedAt: string;
 }
 
 export class BattleLogItemsDto {

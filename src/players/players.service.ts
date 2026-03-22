@@ -35,13 +35,18 @@ export class PlayersService {
       `,
       query_params: {
         playerTag,
-        limit: 300,
+        limit: 450,
       },
     });
 
     const rows = await result.json<BattleLogDto>();
 
-    return { items: rows.data || [] };
+    return {
+      items: (rows.data || []).map((row) => ({
+        ...row,
+        ingestedAt: new Date(row.ingestedAt),
+      })),
+    };
   }
 
   async addPlayer(tag: string) {
