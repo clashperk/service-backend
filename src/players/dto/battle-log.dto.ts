@@ -8,7 +8,7 @@ export class BattleLogDto {
   trophies: number;
   trophyChange: number;
   battleDate: string;
-  ingestedAt: string;
+  ingestedAt: Date;
 }
 
 export class BattleLogItemsDto {
