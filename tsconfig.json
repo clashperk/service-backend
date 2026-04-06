@@ -21,6 +21,7 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false,
     "useUnknownInCatchVariables": false,
+    "strictPropertyInitialization": false,
     "paths": {
       "@app/clash-client": ["./libs/clash-client/src"],
       "@app/clash-client/*": ["./libs/clash-client/src/*"],

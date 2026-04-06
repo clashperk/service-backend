@@ -1,6 +1,7 @@
 import { ClashClientService } from '@app/clash-client';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable } from '@nestjs/common';
+import { LEGEND_LEAGUE_ID } from 'clashofclans.js';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
 import { CLICKHOUSE_TOKEN, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
@@ -52,6 +53,11 @@ export class PlayersService {
   async addPlayer(tag: string) {
     const player = await this.clashClientService.getPlayerOrThrow(tag);
     await this.redis.sadd('legend_player_tags', player.tag);
+    await this.redis.srem('banned_player_tags', player.tag);
+
+    if (player?.leagueTier?.id === LEGEND_LEAGUE_ID) {
+      await this.redis.srem('non_legend_player_tags', player.tag);
+    }
 
     return { message: 'Ok' };
   }
