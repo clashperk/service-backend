@@ -14,3 +14,15 @@ export class BattleLogDto {
 export class BattleLogItemsDto {
   items: BattleLogDto[];
 }
+
+export class BattleLogDailyDto {
+  battleDate: string;
+  trophies: number;
+  offense: number;
+  defense: number;
+  gain: number;
+}
+
+export class BattleLogAggregateItemsDto {
+  items: BattleLogDailyDto[];
+}

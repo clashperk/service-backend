@@ -5,7 +5,7 @@ import { LEGEND_LEAGUE_ID } from 'clashofclans.js';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
 import { CLICKHOUSE_TOKEN, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
-import { BattleLogDto } from './dto';
+import { BattleLogAggregateItemsDto, BattleLogDailyDto, BattleLogDto } from './dto';
 
 @Injectable()
 export class PlayersService {
@@ -32,7 +32,8 @@ export class PlayersService {
           ingested_at as ingestedAt
         FROM battle_logs FINAL
         WHERE player_tag = {playerTag: String}
-        ORDER BY version LIMIT {limit: Int32}
+        ORDER BY version
+        LIMIT {limit: Int32}
       `,
       query_params: {
         playerTag,
@@ -46,6 +47,36 @@ export class PlayersService {
       items: (rows.data || []).map((row) => ({
         ...row,
         ingestedAt: new Date(row.ingestedAt),
+      })),
+    };
+  }
+
+  async getPlayerBattleLogAggregate(playerTag: string): Promise<BattleLogAggregateItemsDto> {
+    const result = await this.clickhouse.query({
+      query: `
+        SELECT
+          battle_date AS battleDate,
+          argMin(trophies, version) AS trophies,
+          sumIf(trophy_change, is_attack = 1) AS offense,
+          sumIf(trophy_change, is_attack = 0) AS defense,
+          sum(trophy_change) AS gain
+        FROM battle_logs FINAL
+        WHERE player_tag = {playerTag: String}
+          AND battle_type = 'legend'
+        GROUP BY battleDate
+        ORDER BY battleDate ASC
+      `,
+      query_params: { playerTag },
+    });
+
+    const rows = await result.json<BattleLogDailyDto>();
+    return {
+      items: (rows.data || []).map((row) => ({
+        battleDate: row.battleDate,
+        trophies: Number(row.trophies),
+        offense: Number(row.offense),
+        defense: Number(row.defense),
+        gain: Number(row.gain),
       })),
     };
   }
