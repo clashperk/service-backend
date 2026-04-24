@@ -215,6 +215,61 @@ export class TasksService {
 
     return { message: 'Ok', migrated: items.length };
   }
+
+  async updateLegendBattleLogs() {
+    const tags = await this.redis.smembers('legend_player_tags');
+    if (!tags.length) {
+      this.logger.debug('No legend player tags found in Redis.');
+      return;
+    }
+
+    this.logger.log(`Updating battle logs for ${tags.length} legend players.`);
+
+    const BATCH_SIZE = 500;
+    let updated = 0;
+    let skipped = 0;
+
+    for (let i = 0; i < tags.length; i += BATCH_SIZE) {
+      const batch = tags.slice(i, i + BATCH_SIZE);
+      const values = await this.redis.mget(...batch.map((tag) => `LEGEND:${tag}`));
+
+      const players = batch
+        .map((tag, idx) => {
+          const raw = values[idx];
+          if (!raw) return null;
+          try {
+            const data = JSON.parse(raw) as { name?: string };
+            return data.name ? { tag, name: data.name } : null;
+          } catch {
+            return null;
+          }
+        })
+        .filter((p): p is { tag: string; name: string } => p !== null);
+
+      skipped += batch.length - players.length;
+      updated += players.length;
+
+      this.logger.debug(
+        `Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${players.length} players to update, ${batch.length - players.length} skipped (no Redis data).`,
+      );
+
+      if (players.length) {
+        await this.clickhouse.query({
+          query: `
+            ALTER TABLE battle_logs
+            UPDATE player_name = arrayElement({names: Array(String)}, indexOf({tags: Array(String)}, player_tag))
+            WHERE player_tag IN {tags: Array(String)} AND player_name = 'Unknown'
+          `,
+          query_params: {
+            tags: players.map((p) => p.tag),
+            names: players.map((p) => p.name),
+          },
+        });
+      }
+    }
+
+    this.logger.log(`Done. Updated: ${updated}, skipped: ${skipped}.`);
+  }
 }
 
 interface ClickHousePlayersEntity {
