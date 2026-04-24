@@ -5,7 +5,13 @@ import { LEGEND_LEAGUE_ID } from 'clashofclans.js';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
 import { CLICKHOUSE_TOKEN, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
-import { BattleLogAggregateItemsDto, BattleLogDailyDto, BattleLogDto } from './dto';
+import {
+  BattleLogAggregateItemsDto,
+  BattleLogDailyDto,
+  BattleLogDto,
+  BattleLogLeaderboardDto,
+  BattleLogLeaderboardInputDto,
+} from './dto';
 
 @Injectable()
 export class PlayersService {
@@ -20,6 +26,8 @@ export class PlayersService {
     const result = await this.clickhouse.query({
       query: `
         SELECT
+          player_name as name,
+          player_tag as tag,
           player_tag as playerTag,
           opponent_tag as opponentTag,
           battle_type as battleType,
@@ -81,12 +89,42 @@ export class PlayersService {
     };
   }
 
+  async getBattleLogLeaderboard({
+    playerTags,
+    battleDate,
+  }: BattleLogLeaderboardInputDto): Promise<BattleLogLeaderboardDto> {
+    const result = await this.clickhouse.query({
+      query: `
+        SELECT
+          player_tag AS tag,
+          player_name AS name,
+          trophies
+        FROM battle_logs FINAL
+        WHERE player_tag in {playerTags: Array(String)}
+          AND battle_date = {battleDate: String}
+          AND battle_type = 'legend'
+        ORDER BY version
+        LIMIT 1 BY player_tag
+      `,
+      query_params: { playerTags, battleDate },
+    });
+
+    const rows = await result.json<{ tag: string; name: string; trophies: string }>();
+    return {
+      items: (rows.data || []).map((row) => ({
+        tag: row.tag,
+        name: row.name,
+        trophies: Number(row.trophies),
+      })),
+    };
+  }
+
   async addPlayer(tag: string) {
     const player = await this.clashClientService.getPlayerOrThrow(tag);
     await this.redis.sadd('legend_player_tags', player.tag);
     await this.redis.srem('banned_player_tags', player.tag);
 
-    if (player?.leagueTier?.id === LEGEND_LEAGUE_ID) {
+    if (player?.leagueTier && player.leagueTier.id >= LEGEND_LEAGUE_ID) {
       await this.redis.srem('non_legend_player_tags', player.tag);
     }
 

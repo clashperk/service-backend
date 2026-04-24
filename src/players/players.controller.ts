@@ -1,6 +1,6 @@
 import { Cache } from '@app/decorators';
 import { ResultOkDto } from '@app/dto';
-import { Controller, Get, Param, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, UserRoles } from '../auth';
 import {
@@ -10,6 +10,8 @@ import {
   AttackHistoryItemsDto,
   BattleLogAggregateItemsDto,
   BattleLogItemsDto,
+  BattleLogLeaderboardDto,
+  BattleLogLeaderboardInputDto,
   ClanHistoryItemsDto,
 } from './dto';
 import { PlayersService } from './players.service';
@@ -34,8 +36,18 @@ export class PlayersController {
 
   @Get('/:playerTag/battle-log/aggregate')
   @Cache(600)
-  getBattleLogAggregate(@Param('playerTag') playerTag: string): Promise<BattleLogAggregateItemsDto> {
+  getBattleLogAggregate(
+    @Param('playerTag') playerTag: string,
+  ): Promise<BattleLogAggregateItemsDto> {
     return this.playersService.getPlayerBattleLogAggregate(playerTag);
+  }
+
+  @Post('/battle-log/leaderboard')
+  @Cache(600)
+  getBattleLogLeaderboard(
+    @Body() body: BattleLogLeaderboardInputDto,
+  ): Promise<BattleLogLeaderboardDto> {
+    return this.playersService.getBattleLogLeaderboard(body);
   }
 
   @Get('/:playerTag/history')
