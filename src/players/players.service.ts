@@ -1,8 +1,9 @@
 import { ClashClientService } from '@app/clash-client';
 import { ClickHouseClient } from '@clickhouse/client';
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { LEGEND_LEAGUE_ID } from 'clashofclans.js';
 import Redis from 'ioredis';
+import { chunk } from 'lodash';
 import { Db } from 'mongodb';
 import { CLICKHOUSE_TOKEN, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
 import {
@@ -15,6 +16,7 @@ import {
 
 @Injectable()
 export class PlayersService {
+  private logger = new Logger(PlayersService.name);
   constructor(
     @Inject(GO_REDIS_TOKEN) private redis: Redis,
     @Inject(MONGODB_TOKEN) private db: Db,
@@ -93,25 +95,31 @@ export class PlayersService {
     playerTags,
     battleDate,
   }: BattleLogLeaderboardInputDto): Promise<BattleLogLeaderboardDto> {
-    const result = await this.clickhouse.query({
-      query: `
+    const results = await Promise.all(
+      chunk(playerTags, 200).map((chunk) =>
+        this.clickhouse
+          .query({
+            query: `
         SELECT
           player_tag AS tag,
-          player_name AS name,
-          trophies
-        FROM battle_logs FINAL
-        WHERE player_tag in {playerTags: Array(String)}
+          argMin(player_name, version) AS name,
+          argMin(trophies, version) AS trophies
+        FROM battle_logs
+        WHERE player_tag IN {playerTags: Array(String)}
           AND battle_date = {battleDate: String}
           AND battle_type = 'legend'
-        ORDER BY version
-        LIMIT 1 BY player_tag
+        GROUP BY player_tag
+        ORDER BY trophies DESC
       `,
-      query_params: { playerTags, battleDate },
-    });
+            query_params: { playerTags: chunk, battleDate },
+          })
+          .then((res) => res.json<{ tag: string; name: string; trophies: string }>()),
+      ),
+    );
 
-    const rows = await result.json<{ tag: string; name: string; trophies: string }>();
+    const rows = results.flatMap((r) => r.data || []);
     return {
-      items: (rows.data || []).map((row) => ({
+      items: rows.map((row) => ({
         tag: row.tag,
         name: row.name,
         trophies: Number(row.trophies),
@@ -128,6 +136,66 @@ export class PlayersService {
       await this.redis.srem('non_legend_player_tags', player.tag);
     }
 
+    return { message: 'Ok' };
+  }
+
+  async updateLegendBattleLogs(playerTags: string[]) {
+    const tags = playerTags;
+    if (!tags.length) {
+      this.logger.debug('No legend player tags found in Redis.');
+      return { message: 'Ok' };
+    }
+
+    this.logger.log(`Updating battle logs for ${tags.length} legend players.`);
+
+    const BATCH_SIZE = 100;
+    let updated = 0;
+    let skipped = 0;
+
+    try {
+      for (let i = 0; i < tags.length; i += BATCH_SIZE) {
+        const batch = tags.slice(i, i + BATCH_SIZE);
+        const values = await this.redis.mget(...batch.map((tag) => `LEGEND:${tag}`));
+
+        const players = batch
+          .map((tag, idx) => {
+            const raw = values[idx];
+            if (!raw) return null;
+            try {
+              const data = JSON.parse(raw) as { name?: string };
+              return data.name ? { tag, name: data.name } : null;
+            } catch {
+              return null;
+            }
+          })
+          .filter((p): p is { tag: string; name: string } => p !== null);
+
+        skipped += batch.length - players.length;
+        updated += players.length;
+
+        this.logger.debug(
+          `Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${players.length} players to update, ${batch.length - players.length} skipped (no Redis data).`,
+        );
+
+        if (players.length) {
+          await this.clickhouse.query({
+            query: `
+            ALTER TABLE battle_logs
+            UPDATE player_name = arrayElement({names: Array(String)}, indexOf({tags: Array(String)}, player_tag))
+            WHERE player_tag IN {tags: Array(String)} AND player_name = 'Unknown'
+          `,
+            query_params: {
+              tags: players.map((p) => p.tag),
+              names: players.map((p) => p.name),
+            },
+          });
+        }
+      }
+    } catch (error) {
+      this.logger.error(error);
+    }
+
+    this.logger.log(`Done. Updated: ${updated}, skipped: ${skipped}.`);
     return { message: 'Ok' };
   }
 }
