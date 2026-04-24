@@ -34,6 +34,6 @@ export class TasksController {
 
   @Post('/update-ranked-players')
   updateRankedPlayers(): Promise<MessageOkDto> {
-    return this.tasksService.updateLegendPlayers();
+    return this.tasksService.updateLegendBattleLogs();
   }
 }

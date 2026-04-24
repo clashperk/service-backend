@@ -220,7 +220,7 @@ export class TasksService {
     const tags = await this.redis.smembers('legend_player_tags');
     if (!tags.length) {
       this.logger.debug('No legend player tags found in Redis.');
-      return;
+      return { message: 'Ok' };
     }
 
     this.logger.log(`Updating battle logs for ${tags.length} legend players.`);
@@ -269,6 +269,7 @@ export class TasksService {
     }
 
     this.logger.log(`Done. Updated: ${updated}, skipped: ${skipped}.`);
+    return { message: 'Ok' };
   }
 }
 
