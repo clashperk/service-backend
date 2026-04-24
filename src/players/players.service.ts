@@ -24,6 +24,14 @@ export class PlayersService {
     @Inject(CLICKHOUSE_TOKEN) private clickhouse: ClickHouseClient,
   ) {}
 
+  private async getLegendPlayer(tag: string) {
+    const raw = await this.redis.get(`LEGEND:${tag}`);
+    if (!raw) return { name: 'Unknown', tag };
+
+    const player = JSON.parse(raw);
+    return { name: player.name || 'Unknown', tag };
+  }
+
   async getPlayerBattleLog(playerTag: string) {
     const result = await this.clickhouse.query({
       query: `
@@ -51,11 +59,13 @@ export class PlayersService {
       },
     });
 
+    const { name } = await this.getLegendPlayer(playerTag);
     const rows = await result.json<BattleLogDto>();
 
     return {
       items: (rows.data || []).map((row) => ({
         ...row,
+        name: row.name === 'Unknown' ? name : row.name,
         ingestedAt: new Date(row.ingestedAt),
       })),
     };
