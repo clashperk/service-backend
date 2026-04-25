@@ -19,11 +19,15 @@ export class BattleLogItemsDto {
 }
 
 export class BattleLogDailyDto {
+  name: string;
+  tag: string;
   battleDate: string;
   trophies: number;
-  offense: number;
-  defense: number;
+  offenseTrophies: number;
+  defenseTrophies: number;
   gain: number;
+  attackCount: number;
+  defenseCount: number;
 }
 
 export class BattleLogAggregateItemsDto {
@@ -31,8 +35,11 @@ export class BattleLogAggregateItemsDto {
 }
 
 export class BattleLogLeaderboardInputDto {
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'battleDate must be in YYYY-MM-DD format' })
-  battleDate: string;
+  /**
+   * @example "2026-05"
+   */
+  @Matches(/^\d{4}-\d{2}$/, { message: 'seasonId must be in YYYY-MM format' })
+  seasonId: string;
 
   @IsString({ each: true })
   playerTags: string[];

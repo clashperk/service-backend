@@ -24,21 +24,12 @@ export class PlayersService {
     @Inject(CLICKHOUSE_TOKEN) private clickhouse: ClickHouseClient,
   ) {}
 
-  private async getLegendPlayer(tag: string) {
-    const raw = await this.redis.get(`LEGEND:${tag}`);
-    if (!raw) return { name: 'Unknown', tag };
-
-    const player = JSON.parse(raw);
-    return { name: player.name || 'Unknown', tag };
-  }
-
   async getPlayerBattleLog(playerTag: string) {
     const result = await this.clickhouse.query({
       query: `
         SELECT
           player_name as name,
           player_tag as tag,
-          player_tag as playerTag,
           opponent_tag as opponentTag,
           battle_type as battleType,
           toBool(is_attack) as isAttack,
@@ -55,17 +46,15 @@ export class PlayersService {
       `,
       query_params: {
         playerTag,
-        limit: 450,
+        limit: 8 * 2 * 28,
       },
     });
 
-    const { name } = await this.getLegendPlayer(playerTag);
     const rows = await result.json<BattleLogDto>();
 
     return {
       items: (rows.data || []).map((row) => ({
         ...row,
-        name: row.name === 'Unknown' ? name : row.name,
         ingestedAt: new Date(row.ingestedAt),
       })),
     };
@@ -75,27 +64,34 @@ export class PlayersService {
     const result = await this.clickhouse.query({
       query: `
         SELECT
+          player_tag as tag,
+          argMin(player_name, version) AS name,
           battle_date AS battleDate,
           argMin(trophies, version) AS trophies,
-          sumIf(trophy_change, is_attack = 1) AS offense,
-          sumIf(trophy_change, is_attack = 0) AS defense,
+          countIf(is_attack = 1) AS attackCount,
+          countIf(is_attack = 0) AS defenseCount,
+          sumIf(trophy_change, is_attack = 1) AS offenseTrophies,
+          sumIf(trophy_change, is_attack = 0) AS defenseTrophies,
           sum(trophy_change) AS gain
         FROM battle_logs FINAL
         WHERE player_tag = {playerTag: String}
           AND battle_type = 'legend'
-        GROUP BY battleDate
+        GROUP BY battleDate, tag
         ORDER BY battleDate ASC
+        LIMIT {limit: Int32}
       `,
-      query_params: { playerTag },
+      query_params: { playerTag, limit: 8 * 2 * 28 * 2 },
     });
 
     const rows = await result.json<BattleLogDailyDto>();
     return {
       items: (rows.data || []).map((row) => ({
-        battleDate: row.battleDate,
+        ...row,
         trophies: Number(row.trophies),
-        offense: Number(row.offense),
-        defense: Number(row.defense),
+        offenseTrophies: Number(row.offenseTrophies),
+        defenseTrophies: Number(row.defenseTrophies),
+        attackCount: Number(row.attackCount),
+        defenseCount: Number(row.defenseCount),
         gain: Number(row.gain),
       })),
     };
@@ -103,25 +99,23 @@ export class PlayersService {
 
   async getBattleLogLeaderboard({
     playerTags,
-    battleDate,
+    seasonId,
   }: BattleLogLeaderboardInputDto): Promise<BattleLogLeaderboardDto> {
     const results = await Promise.all(
       chunk(playerTags, 200).map((chunk) =>
         this.clickhouse
           .query({
             query: `
-        SELECT
-          player_tag AS tag,
-          argMin(player_name, version) AS name,
-          argMin(trophies, version) AS trophies
-        FROM battle_logs
-        WHERE player_tag IN {playerTags: Array(String)}
-          AND battle_date = {battleDate: String}
-          AND battle_type = 'legend'
-        GROUP BY player_tag
-        ORDER BY trophies DESC
-      `,
-            query_params: { playerTags: chunk, battleDate },
+              SELECT
+                player_tag AS tag,
+                player_name AS name,
+                trophies
+              FROM legend_players_projected FINAL
+              WHERE player_tag IN {playerTags: Array(String)}
+                AND battle_season = {seasonId: String}
+              ORDER BY trophies DESC
+            `,
+            query_params: { playerTags: chunk, seasonId },
           })
           .then((res) => res.json<{ tag: string; name: string; trophies: string }>()),
       ),
