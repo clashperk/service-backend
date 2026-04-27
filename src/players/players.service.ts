@@ -75,7 +75,6 @@ export class PlayersService {
           sum(trophy_change) AS gain
         FROM battle_logs FINAL
         WHERE player_tag = {playerTag: String}
-          AND battle_type = 'legend'
         GROUP BY battleDate, tag
         ORDER BY battleDate ASC
         LIMIT {limit: Int32}
