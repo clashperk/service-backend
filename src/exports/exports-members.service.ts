@@ -21,6 +21,12 @@ import { Collections, MONGODB_TOKEN, PlayerLinksEntity } from '../db';
 import { ExportMembersInput, ExportSheetInputDto } from './dto';
 import { ReusableSheetService, SheetType } from './services/reusable-sheet.service';
 
+const LeagueTiersMap = {
+  105000034: 'Legend League III',
+  105000035: 'Legend League II',
+  105000036: 'Legend League I',
+};
+
 const ALLOWED_ACHIEVEMENTS = [
   'Gold Grab',
   'Elixir Escapade',
@@ -124,7 +130,9 @@ export class ExportsMembersService {
           name: player.name,
           role: ROLES_MAP[player.role!],
           trophies: player.trophies,
-          leagueTier: player.leagueTier?.name || 'Unranked',
+          leagueTier: player.leagueTier
+            ? LeagueTiersMap[player.leagueTier.id] || player.leagueTier.name
+            : 'Unranked',
           clanRank: idx + 1,
           townHallLevel: player.townHallLevel,
           warPreference: player.warPreference!,
