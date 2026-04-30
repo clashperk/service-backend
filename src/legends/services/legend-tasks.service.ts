@@ -1,5 +1,5 @@
 import { ClickHouseClient } from '@clickhouse/client';
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Util } from 'clashofclans.js';
 import Redis from 'ioredis';
 import moment from 'moment';
@@ -10,8 +10,8 @@ const SNAPSHOT_TTL = 60 * 60 * 24 + 60 * 5; // 1 day + 5 minutes
 const HISTORICAL_SNAPSHOT_TTL = 45 * 60 * 60 * 24 + 60 * 5; // 45 days + 5 minutes
 
 const POSSIBLE_RANKS = [
-  1, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000,
-  12500, 20000, 50000, 62500, 80000, 100000,
+  1, 3, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 9500,
+  10000, 10500, 12500, 20000, 50000, 80000, 100000,
 ];
 const MAX_LIMIT = 100000;
 
@@ -76,7 +76,7 @@ export class LegendTasksService {
 
   private async aggregateRanksThresholds() {
     const ranks = POSSIBLE_RANKS.filter((rank) => rank <= MAX_LIMIT);
-    const { seasonId, startTime } = Util.getSeason();
+    const { seasonId } = Util.getSeason();
 
     const rows = await this.clickhouseClient
       .query({
@@ -84,15 +84,15 @@ export class LegendTasksService {
           WITH ranking_query AS (
             SELECT
               trophies,
-              tag,
-              seasonId,
+              player_tag,
+              battle_season,
               ROW_NUMBER() OVER (
-                PARTITION BY seasonId
-                ORDER BY trophies DESC, createdAt DESC
+                PARTITION BY battle_season
+                ORDER BY trophies DESC
               ) AS rank
-            FROM legend_players
+            FROM legend_players_projected
             FINAL
-            WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}
+            WHERE battle_season = {seasonId: String}
           )
           SELECT *
           FROM ranking_query
@@ -102,110 +102,14 @@ export class LegendTasksService {
         query_params: {
           ranks: ranks.map(String),
           seasonId,
-          startTime: Math.floor((startTime.getTime() + 60 * 60 * 1000) / 1000),
         },
       })
-      .then((res) => res.json<{ rank: string; trophies: string; tag: string }>());
+      .then((res) => res.json<{ rank: string; trophies: string; player_tag: string }>());
 
     return rows.data.map((row) => ({
-      tag: row.tag,
+      tag: row.player_tag,
       rank: Number(row.rank),
       minTrophies: Number(row.trophies),
-    }));
-  }
-
-  public async getRanksByPlayerTags(tags: string[]) {
-    const { seasonId, startTime } = Util.getSeason();
-
-    const rows = await this.clickhouseClient
-      .query({
-        query: `
-          WITH ranking_query AS (
-            SELECT
-              name,
-              tag,
-              trophies,
-              seasonId,
-              ROW_NUMBER() OVER (
-                PARTITION BY seasonId
-                ORDER BY trophies DESC, createdAt DESC
-              ) AS rank
-            FROM legend_players
-            FINAL
-            WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}
-          )
-          SELECT
-            name,
-            tag,
-            trophies,
-            rank
-          FROM ranking_query
-          WHERE tag IN {tags: Array(String)};
-        `,
-        query_params: {
-          tags,
-          seasonId,
-          startTime: Math.floor((startTime.getTime() + 60 * 60 * 1000) / 1000),
-        },
-      })
-      .then((res) => res.json<{ rank: number; trophies: number; name: string; tag: string }>());
-
-    return rows.data.map((row) => ({
-      tag: row.tag,
-      name: row.name,
-      rank: Number(row.rank),
-      trophies: row.trophies,
-    }));
-  }
-
-  public async getRanksByRange(minRank: number, maxRank: number) {
-    const { seasonId, startTime } = Util.getSeason();
-
-    const maxDiff = 1000;
-    if (maxRank < minRank) {
-      throw new BadRequestException('Invalid rank range. maxRank must be greater than minRank.');
-    }
-    if (maxRank - minRank > maxDiff) {
-      throw new BadRequestException(`Range too large. Max difference is ${maxDiff} ranks.`);
-    }
-
-    const rows = await this.clickhouseClient
-      .query({
-        query: `
-          WITH ranking_query AS (
-            SELECT
-              name,
-              tag,
-              trophies,
-              seasonId,
-              row_number() OVER (PARTITION BY seasonId ORDER BY trophies DESC) AS rank
-            FROM legend_players
-            FINAL
-            WHERE seasonId = {seasonId: String} AND createdAt >= {startTime: DateTime}
-          )
-          SELECT
-            name,
-            tag,
-            trophies,
-            rank
-          FROM ranking_query
-          WHERE rank BETWEEN {minRank: Int32} AND {maxRank: Int32}
-          ORDER BY rank;
-        `,
-        query_params: {
-          minRank,
-          maxRank,
-          seasonId,
-          startTime: Math.floor((startTime.getTime() + 60 * 60 * 1000) / 1000),
-        },
-      })
-      .then((res) => res.json<{ rank: number; trophies: number; name: string; tag: string }>());
-
-    return rows.data.map((row) => ({
-      tag: row.tag,
-      name: row.name,
-      rank: Number(row.rank),
-      trophies: row.trophies,
     }));
   }
 

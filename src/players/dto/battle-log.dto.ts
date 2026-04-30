@@ -11,6 +11,9 @@ export class BattleLogDto {
   trophies: number;
   trophyChange: number;
   battleDate: string;
+  battleSeason: string;
+  battleWeek: string;
+  leagueId: number;
   ingestedAt: Date;
 }
 

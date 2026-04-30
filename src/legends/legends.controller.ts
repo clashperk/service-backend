@@ -17,7 +17,6 @@ import {
   LegendAttacksItemsDto,
   LegendRankingThresholdsDto,
 } from '../players/dto';
-import { LeaderboardByTagsInputDto, LeaderboardByTagsItemsDto } from './dto';
 import { LegendsService } from './legends.service';
 import { LegendTasksService } from './services/legend-tasks.service';
 
@@ -39,18 +38,6 @@ export class LegendsController {
       this.legendTasksService.getEoDThresholds(),
     ]);
     return { live: { timestamp: new Date().toISOString(), thresholds: live }, eod, history };
-  }
-
-  @Post('/leaderboard/query')
-  @Cache(300)
-  async getLeaderboard(
-    @Body() body: LeaderboardByTagsInputDto,
-  ): Promise<LeaderboardByTagsItemsDto> {
-    const items = body.playerTags?.length
-      ? await this.legendTasksService.getRanksByPlayerTags(body.playerTags)
-      : await this.legendTasksService.getRanksByRange(body.minRank, body.maxRank);
-
-    return { items };
   }
 
   @Post('/attacks/query')
