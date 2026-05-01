@@ -144,9 +144,6 @@ export class LegendTasksService {
     }));
   }
 
-  onModuleInit() {
-    this.calculateRanks();
-  }
   public async calculateRanks() {
     await this.clickhouseClient.query({
       query: `TRUNCATE TABLE legend_players_ranked_projected`,
