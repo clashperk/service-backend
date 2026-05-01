@@ -113,6 +113,90 @@ export class LegendTasksService {
     }));
   }
 
+  public async getRanksByPlayerTags(tags: string[]) {
+    const { seasonId } = Util.getSeason();
+
+    const rows = await this.clickhouseClient
+      .query({
+        query: `
+          SELECT
+            player_name,
+            player_tag,
+            trophies,
+            rank
+          FROM legend_players_ranked
+          WHERE player_tag IN {tags: Array(String)}
+        `,
+        query_params: {
+          tags,
+          seasonId,
+        },
+      })
+      .then((res) =>
+        res.json<{ rank: number; trophies: number; player_name: string; player_tag: string }>(),
+      );
+
+    return rows.data.map((row) => ({
+      tag: row.player_tag,
+      name: row.player_name,
+      rank: Number(row.rank),
+      trophies: row.trophies,
+    }));
+  }
+
+  onModuleInit() {
+    this.calculateRanks();
+  }
+  public async calculateRanks() {
+    await this.clickhouseClient.query({
+      query: `TRUNCATE TABLE legend_players_ranked_projected`,
+    });
+
+    await this.clickhouseClient.query({
+      query: `
+        INSERT INTO legend_players_ranked_projected
+        SELECT
+          player_tag,
+          player_name,
+          battle_season,
+          trophies,
+          ROW_NUMBER() OVER (
+            PARTITION BY battle_season
+            ORDER BY trophies DESC
+          ) AS rank,
+          now() AS updated_at
+        FROM legend_players_projected
+        WHERE battle_season = {seasonId: String};
+      `,
+      query_params: {
+        seasonId: Util.getSeason().seasonId,
+      },
+    });
+
+    await this.clickhouseClient.query({
+      query: `
+        ALTER TABLE legend_players_ranked
+        REPLACE PARTITION {seasonId: String}
+        FROM legend_players_ranked_projected;
+      `,
+      query_params: {
+        seasonId: Util.getSeason().seasonId,
+      },
+    });
+
+    // await this.clickhouseClient.query({
+    //   query: `
+    //     ALTER TABLE legend_players_ranked
+    //     DROP PARTITION '2026-04';
+    //   `,
+    //   query_params: {
+    //     seasonId: Util.getSeason().seasonId,
+    //   },
+    // });
+
+    this.logger.log('Calculated legend ranks snapshot');
+  }
+
   private async redisJSON<T>(key: string) {
     try {
       const result = await this.redis.get(key);

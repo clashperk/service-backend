@@ -11,10 +11,17 @@ export class AutoTasksService {
   ) {}
 
   @CronTab('59 4 * * *', {
-    monitor: 'legend-ranking-snapshot',
+    monitor: 'legend-threshold-snapshot',
   })
   runLegendTasks() {
     return this.legendTasksService.takeSnapshot();
+  }
+
+  @CronTab('*/15 * * * *', {
+    monitor: 'legend-ranks-snapshot',
+  })
+  runLegendRankingSnapshot() {
+    return this.legendTasksService.calculateRanks();
   }
 
   @CronTab('0 5 22 * *', {

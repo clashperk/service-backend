@@ -3,7 +3,6 @@ import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { LEGEND_LEAGUE_ID } from 'clashofclans.js';
 import Redis from 'ioredis';
-import { chunk } from 'lodash';
 import { Db } from 'mongodb';
 import { CLICKHOUSE_TOKEN, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
 import {
@@ -103,27 +102,23 @@ export class PlayersService {
     playerTags,
     seasonId,
   }: BattleLogLeaderboardInputDto): Promise<BattleLogLeaderboardDto> {
-    const results = await Promise.all(
-      chunk(playerTags, 200).map((chunk) =>
-        this.clickhouse
-          .query({
-            query: `
-              SELECT
-                player_tag AS tag,
-                player_name AS name,
-                trophies
-              FROM legend_players_projected FINAL
-              WHERE player_tag IN {playerTags: Array(String)}
-                AND battle_season = {seasonId: String}
-              ORDER BY trophies DESC
-            `,
-            query_params: { playerTags: chunk, seasonId },
-          })
-          .then((res) => res.json<{ tag: string; name: string; trophies: string }>()),
-      ),
-    );
+    const result = await this.clickhouse
+      .query({
+        query: `
+          SELECT
+            player_tag AS tag,
+            player_name AS name,
+            trophies
+          FROM legend_players_projected FINAL
+          WHERE player_tag IN {playerTags: Array(String)}
+            AND battle_season = {seasonId: String}
+          ORDER BY trophies DESC
+        `,
+        query_params: { playerTags, seasonId },
+      })
+      .then((res) => res.json<{ tag: string; name: string; trophies: string }>());
 
-    const rows = results.flatMap((r) => r.data || []);
+    const rows = result.data || [];
     return {
       items: rows.map((row) => ({
         tag: row.tag,

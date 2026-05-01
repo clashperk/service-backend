@@ -17,6 +17,7 @@ import {
   LegendAttacksItemsDto,
   LegendRankingThresholdsDto,
 } from '../players/dto';
+import { LegendRankDto } from './dto';
 import { LegendsService } from './legends.service';
 import { LegendTasksService } from './services/legend-tasks.service';
 
@@ -58,5 +59,14 @@ export class LegendsController {
 
     if (log) return log;
     throw new NotFoundException('Legend attacks not found.');
+  }
+
+  @Get('/:playerTag/estimate-rank')
+  @Cache(300)
+  async estimateRank(@Param('playerTag') playerTag: string): Promise<LegendRankDto> {
+    const [item] = await this.legendTasksService.getRanksByPlayerTags([playerTag]);
+    if (!item) throw new NotFoundException();
+
+    return item;
   }
 }
