@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@clickhouse/client':
-        specifier: ^1.12.1
-        version: 1.12.1
+        specifier: ^1.18.3
+        version: 1.18.3
       '@discordjs/rest':
         specifier: ^2.6.0
         version: 2.6.0
@@ -409,11 +409,11 @@ packages:
   '@borewit/text-codec@0.1.1':
     resolution: {integrity: sha512-5L/uBxmjaCIX5h8Z+uu+kA9BQLkc/Wl06UGR5ajNRxu+/XjonB5i8JpgFMrPj3LXTCPA0pv8yxUvbUi+QthGGA==}
 
-  '@clickhouse/client-common@1.12.1':
-    resolution: {integrity: sha512-ccw1N6hB4+MyaAHIaWBwGZ6O2GgMlO99FlMj0B0UEGfjxM9v5dYVYql6FpP19rMwrVAroYs/IgX2vyZEBvzQLg==}
+  '@clickhouse/client-common@1.18.3':
+    resolution: {integrity: sha512-3axzO3zvrsGT5PzDenxgWscltYCNRDbhaHWUgdsmcM9OnW/VnZn9EarOcZogr9P82Z0mQh+Jd2x+p2K4TFD2fA==}
 
-  '@clickhouse/client@1.12.1':
-    resolution: {integrity: sha512-7ORY85rphRazqHzImNXMrh4vsaPrpetFoTWpZYueCO2bbO6PXYDXp/GQ4DgxnGIqbWB/Di1Ai+Xuwq2o7DJ36A==}
+  '@clickhouse/client@1.18.3':
+    resolution: {integrity: sha512-340ngdYktL8PLUBK2QKSwe0o02tYfZSz1mSn1uXCEU8TxHvwh9pnQxElf9YHumDGj5gX/IdgxPsJTGMs82Hgug==}
     engines: {node: '>=16'}
 
   '@colors/colors@1.5.0':
@@ -4386,11 +4386,11 @@ snapshots:
 
   '@borewit/text-codec@0.1.1': {}
 
-  '@clickhouse/client-common@1.12.1': {}
+  '@clickhouse/client-common@1.18.3': {}
 
-  '@clickhouse/client@1.12.1':
+  '@clickhouse/client@1.18.3':
     dependencies:
-      '@clickhouse/client-common': 1.12.1
+      '@clickhouse/client-common': 1.18.3
 
   '@colors/colors@1.5.0':
     optional: true
