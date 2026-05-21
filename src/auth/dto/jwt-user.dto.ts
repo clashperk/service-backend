@@ -38,7 +38,7 @@ export const fallbackUser: JwtUser = {
   roles: [UserRoles.ADMIN],
   jti: randomUUID(),
   guildIds: [],
-  version: '1',
+  version: 'v2',
   exp: 0,
   iat: 0,
 };
@@ -49,7 +49,7 @@ export const swaggerUser: JwtUser = {
   roles: [UserRoles.VIEWER],
   jti: randomUUID(),
   guildIds: [],
-  version: '1',
+  version: 'v2',
   exp: 0,
   iat: 0,
 };

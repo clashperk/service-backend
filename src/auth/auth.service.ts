@@ -245,7 +245,7 @@ export class AuthService {
     const payload = {
       userId: input.userId,
       roles: input.roles,
-      version: '1',
+      version: 'v2',
       jti: randomUUID(),
       guildIds: input.guildIds || [],
       remoteIp: input.remoteIp,

@@ -4,7 +4,7 @@ WORKDIR /app
 
 FROM nodejs AS installer
 
-RUN npm install -g pnpm
+RUN npm install -g pnpm@10.26.2
 
 FROM installer AS builder
 
