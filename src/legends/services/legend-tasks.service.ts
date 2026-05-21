@@ -145,12 +145,15 @@ export class LegendTasksService {
   }
 
   public async calculateRanks() {
-    await this.clickhouseClient.query({
-      query: `TRUNCATE TABLE legend_players_ranked_projected`,
-    });
+    await this.clickhouseClient
+      .query({
+        query: `TRUNCATE TABLE legend_players_ranked_projected`,
+      })
+      .then((res) => res.text());
 
-    await this.clickhouseClient.query({
-      query: `
+    await this.clickhouseClient
+      .query({
+        query: `
         INSERT INTO legend_players_ranked_projected
         SELECT
           player_tag,
@@ -165,31 +168,36 @@ export class LegendTasksService {
         FROM legend_players_projected
         WHERE battle_season = {seasonId: String};
       `,
-      query_params: {
-        seasonId: Util.getSeason().seasonId,
-      },
-    });
+        query_params: {
+          seasonId: Util.getSeason().seasonId,
+        },
+      })
+      .then((res) => res.text());
 
-    await this.clickhouseClient.query({
-      query: `
+    await this.clickhouseClient
+      .query({
+        query: `
         ALTER TABLE legend_players_ranked
         REPLACE PARTITION {seasonId: String}
         FROM legend_players_ranked_projected;
       `,
-      query_params: {
-        seasonId: Util.getSeason().seasonId,
-      },
-    });
+        query_params: {
+          seasonId: Util.getSeason().seasonId,
+        },
+      })
+      .then((res) => res.text());
 
-    // await this.clickhouseClient.query({
-    //   query: `
+    // await this.clickhouseClient
+    //   .query({
+    //     query: `
     //     ALTER TABLE legend_players_ranked
     //     DROP PARTITION '2026-04';
     //   `,
-    //   query_params: {
-    //     seasonId: Util.getSeason().seasonId,
-    //   },
-    // });
+    //     query_params: {
+    //       seasonId: Util.getSeason().seasonId,
+    //     },
+    //   })
+    //   .then((res) => res.text());
 
     this.logger.log('Calculated legend ranks snapshot');
   }
