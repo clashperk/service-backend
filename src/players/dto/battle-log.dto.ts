@@ -9,6 +9,8 @@ export class BattleLogDto {
   stars: number;
   destruction: number;
   trophies: number;
+  startTrophies: number = 0;
+  endTrophies: number = 0;
   trophyChange: number;
   battleDate: string;
   battleSeason: string;
