@@ -1,7 +1,7 @@
 import { ClashClientService } from '@app/clash-client';
 import { ErrorCodes } from '@app/dto';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { getWarResult, Util } from 'clashofclans.js';
+import { getWarResult } from 'clashofclans.js';
 import moment from 'moment';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
@@ -19,9 +19,11 @@ export class WarsService {
   }
 
   async getClanWarLeagueForClan(clanTag: string): Promise<ClanWarLeaguesDto> {
+    // The current CWL season is no longer a clock-derived YYYY-MM (the live API season is an
+    // unpredictable YYYY-MM-DD), so fetch the latest stored group for the clan.
     const leagueGroup = await this.db
       .collection(Collections.CWL_GROUPS)
-      .findOne({ 'clans.tag': clanTag, 'season': Util.getSeasonId() });
+      .findOne({ 'clans.tag': clanTag }, { sort: { _id: -1 } });
     if (!leagueGroup) throw new NotFoundException(ErrorCodes.NOT_FOUND);
 
     const result = await Promise.all(
