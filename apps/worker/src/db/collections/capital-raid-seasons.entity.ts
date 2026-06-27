@@ -1,4 +1,4 @@
-export interface CapitalRaidSeasonEntity {
+export class CapitalRaidSeasonEntity {
   name: string;
   tag: string;
   weekId: string;

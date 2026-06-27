@@ -95,6 +95,15 @@ A separate Nest application, **not** an HTTP API in spirit — it exposes only `
 - Do **not** hand-edit `index.ts` barrel files — changes are overwritten on the next `build`. Add/rename the actual source file instead and the export is picked up.
 - A new directory only gets a barrel if you create an initial `index.ts` in it.
 
+## Module boundaries (ESLint-enforced)
+
+Three layers — `apps/api`, `apps/worker`, `libs` — with directed import rules enforced by a custom flat-config rule (`boundaries/no-cross-layer-import` in `eslint.config.mjs`):
+
+- `apps/api` and `apps/worker` are **independent services** and must never import each other. Share code through a lib (`@app/*`).
+- `libs/**` must never import from `apps/**` (libraries are lower-level shared code). If a lib needs something from an app, move that code into a lib instead — e.g. `UserRoles` lives in `@app/dto` and entities in `@app/collections` precisely so `libs/collections` stays app-free.
+
+Only relative imports can cross these boundaries (apps have no `@app/*` alias), so the rule resolves each relative import to an absolute path and classifies both ends. Violations are errors.
+
 ## Conventions & gotchas
 
 - TZ is forced to UTC at process start (`main.ts`); all cron/scheduling assumes UTC.

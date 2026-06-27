@@ -1,4 +1,4 @@
-export interface CapitalContributionEntity {
+export class CapitalContributionEntity {
   name: string;
   tag: string;
   season: string;

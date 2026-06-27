@@ -17,7 +17,7 @@ import {
   RosterGroupsEntity,
   RostersEntity,
   SettingsEntity,
-} from './collections';
+} from '@app/collections';
 
 export enum Collections {
   CLAN_STORES = 'ClanStores',

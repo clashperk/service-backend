@@ -5,6 +5,7 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 import globals from 'globals';
 import path from 'path';
 import tseslint from 'typescript-eslint';
+import { boundariesPlugin } from './libs/eslint-rules/boundaries.mjs';
 
 const gitignorePath = path.resolve('.gitignore');
 
@@ -45,9 +46,27 @@ export default tseslint.config(
     },
   },
   {
-    files: ['src/**/*.controller.ts'],
+    files: ['**/*.controller.ts'],
     rules: {
       '@typescript-eslint/explicit-function-return-type': 'error',
+    },
+  },
+  {
+    files: ['{apps,libs}/**/*.ts'],
+    plugins: { boundaries: boundariesPlugin },
+    rules: {
+      'boundaries/no-cross-layer-import': 'error',
+    },
+  },
+  {
+    // Flat-config / custom-rule files are plain ESM tooling, not part of any TS
+    // project. Lint them without the type-checked project service so the typed
+    // parser doesn't error with "not found by the project service".
+    files: ['**/*.mjs'],
+    ...tseslint.configs.disableTypeChecked,
+    languageOptions: {
+      sourceType: 'module',
+      parserOptions: { projectService: false, project: false },
     },
   },
 );

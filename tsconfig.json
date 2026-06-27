@@ -33,6 +33,8 @@
       "@app/discord-oauth/*": ["./libs/discord-oauth/src/*"],
       "@app/dto": ["./libs/dto"],
       "@app/dto/*": ["./libs/dto/*"],
+      "@app/collections": ["./libs/collections"],
+      "@app/collections/*": ["./libs/collections/*"],
       "@app/google-sheet": ["./libs/google-sheet/src"],
       "@app/google-sheet/*": ["./libs/google-sheet/src/*"],
       "@app/helpers": ["./libs/helpers"],
