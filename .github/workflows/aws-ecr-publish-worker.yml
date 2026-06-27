@@ -78,5 +78,5 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd worker
-            docker compose pull worker
-            docker compose up -d --remove-orphans worker
+            docker compose pull service-worker
+            docker compose up -d --remove-orphans service-worker
