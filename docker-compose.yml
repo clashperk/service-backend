@@ -1,7 +1,7 @@
 services:
-  backend:
-    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/clashperk-backend:latest
-    container_name: backend
+  api:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/clashperk-api:latest
+    container_name: service-api
     restart: always
     env_file:
       - .env
@@ -10,6 +10,20 @@ services:
     ports:
       - '8080:8080'
     mem_limit: 1g
+    networks:
+      - default_net
+
+  worker:
+    image: 432159388664.dkr.ecr.us-east-1.amazonaws.com/clashperk-worker:latest
+    container_name: service-worker
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - PORT=8090
+    ports:
+      - '8090:8090'
+    mem_limit: 2g
     networks:
       - default_net
 

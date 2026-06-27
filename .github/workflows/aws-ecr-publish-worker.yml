@@ -53,7 +53,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v3
         with:
-          images: ${{ steps.ecr-login.outputs.registry }}/worker-service
+          images: ${{ steps.ecr-login.outputs.registry }}/clashperk-worker
           tags: |
             type=raw,value=latest
             type=sha
@@ -78,5 +78,5 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd worker
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose pull worker
+            docker compose up -d --remove-orphans worker

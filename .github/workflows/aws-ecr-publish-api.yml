@@ -53,7 +53,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v3
         with:
-          images: ${{ steps.ecr-login.outputs.registry }}/clashperk-backend
+          images: ${{ steps.ecr-login.outputs.registry }}/clashperk-api
           tags: |
             type=raw,value=latest
             type=sha
@@ -78,5 +78,5 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           script: |
             cd api
-            docker compose pull
-            docker compose up -d --remove-orphans
+            docker compose pull api
+            docker compose up -d --remove-orphans api

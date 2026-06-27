@@ -1,6 +1,6 @@
 {
-  "name": "api",
-  "version": "2.0.1",
+  "name": "clashperk-backend",
+  "version": "2.0.2",
   "description": "",
   "author": "",
   "private": true,
@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/api/test/jest-e2e.json",
-    "prebuild": "ts-node scripts/make-index.ts"
+    "prebuild": "ts-node scripts/make-index.ts",
+    "release": "./scripts/release.sh"
   },
   "dependencies": {
     "@clickhouse/client": "^1.18.3",
