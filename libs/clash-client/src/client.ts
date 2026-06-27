@@ -7,6 +7,29 @@ export class Season {
     return this.getSeason().seasonId;
   }
 
+  public static get ending() {
+    const startTimestamp = this.getSeason().startTime.getTime();
+    return new Date(startTimestamp + 60 * 60 * 1000).getTime() > Date.now();
+  }
+
+  public static get monthId() {
+    return new Date().toISOString().substring(0, 7);
+  }
+
+  public static get tournamentID() {
+    const { startTime, id } = Util.getTournamentWindow();
+
+    const date = new Date();
+    if (
+      (date.getDay() === 1 && date.getHours() > 5) ||
+      (date.getDay() === 2 && date.getHours() < 5)
+    ) {
+      return moment(startTime).subtract(7, 'days').format('YYYY-MM-DD');
+    }
+
+    return id;
+  }
+
   public static getSeason(inputDate?: Date | string) {
     const currentDate = inputDate ? moment(inputDate).toDate() : new Date();
     if (

@@ -1,9 +1,9 @@
-name: aws-ecr-publish
+name: deploy-worker
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'worker-*'
   workflow_dispatch:
 
 env:
@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   build:
-    name: aws-ecr-publish
+    name: deploy-worker
     runs-on: ubuntu-24.04-arm
 
     steps:
@@ -53,7 +53,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@v3
         with:
-          images: ${{ steps.ecr-login.outputs.registry }}/clashperk-backend
+          images: ${{ steps.ecr-login.outputs.registry }}/worker-service
           tags: |
             type=raw,value=latest
             type=sha
@@ -66,6 +66,7 @@ jobs:
           push: true
           tags: ${{ steps.metadata.outputs.tags }}
           build-args: |
+            APP=worker
             GIT_SHA=${{ github.sha }}
 
       - name: Deploy
@@ -76,6 +77,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
-            cd api
+            cd worker
             docker compose pull
-            docker compose up -d
+            docker compose up -d --remove-orphans
