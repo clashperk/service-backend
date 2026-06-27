@@ -1,4 +1,5 @@
 import { RedisKeys } from '@app/constants';
+import { ResultOkDto } from '@app/dto';
 import { formatDuration } from '@app/helpers';
 import { Controller, Get, Inject } from '@nestjs/common';
 import Redis from 'ioredis';
@@ -20,12 +21,12 @@ export class AppController {
   }
 
   @Get('/health')
-  getHealth() {
+  getHealth(): ResultOkDto {
     return { message: 'Ok' };
   }
 
   @Get('/metrics')
-  async metrics() {
+  async metrics(): Promise<unknown> {
     const result = await this.redis.hgetall(RedisKeys.LOOP_TIMINGS);
 
     const metrics = Object.entries(result).reduce<Record<string, LoopMetrics>>(

@@ -1,4 +1,5 @@
 import { PRODUCTION_MODE } from '@app/constants';
+import { ResultOkDto } from '@app/dto';
 import { Controller, Post, UseGuards } from '@nestjs/common';
 import { ApiExcludeController, ApiSecurity } from '@nestjs/swagger';
 import { ApiKeyGuard } from '../auth';
@@ -11,7 +12,7 @@ export class TasksController {
   constructor() {}
 
   @Post('/')
-  runTask() {
+  runTask(): ResultOkDto {
     return { message: 'Ok' };
   }
 }
