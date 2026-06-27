@@ -1,10 +1,33 @@
 import { ConsoleLogger, Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
+import { randomUUID } from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import mapKeys from 'lodash/mapKeys';
 import pick from 'lodash/pick';
 import moment from 'moment';
-import { fallbackUser } from '../../src/auth';
+
+export class JwtUser {
+  userId: string;
+  username: string;
+  jti: string;
+  iat: number;
+  exp: number;
+  version: string;
+  roles: string[];
+  guildIds: string[];
+  applicationId?: string;
+  cacheMultiplier?: number;
+}
+export const fallbackUser: JwtUser = {
+  userId: '526971716711350273',
+  username: 'clashperk',
+  roles: ['admin'],
+  jti: randomUUID(),
+  guildIds: [],
+  version: 'v2',
+  exp: 0,
+  iat: 0,
+};
 
 export class CustomLogger extends ConsoleLogger {
   getTimestamp(): string {

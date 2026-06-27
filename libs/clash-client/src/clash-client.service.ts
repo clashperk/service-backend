@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   APIClan,
   APIClanWarLeagueRound,
@@ -7,12 +8,26 @@ import {
   SearchOptions,
 } from 'clashofclans.js';
 import moment from 'moment';
-import { ClanWarDto } from '../../../src/wars/dto/clan-wars.dto';
+import { ClanWarDto } from './clan-wars.dto';
 import { ClashClient } from './client';
 
 @Injectable()
 export class ClashClientService {
-  constructor(private clashClient: ClashClient) {}
+  constructor(
+    private clashClient: ClashClient,
+    private configService: ConfigService,
+  ) {}
+
+  /** Builds a dedicated, un-throttled ClashClient (rateLimit: 0). Used by apps/worker. */
+  getClient() {
+    const keyString = this.configService.getOrThrow('CLASH_API_TOKENS');
+    const keys = keyString.length ? keyString.split(',') : [];
+    return new ClashClient({
+      keys,
+      rateLimit: 0,
+      baseURL: this.configService.get('CLASH_API_BASE_URL'),
+    });
+  }
 
   async getClan(clanTag: string) {
     const { body, res } = await this.clashClient.getClan(clanTag);
