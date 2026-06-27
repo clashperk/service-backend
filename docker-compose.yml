@@ -21,6 +21,11 @@ services:
       - .env
     environment:
       - PORT=8090
+      - RANKING_TRACKING=1
+      - CLAN_TRACKING=1
+      - CAPITAL_TRACKING=1
+      - WAR_TRACKING=1
+      - PLAYER_TRACKING=1
     ports:
       - '8090:8090'
     mem_limit: 2g
