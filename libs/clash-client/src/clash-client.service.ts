@@ -8,8 +8,8 @@ import {
   SearchOptions,
 } from 'clashofclans.js';
 import moment from 'moment';
-import { ClanWarDto } from './clan-wars.dto';
 import { ClashClient } from './client';
+import { ClanWarDto } from './dto/clan-wars.dto';
 
 @Injectable()
 export class ClashClientService {

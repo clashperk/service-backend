@@ -1,4 +1,3 @@
-export * from './clan-wars.dto';
 export * from './clash-client.helper';
 export * from './clash-client.module';
 export * from './clash-client.service';

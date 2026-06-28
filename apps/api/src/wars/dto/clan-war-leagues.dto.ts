@@ -1,5 +1,5 @@
+import { ClanWarDto } from '@app/clash-client/dto';
 import { APIClanWarLeagueRound } from 'clashofclans.js';
-import { ClanWarDto } from './clan-wars.dto';
 
 export class ClanWarLeagueRound implements APIClanWarLeagueRound {
   warTags: string[];
