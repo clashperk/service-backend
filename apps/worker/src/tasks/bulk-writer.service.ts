@@ -40,7 +40,9 @@ export class BulkWriterService {
       format: 'JSONEachRow',
       values,
     });
-    this.logger.log(`Clickhouse took (${values.length}) ${Date.now() - startTime}ms`);
+    this.logger.log(
+      `Clickhouse took (${values.length}) (player_activities) ${Date.now() - startTime}ms`,
+    );
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS, { waitForCompletion: true })
@@ -56,7 +58,9 @@ export class BulkWriterService {
       format: 'JSONEachRow',
       values,
     });
-    this.logger.log(`Clickhouse took (${values.length}) ${Date.now() - startTime}ms`);
+    this.logger.log(
+      `Clickhouse took (${values.length}) (donation_records) ${Date.now() - startTime}ms`,
+    );
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS, { waitForCompletion: true })
@@ -72,7 +76,9 @@ export class BulkWriterService {
       format: 'JSONEachRow',
       values,
     });
-    this.logger.log(`Clickhouse took (${values.length}) ${Date.now() - startTime}ms`);
+    this.logger.log(
+      `Clickhouse took (${values.length}) (player_trophy_records) ${Date.now() - startTime}ms`,
+    );
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS, { waitForCompletion: true })
@@ -88,7 +94,9 @@ export class BulkWriterService {
       format: 'JSONEachRow',
       values,
     });
-    this.logger.log(`Clickhouse took (${values.length}) ${Date.now() - startTime}ms`);
+    this.logger.log(
+      `Clickhouse took (${values.length}) (player_unit_activities) ${Date.now() - startTime}ms`,
+    );
   }
 
   async reSyncClanHistory(player: {
