@@ -4,4 +4,5 @@ export * from './clash-client.service';
 export * from './client';
 export * from './constants';
 export * from './discord-link.service';
+export * from './dto';
 export * from './keygen.service';

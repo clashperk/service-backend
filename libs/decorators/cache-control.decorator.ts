@@ -1,5 +1,5 @@
 import { Config } from '@app/constants';
-import { HttpCacheInterceptor } from '@app/interceptors';
+import { HttpCacheInterceptor } from '@app/interceptors/http-cache.interceptor';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { applyDecorators, Header, UseInterceptors } from '@nestjs/common';
 import { ApiExtension } from '@nestjs/swagger';
