@@ -33,6 +33,24 @@ if (process.env.SENTRY_DSN) {
 const OTLP_ENDPOINT = process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://otel-collector:4318';
 
 /**
+ * Collapses a request path to a low-cardinality shape suitable for a metric label:
+ * `/v1/players/%232PP` -> `players/{tag}`, `/v1/locations/32000006/rankings/clans`
+ * -> `locations/{id}/rankings/clans`.
+ */
+function endpointShape(path: string): string {
+  const [withoutQuery] = path.split('?');
+  const shape = withoutQuery
+    .split('/')
+    .filter((segment) => segment && segment !== 'v1')
+    .map((segment) => {
+      if (segment.startsWith('%23') || segment.startsWith('#')) return '{tag}';
+      return /^\d+$/.test(segment) ? '{id}' : segment;
+    })
+    .join('/');
+  return shape || '/';
+}
+
+/**
  * Every fork needs a distinct `service.instance.id`: the collector's Prometheus
  * exporter maps it to the `instance` label, which is what keeps four forks
  * emitting the same counter from colliding into one contested series.
@@ -59,6 +77,19 @@ export const otelSDK = new NodeSDK({
       // Every readFile would otherwise become a span — enormous volume, no value.
       '@opentelemetry/instrumentation-fs': { enabled: false },
       '@opentelemetry/instrumentation-dns': { enabled: false },
+      '@opentelemetry/instrumentation-undici': {
+        // All outbound HTTP shares one span name ("GET"), so per-endpoint latency is
+        // invisible. url.full cannot be used as a metric dimension — one label value
+        // per player tag — so collapse the path to its shape instead: a bounded set
+        // like "players/{tag}" or "clans/{tag}/currentwar".
+        requestHook: (span, request) => {
+          try {
+            span.setAttribute('coc.endpoint', endpointShape(String(request.path)));
+          } catch {
+            // Instrumentation must never break the request it is measuring.
+          }
+        },
+      },
       // Per-process event loop lag and GC, which is how we tell "the API is slow"
       // apart from "the fork is CPU-starved".
       '@opentelemetry/instrumentation-runtime-node': { enabled: true },
