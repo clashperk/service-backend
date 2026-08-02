@@ -111,8 +111,8 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0
       clashofclans.js:
-        specifier: 4.0.7-dev.dadee85
-        version: 4.0.7-dev.dadee85
+        specifier: 4.0.7-dev.6c7ad88
+        version: 4.0.7-dev.6c7ad88
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -2556,8 +2556,8 @@ packages:
   cjs-module-lexer@2.2.0:
     resolution: {integrity: sha512-4bHTS2YuzUvtoLjdy+98ykbNB5jS0+07EvFNXerqZQJ89F7DI6ET7OQo/HJuW6K0aVsKA9hj9/RVb2kQVOrPDQ==}
 
-  clashofclans.js@4.0.7-dev.dadee85:
-    resolution: {integrity: sha512-+adf5sjIVsTjF1j+Rxyt/8l8owE1utPEe0OdkZyT5J5Wkbn+pJMEJitnc49DoGjvg/pgh1+cw/iDTlm3BYFDnw==}
+  clashofclans.js@4.0.7-dev.6c7ad88:
+    resolution: {integrity: sha512-cRtTUMOj9Ht7GrTiyq/y2PewIzkEHNYNcjtlcZWkMCvcgvIoguK3iYpoF3roxSFcDKfyC/ZJYJApy9JMyOafQA==}
     engines: {bun: '>=1.0.0', node: '>=20.x'}
 
   class-transformer@0.5.1:
@@ -7733,7 +7733,7 @@ snapshots:
 
   cjs-module-lexer@2.2.0: {}
 
-  clashofclans.js@4.0.7-dev.dadee85:
+  clashofclans.js@4.0.7-dev.6c7ad88:
     dependencies:
       undici: 7.28.0
 
