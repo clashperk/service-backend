@@ -17,11 +17,13 @@ import { APIClan, APIPlayer } from 'clashofclans.js';
 import Redis from 'ioredis';
 import chunk from 'lodash/chunk';
 import { AnyBulkWriteOperation, Db, InsertOneModel, UpdateFilter, UpdateOneModel } from 'mongodb';
+import { Traceable } from 'nestjs-otel';
 import { CapitalContributionEntity, ClanGamesEntity, PlayerSeasonEntity } from '../db';
 import { Elastic, ELASTIC_TOKEN } from '../db/elastic.module';
 import { Collections, MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_PUB_TOKEN, REDIS_TOKEN } from '../db/redis.module';
 import { RedisService } from '../db/redis.service';
+import { TrackerMetrics } from '../metrics/metrics.service';
 import { BulkWriterService } from '../tasks/bulk-writer.service';
 import { WorkerInitDto } from '../util/dto/worker.dto';
 import { Emitter } from '../util/emitter';
@@ -33,12 +35,21 @@ interface Cache {
 
 const CLAN_GAMES_STARTING_DATE = 22;
 
+/**
+ * `@Traceable()` wraps every method in an OpenTelemetry span, so each one shows
+ * up as `PlayersService.<method>` — the collector's spanmetrics connector turns
+ * those durations into Prometheus histograms. Mongo, Redis and outbound HTTP are
+ * instrumented automatically by the SDK, so nothing in here needs wrapping.
+ */
+@Traceable()
 export class PlayersService {
   private logger = new Logger(PlayersService.name);
   private cached: Map<string, Cache> = new Map();
   private refreshInterval = 5 * 60 * 1000;
   private bulkSize = 4;
   private clashClient: ClashClient;
+  /** Players fetched in the loop currently running (reset every enqueue). */
+  private loopFetchCount = 0;
 
   public constructor(
     @Inject(REDIS_TOKEN) private redis: Redis,
@@ -50,6 +61,7 @@ export class PlayersService {
     private eventEmitter: Emitter,
     private bulkWriter: BulkWriterService,
     private clashClientService: ClashClientService,
+    private metrics: TrackerMetrics,
   ) {
     this.clashClient = this.clashClientService.getClient();
   }
@@ -86,7 +98,7 @@ export class PlayersService {
     const contributionOperations: AnyBulkWriteOperation<CapitalContributionEntity>[] = [];
     const clanGamesOperations: AnyBulkWriteOperation<ClanGamesEntity>[] = [];
 
-    const players = await Promise.all(members.map((mem) => this.clashClient.getPlayer(mem.tag)));
+    const players = await Promise.all(members.map((mem) => this.getPlayer(mem.tag)));
 
     for (const member of members) {
       const player = players.find(({ res, body }) => res.ok && body.tag === member.tag)?.body;
@@ -125,6 +137,19 @@ export class PlayersService {
           .collection(Collections.CLAN_STORES)
           .updateMany({ tag: clan.tag }, { $set: { lastRan: new Date() } }),
     ]);
+  }
+
+  /** Counts the outcome of each fetch; the span itself comes from `@Traceable()`. */
+  private async getPlayer(tag: string) {
+    try {
+      const result = await this.clashClient.getPlayer(tag);
+      this.metrics.playerFetched(result.res.ok ? 'ok' : 'not_found');
+      this.loopFetchCount += 1;
+      return result;
+    } catch (error) {
+      this.metrics.playerFetched('error');
+      throw error;
+    }
   }
 
   private getUnitType(unitId: string) {
@@ -818,6 +843,8 @@ export class PlayersService {
       this.logger.debug(`Starting Requests (${this.cached.size} players) [bulk ${this.bulkSize}]`);
     }
     const startTime = Date.now();
+    this.loopFetchCount = 0;
+    this.metrics.clansCached('players', this.cached.size);
 
     try {
       for (const tags of chunk(Array.from(this.cached.keys()), this.bulkSize)) {
@@ -834,9 +861,13 @@ export class PlayersService {
       }
     } finally {
       const timeTaken = Date.now() - startTime;
+      const players = this.loopFetchCount;
+      this.metrics.loopCompleted('players', timeTaken, players);
+
       if ((process.env.DEBUG || debug) && !this.workerService.isInMaintenance) {
+        const perSecond = timeTaken > 0 ? (players / (timeTaken / 1000)).toFixed(1) : '0.0';
         this.logger.verbose(
-          `Finished Requests [${formatDuration(timeTaken)}] (Players, bulk ${this.bulkSize})`,
+          `Finished Requests [${formatDuration(timeTaken)}] (Players, bulk ${this.bulkSize}, ${players} players, ${perSecond}/sec)`,
         );
       }
 

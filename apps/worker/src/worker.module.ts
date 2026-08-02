@@ -5,8 +5,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { ClashClientModule } from '@app/clash-client';
-import * as Sentry from '@sentry/node';
 import { ClickhouseModule, MongoDbModule, RedisClientModule } from './db';
+import { MetricsModule } from './metrics/metrics.module';
 import { HttpLoggingMiddleware } from './util/http-logging.middleware';
 import { ElasticModule } from './db/elastic.module';
 import { MongoService } from './db/mongodb.service';
@@ -16,14 +16,8 @@ import { TrackerModule } from './tracker/tracker.module';
 import { AppController } from './worker.controller';
 import { WorkerService } from './worker.service';
 
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    serverName: 'clashperk_tracking_service',
-    environment: process.env.NODE_ENV ?? 'development',
-    integrations: [Sentry.httpIntegration({ breadcrumbs: false })],
-  });
-}
+// Sentry.init lives in ./otel.instrument so it runs before any instrumented
+// library is imported — see the comment at the top of main.ts.
 
 @Global()
 @Module({
@@ -49,6 +43,7 @@ class WorkerModule {}
     MongoDbModule,
     ElasticModule,
     ClickhouseModule,
+    MetricsModule,
 
     WorkerModule,
     TrackerModule,

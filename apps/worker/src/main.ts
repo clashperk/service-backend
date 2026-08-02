@@ -1,5 +1,9 @@
 process.env.TZ = 'UTC';
 import 'dotenv/config';
+// Must stay above every other import: OpenTelemetry can only patch libraries
+// that are loaded after it. This also owns Sentry.init for the same reason.
+import './otel.instrument';
+
 import 'moment-duration-format';
 
 import { Logger, ValidationPipe } from '@nestjs/common';

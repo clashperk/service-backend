@@ -21,6 +21,12 @@ services:
       - .env
     environment:
       - PORT=8090
+      # Every fork pushes spans and metrics to the shared OTel collector, which
+      # runs on Railway (project `monitoring`) alongside Prometheus and Grafana.
+      # OTEL_EXPORTER_OTLP_HEADERS carries the ingest credentials and lives in
+      # .env — the endpoint is public, so without it every export is rejected.
+      - OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector-production-eb06.up.railway.app
+      - OTEL_SERVICE_NAME=clashperk-worker
       - RANKING_TRACKING=1
       - CLAN_TRACKING=1
       - CAPITAL_TRACKING=1
