@@ -207,6 +207,8 @@ export class CapitalRaidService {
           lastSeen: new Date(),
         };
 
+        console.log(`${m.tag} seasons.${seasonId} [wars]`);
+
         ops.push({
           updateOne: {
             upsert: !!clanMember,
