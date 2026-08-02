@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { QueueThrottler, RequestHandler, RestManager, Util } from 'clashofclans.js';
-import moment from 'moment';
 
-export class Season {
+export class Season extends Util {
   public static get ID() {
     return this.getSeason().seasonId;
   }
@@ -17,59 +16,8 @@ export class Season {
   }
 
   public static get tournamentID() {
-    const { startTime, id } = Util.getTournamentWindow();
-
-    const date = new Date();
-    if (
-      (date.getDay() === 1 && date.getHours() > 5) ||
-      (date.getDay() === 2 && date.getHours() < 5)
-    ) {
-      return moment(startTime).subtract(7, 'days').format('YYYY-MM-DD');
-    }
-
+    const { id } = Util.getTournamentWindow();
     return id;
-  }
-
-  public static getSeason(inputDate?: Date | string) {
-    const currentDate = inputDate ? moment(inputDate).toDate() : new Date();
-    if (
-      currentDate > new Date('2025-08-25T05:00:00.000Z') &&
-      currentDate <= new Date('2025-10-06T05:00:00.000Z')
-    ) {
-      return {
-        seasonId: '2025-09',
-        startTime: new Date('2025-08-25T05:00:00.000Z'),
-        endTime: new Date('2025-10-06T05:00:00.000Z'),
-      };
-    }
-
-    if (
-      currentDate > new Date('2025-10-06T05:00:00.000Z') &&
-      currentDate <= new Date('2025-11-03T05:00:00.000Z')
-    ) {
-      return {
-        seasonId: '2025-10',
-        startTime: new Date('2025-10-06T05:00:00.000Z'),
-        endTime: new Date('2025-11-03T05:00:00.000Z'),
-      };
-    }
-
-    if (
-      currentDate > new Date('2025-11-03T05:00:00.000Z') &&
-      currentDate <= new Date('2025-12-01T05:00:00.000Z')
-    ) {
-      return {
-        seasonId: '2025-11',
-        startTime: new Date('2025-11-03T05:00:00.000Z'),
-        endTime: new Date('2025-12-01T05:00:00.000Z'),
-      };
-    }
-
-    const season = Util.getSeason(currentDate);
-    return {
-      ...season,
-      seasonId: moment(season.startTime).format('YYYY-MM'),
-    };
   }
 }
 
