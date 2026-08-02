@@ -227,6 +227,7 @@ export class PlayersService {
           action: 'UNKNOWN',
         });
 
+        console.log(`${payload.tag} seasons.${payload.seasonId} [wars]`);
         await this.db.collection(Collections.PLAYERS).updateOne(
           { tag: payload.tag },
           {
