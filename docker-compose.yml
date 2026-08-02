@@ -27,6 +27,20 @@ services:
       # .env — the endpoint is public, so without it every export is rejected.
       - OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector-production-eb06.up.railway.app
       - OTEL_SERVICE_NAME=clashperk-worker
+      #
+      # Trace sampling. Uncomment to cut span volume ~20x and see whether tracing
+      # overhead is what inflates player-fetch latency: curl on this VM measures a
+      # cold fetch at ~26ms while the worker records ~272ms for the same call.
+      #
+      # http_client_request_duration_seconds is recorded unconditionally by the
+      # undici instrumentation (recordRequestDuration runs outside the sampling
+      # decision), so it stays comparable across the A/B.
+      #
+      # Trade-off while enabled: traces_span_metrics_* counts drop by 1/ratio, so
+      # every span-derived RATE on the dashboards understates by ~20x. Latency
+      # percentiles stay valid. Re-comment once the question is answered.
+      - OTEL_TRACES_SAMPLER=parentbased_traceidratio
+      - OTEL_TRACES_SAMPLER_ARG=0.05
       - RANKING_TRACKING=1
       - CLAN_TRACKING=1
       - CAPITAL_TRACKING=1

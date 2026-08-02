@@ -13,6 +13,7 @@ import { MongoService } from './db/mongodb.service';
 import { RedisService } from './db/redis.service';
 import { TasksModule } from './tasks/tasks.module';
 import { TrackerModule } from './tracker/tracker.module';
+import { ProfilerController } from './util/profiler.controller';
 import { AppController } from './worker.controller';
 import { WorkerService } from './worker.service';
 
@@ -52,7 +53,7 @@ class WorkerModule {}
     ClashClientModule,
     TrackerModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, ProfilerController],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
