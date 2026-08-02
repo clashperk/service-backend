@@ -41,20 +41,6 @@ export class ClashClient extends RestManager {
       retryLimit: 0,
       baseURL,
       keys,
-
-      // Compression stays on: responses are ~5x smaller with no downside measured.
-      compression: true,
-
-      // HTTP/2 is deliberately OFF. Multiplexing many requests over a handful of TCP
-      // connections means a large response (the ranking endpoints return far more data
-      // than a player) blocks every small request sharing that connection. Enabling it
-      // doubled median API latency (172ms -> 306ms) and took the ranking loop from ~40s
-      // to over 3 minutes, even though small player fetches individually got faster.
-      // One connection per in-flight request avoids that contention entirely.
-      allowH2: false,
-      connections: null,
-      pipelining: 1,
-
       throttler: rateLimit ? new QueueThrottler(rateLimit) : null,
       onError: ({ path, status, body }) => {
         if (
