@@ -46,7 +46,7 @@ export class PlayersService {
   private logger = new Logger(PlayersService.name);
   private cached: Map<string, Cache> = new Map();
   private refreshInterval = 5 * 60 * 1000;
-  private bulkSize = 4;
+  private bulkSize = Number(process.env.BULK_SIZE || 1);
   private clashClient: ClashClient;
   /** Players fetched in the loop currently running (reset every enqueue). */
   private loopFetchCount = 0;
