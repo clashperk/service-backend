@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { QueueThrottler, RequestHandler, RestManager, Util } from 'clashofclans.js';
+import { getInflightLimiter } from './inflight-limiter';
 
 export class Season extends Util {
   public static get ID() {
@@ -52,5 +53,16 @@ export class ClashClient extends RestManager {
         }
       },
     });
+
+    // Every instance in the fork funnels through one shared semaphore; see
+    // inflight-limiter.ts for why depth, not rate, is what needs bounding.
+    const limiter = getInflightLimiter();
+    if (limiter) {
+      const handler = this.requestHandler;
+      const request: typeof handler.request = handler.request.bind(handler);
+      const rawRequest: typeof handler.rawRequest = handler.rawRequest.bind(handler);
+      handler.request = (path, options) => limiter.run(() => request(path, options));
+      handler.rawRequest = (path, options) => limiter.run(() => rawRequest(path, options));
+    }
   }
 }
