@@ -28,19 +28,19 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=https://otel-collector-production-eb06.up.railway.app
       - OTEL_SERVICE_NAME=clashperk-worker
       #
-      # Trace sampling. Uncomment to cut span volume ~20x and see whether tracing
-      # overhead is what inflates player-fetch latency: curl on this VM measures a
-      # cold fetch at ~26ms while the worker records ~272ms for the same call.
+      # Trace sampling — keep COMMENTED. The question this A/B was written for is
+      # answered: tracing overhead was NOT the latency culprit (the cause was
+      # in-flight concurrency; see libs/clash-client/src/inflight-limiter.ts).
       #
-      # http_client_request_duration_seconds is recorded unconditionally by the
-      # undici instrumentation (recordRequestDuration runs outside the sampling
-      # decision), so it stays comparable across the A/B.
-      #
-      # Trade-off while enabled: traces_span_metrics_* counts drop by 1/ratio, so
-      # every span-derived RATE on the dashboards understates by ~20x. Latency
-      # percentiles stay valid. Re-comment once the question is answered.
-      - OTEL_TRACES_SAMPLER=parentbased_traceidratio
-      - OTEL_TRACES_SAMPLER_ARG=0.05
+      # Enabling it quietly breaks the dashboards: parentbased samples at the
+      # ROOT span (one enqueue per fork per cycle), so child spans like
+      # PlayersService.startPolling drop wholesale and every span-derived rate
+      # reads 0 or ~1/20th of reality. This bit on 2026-08-04 when a container
+      # recreate picked these lines up and "Clans polled" flatlined at 0.
+      # The collector handles the full ~3,000 spans/s fine, so there is no
+      # stability reason to sample.
+      # - OTEL_TRACES_SAMPLER=parentbased_traceidratio
+      # - OTEL_TRACES_SAMPLER_ARG=0.05
       - RANKING_TRACKING=1
       - CLAN_TRACKING=1
       - CAPITAL_TRACKING=1
