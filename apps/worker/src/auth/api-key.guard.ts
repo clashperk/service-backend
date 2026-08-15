@@ -1,3 +1,4 @@
+import { JwtUser } from '@app/auth';
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
@@ -19,5 +20,11 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     return true;
+  }
+}
+
+declare module 'express' {
+  interface Request {
+    user?: JwtUser;
   }
 }

@@ -2,8 +2,7 @@ import { Cache } from '@app/decorators';
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
-import { ClanWarLeaguesDto } from './dto';
-import { ClanWarDto } from './dto/clan-wars.dto';
+import { ClanWarDto, ClanWarLeaguesDto } from './dto';
 import { WarsService } from './wars.service';
 
 @Controller('/wars')

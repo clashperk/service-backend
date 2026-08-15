@@ -1,11 +1,6 @@
-import {
-  ClashClient,
-  ClashClientService,
-  getPreviousBestAttack,
-  Season,
-} from '@app/clash-client';
+import { ClashClient, ClashClientService, getPreviousBestAttack } from '@app/clash-client';
 import { Flags, RedisChannels, RedisKeys, WarType, WorkerEvents } from '@app/constants';
-import { formatDuration } from '@app/helpers';
+import { formatDuration, Season } from '@app/helpers';
 import { Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import {
@@ -421,6 +416,12 @@ export class WarsService {
       const wars = await Promise.all(round.warTags.map((warTag) => this.fetchWithWarTag(warTag)));
       for (const { body, res, warTag } of wars) {
         if (!res.ok) continue;
+
+        if (!body?.clan?.tag) {
+          this.logger.warn(`body.clan.tag is not available - ${warTag}`);
+          continue;
+        }
+
         times.push(this.toDate(body.startTime).getTime());
         if (!warTags[body.clan.tag].includes(warTag)) warTags[body.clan.tag].push(warTag);
         if (!warTags[body.opponent.tag].includes(warTag)) warTags[body.opponent.tag].push(warTag);

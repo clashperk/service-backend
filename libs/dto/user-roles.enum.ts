@@ -1,0 +1,20 @@
+export enum UserRoles {
+  USER = 'user',
+  ADMIN = 'admin',
+  VIEWER = 'viewer',
+
+  FETCH_WARS = 'fetch:wars',
+  FETCH_CLANS = 'fetch:clans',
+  FETCH_PLAYERS = 'fetch:players',
+
+  FETCH_LEGENDS = 'fetch:legends',
+
+  FETCH_LINKS = 'fetch:links',
+  MANAGE_LINKS = 'manage:links',
+
+  FETCH_ROSTERS = 'fetch:rosters',
+
+  MANAGE_ROSTERS = 'manage:rosters',
+
+  MANAGE_REMINDERS = 'manage:reminders',
+}

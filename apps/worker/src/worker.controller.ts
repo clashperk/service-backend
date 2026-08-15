@@ -6,6 +6,7 @@ import camelCase from 'lodash/camelCase';
 import { REDIS_TOKEN } from './db';
 import { LoopMetrics } from './util/dto';
 import { WorkerService } from './worker.service';
+import { ResultOkDto } from '@app/dto';
 
 @Controller('/')
 export class AppController {
@@ -20,12 +21,12 @@ export class AppController {
   }
 
   @Get('/health')
-  getHealth() {
+  getHealth(): ResultOkDto {
     return { message: 'Ok' };
   }
 
   @Get('/metrics')
-  async metrics() {
+  async metrics(): Promise<unknown> {
     const result = await this.redis.hgetall(RedisKeys.LOOP_TIMINGS);
 
     const metrics = Object.entries(result).reduce<Record<string, LoopMetrics>>(

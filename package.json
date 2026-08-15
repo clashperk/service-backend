@@ -1,6 +1,6 @@
 {
   "name": "clashperk-backend",
-  "version": "2.0.3",
+  "version": "2.0.24",
   "description": "",
   "author": "",
   "private": true,
@@ -48,7 +48,7 @@
     "@sentry/profiling-node": "^10.32.1",
     "bull": "^4.16.5",
     "cache-manager": "^7.2.0",
-    "clashofclans.js": "^4.0.5",
+    "clashofclans.js": "4.0.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
@@ -122,6 +122,8 @@
       "^@app/constants(|/.*)$": "<rootDir>/libs/constants/$1",
       "^@app/decorators(|/.*)$": "<rootDir>/libs/decorators/$1",
       "^@app/discord-oauth(|/.*)$": "<rootDir>/libs/discord-oauth/src/$1",
+      "^@app/dto(|/.*)$": "<rootDir>/libs/dto/$1",
+      "^@app/collections(|/.*)$": "<rootDir>/libs/collections/$1",
       "^@app/google-sheet(|/.*)$": "<rootDir>/libs/google-sheet/src/$1",
       "^@app/helpers(|/.*)$": "<rootDir>/libs/helpers/$1",
       "^@app/interceptors(|/.*)$": "<rootDir>/libs/interceptors/$1"

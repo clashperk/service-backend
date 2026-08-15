@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { QueueThrottler, RequestHandler, RestManager, Util } from 'clashofclans.js';
-import moment from 'moment';
+import { getInflightLimiter } from './inflight-limiter';
 
-export class Season {
+export class Season extends Util {
   public static get ID() {
     return this.getSeason().seasonId;
   }
@@ -17,59 +17,8 @@ export class Season {
   }
 
   public static get tournamentID() {
-    const { startTime, id } = Util.getTournamentWindow();
-
-    const date = new Date();
-    if (
-      (date.getDay() === 1 && date.getHours() > 5) ||
-      (date.getDay() === 2 && date.getHours() < 5)
-    ) {
-      return moment(startTime).subtract(7, 'days').format('YYYY-MM-DD');
-    }
-
+    const { id } = Util.getTournamentWindow();
     return id;
-  }
-
-  public static getSeason(inputDate?: Date | string) {
-    const currentDate = inputDate ? moment(inputDate).toDate() : new Date();
-    if (
-      currentDate > new Date('2025-08-25T05:00:00.000Z') &&
-      currentDate <= new Date('2025-10-06T05:00:00.000Z')
-    ) {
-      return {
-        seasonId: '2025-09',
-        startTime: new Date('2025-08-25T05:00:00.000Z'),
-        endTime: new Date('2025-10-06T05:00:00.000Z'),
-      };
-    }
-
-    if (
-      currentDate > new Date('2025-10-06T05:00:00.000Z') &&
-      currentDate <= new Date('2025-11-03T05:00:00.000Z')
-    ) {
-      return {
-        seasonId: '2025-10',
-        startTime: new Date('2025-10-06T05:00:00.000Z'),
-        endTime: new Date('2025-11-03T05:00:00.000Z'),
-      };
-    }
-
-    if (
-      currentDate > new Date('2025-11-03T05:00:00.000Z') &&
-      currentDate <= new Date('2025-12-01T05:00:00.000Z')
-    ) {
-      return {
-        seasonId: '2025-11',
-        startTime: new Date('2025-11-03T05:00:00.000Z'),
-        endTime: new Date('2025-12-01T05:00:00.000Z'),
-      };
-    }
-
-    const season = Util.getSeason(currentDate);
-    return {
-      ...season,
-      seasonId: moment(season.startTime).format('YYYY-MM'),
-    };
   }
 }
 
@@ -104,5 +53,16 @@ export class ClashClient extends RestManager {
         }
       },
     });
+
+    // Every instance in the fork funnels through one shared semaphore; see
+    // inflight-limiter.ts for why depth, not rate, is what needs bounding.
+    const limiter = getInflightLimiter();
+    if (limiter) {
+      const handler = this.requestHandler;
+      const request: typeof handler.request = handler.request.bind(handler);
+      const rawRequest: typeof handler.rawRequest = handler.rawRequest.bind(handler);
+      handler.request = (path, options) => limiter.run(() => request(path, options));
+      handler.rawRequest = (path, options) => limiter.run(() => rawRequest(path, options));
+    }
   }
 }

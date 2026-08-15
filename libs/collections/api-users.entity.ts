@@ -1,4 +1,4 @@
-import { UserRoles } from '../../auth/dto';
+import { UserRoles } from '@app/dto';
 
 export class ApiUsersEntity {
   userId: string;

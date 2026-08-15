@@ -5,9 +5,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { ClashClientModule } from '@app/clash-client';
+import { HttpLoggingMiddleware } from '@app/interceptors';
 import * as Sentry from '@sentry/node';
 import { ClickhouseModule, MongoDbModule, RedisClientModule } from './db';
-import { HttpLoggingMiddleware } from './util/http-logging.middleware';
 import { ElasticModule } from './db/elastic.module';
 import { MongoService } from './db/mongodb.service';
 import { RedisService } from './db/redis.service';
