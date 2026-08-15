@@ -18,14 +18,24 @@ import Redis from 'ioredis';
 import chunk from 'lodash/chunk';
 import { AnyBulkWriteOperation, Db, InsertOneModel, UpdateFilter, UpdateOneModel } from 'mongodb';
 import { CapitalContributionEntity, ClanGamesEntity, PlayerSeasonEntity } from '../db';
-import { Elastic, ELASTIC_TOKEN } from '../db/elastic.module';
 import { Collections, MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_PUB_TOKEN, REDIS_TOKEN } from '../db/redis.module';
 import { RedisService } from '../db/redis.service';
-import { BulkWriterService } from '../tasks/bulk-writer.service';
+import { BulkWriterService, ClanMemberEventRecord } from '../tasks/bulk-writer.service';
 import { WorkerInitDto } from '../util/dto/worker.dto';
 import { Emitter } from '../util/emitter';
 import { WorkerService } from '../worker.service';
+
+/** Payload shape emitted alongside {@link WorkerEvents.CLAN_MEMBER_UPDATE_DETECTED}. */
+interface ClanMemberUpdateEvent {
+  name: string;
+  tag: string;
+  clan_name: string;
+  clan_tag: string;
+  op: ClanMemberEventRecord['op'];
+  value: number;
+  created_at: Date;
+}
 
 interface Cache {
   tag: string;
@@ -44,7 +54,6 @@ export class PlayersService {
     @Inject(REDIS_TOKEN) private redis: Redis,
     @Inject(REDIS_PUB_TOKEN) private publisher: Redis,
     @Inject(MONGODB_TOKEN) private db: Db,
-    @Inject(ELASTIC_TOKEN) private elastic: Elastic,
     private workerService: WorkerService,
     private redisService: RedisService,
     private eventEmitter: Emitter,
@@ -67,12 +76,18 @@ export class PlayersService {
   }
 
   @OnEvent(WorkerEvents.CLAN_MEMBER_UPDATE_DETECTED)
-  async onClanMemberUpdate(players: any[]) {
-    const operations = players.flatMap((player) => [
-      { index: { _index: 'clan_member_event_logs' } },
-      player,
-    ]);
-    await this.elastic.bulk({ refresh: false, operations });
+  onClanMemberUpdate(events: ClanMemberUpdateEvent[]) {
+    this.bulkWriter.clanMemberEvents.push(
+      ...events.map((event) => ({
+        tag: event.tag,
+        name: event.name,
+        clanTag: event.clan_tag,
+        clanName: event.clan_name,
+        op: event.op,
+        value: event.value,
+        createdAt: Math.floor(new Date(event.created_at).getTime() / 1000),
+      })),
+    );
   }
 
   @OnEvent(WorkerEvents.JOIN_LEAVE_DETECTED)

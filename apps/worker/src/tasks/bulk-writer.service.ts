@@ -14,6 +14,8 @@ export class BulkWriterService {
   public donations: DonationRecord[] = [];
   public playerProgress: PlayerTroopsRecord[] = [];
   public trophyChanges: TrophyChangeRecord[] = [];
+  public clanEvents: ClanEventRecord[] = [];
+  public clanMemberEvents: ClanMemberEventRecord[] = [];
 
   public constructor(
     @Inject(GLOBAL_MONGODB_TOKEN) private db: Db,
@@ -25,6 +27,8 @@ export class BulkWriterService {
     await this.writePlayerActivities();
     await this.writeDonationActivities();
     await this.writeUnitActivities();
+    await this.writeClanEvents();
+    await this.writeClanMemberEvents();
   }
 
   @Cron(CronExpression.EVERY_10_SECONDS, { waitForCompletion: true })
@@ -85,6 +89,43 @@ export class BulkWriterService {
     const startTime = Date.now();
     await this.clickhouse.insert<PlayerTroopsRecord>({
       table: 'player_unit_activities',
+      format: 'JSONEachRow',
+      values,
+    });
+    this.logger.log(`Clickhouse took (${values.length}) ${Date.now() - startTime}ms`);
+  }
+
+  /**
+   * Clan and member events are rare compared to the buffers above (a clan levels up, a member
+   * upgrades a town hall), so these flush whatever is queued rather than waiting for a batch
+   * threshold that could hold a handful of rows in memory for hours.
+   */
+  @Cron(CronExpression.EVERY_10_SECONDS, { waitForCompletion: true })
+  async writeClanEvents() {
+    if (!this.clanEvents.length) return;
+
+    const values = this.clanEvents;
+    this.clanEvents = [];
+
+    const startTime = Date.now();
+    await this.clickhouse.insert<ClanEventRecord>({
+      table: 'clan_event_logs',
+      format: 'JSONEachRow',
+      values,
+    });
+    this.logger.log(`Clickhouse took (${values.length}) ${Date.now() - startTime}ms`);
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS, { waitForCompletion: true })
+  async writeClanMemberEvents() {
+    if (!this.clanMemberEvents.length) return;
+
+    const values = this.clanMemberEvents;
+    this.clanMemberEvents = [];
+
+    const startTime = Date.now();
+    await this.clickhouse.insert<ClanMemberEventRecord>({
+      table: 'clan_member_event_logs',
       format: 'JSONEachRow',
       values,
     });
@@ -208,4 +249,22 @@ export interface PlayerActivityRecord {
   clanTag: string;
   timestamp: number;
   action: 'OPTED_IN' | 'OPTED_OUT' | 'LEFT_CLAN' | 'JOINED_CLAN' | 'UNKNOWN';
+}
+
+export interface ClanEventRecord {
+  tag: string;
+  name: string;
+  op: 'CLAN_LEVEL_UP' | 'WAR_LEAGUE_CHANGE' | 'CAPITAL_LEAGUE_CHANGE' | 'CAPITAL_HALL_LEVEL_UP';
+  value: number;
+  createdAt: number;
+}
+
+export interface ClanMemberEventRecord {
+  tag: string;
+  name: string;
+  clanTag: string;
+  clanName: string;
+  op: 'TOWN_HALL_UPGRADE';
+  value: number;
+  createdAt: number;
 }

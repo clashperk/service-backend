@@ -8,7 +8,6 @@ import { ClashClientModule } from '@app/clash-client';
 import { HttpLoggingMiddleware } from '@app/interceptors';
 import * as Sentry from '@sentry/node';
 import { ClickhouseModule, MongoDbModule, RedisClientModule } from './db';
-import { ElasticModule } from './db/elastic.module';
 import { MongoService } from './db/mongodb.service';
 import { RedisService } from './db/redis.service';
 import { TasksModule } from './tasks/tasks.module';
@@ -47,7 +46,6 @@ class WorkerModule {}
 
     RedisClientModule,
     MongoDbModule,
-    ElasticModule,
     ClickhouseModule,
 
     WorkerModule,

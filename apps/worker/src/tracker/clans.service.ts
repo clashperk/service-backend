@@ -16,13 +16,21 @@ import { APIClan } from 'clashofclans.js';
 import Redis from 'ioredis';
 import { AnyBulkWriteOperation, Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN, REDIS_PUB_TOKEN, REDIS_TOKEN } from '../db';
-import { Elastic, ELASTIC_TOKEN } from '../db/elastic.module';
 import { MongoService } from '../db/mongodb.service';
 import { RedisService } from '../db/redis.service';
-import { BulkWriterService } from '../tasks/bulk-writer.service';
+import { BulkWriterService, ClanEventRecord } from '../tasks/bulk-writer.service';
 import { LastSeenMembersInputDto, WorkerInitDto } from '../util/dto';
 import { Emitter } from '../util/emitter';
 import { WorkerService } from '../worker.service';
+
+/** Payload shape emitted alongside {@link WorkerEvents.CLAN_UPDATE_DETECTED}. */
+interface ClanUpdateEvent {
+  name: string;
+  tag: string;
+  op: ClanEventRecord['op'];
+  value: number;
+  created_at: Date;
+}
 
 @Injectable()
 export class ClansService {
@@ -36,7 +44,6 @@ export class ClansService {
     @Inject(REDIS_TOKEN) private redis: Redis,
     @Inject(REDIS_PUB_TOKEN) private publisher: Redis,
     @Inject(MONGODB_TOKEN) private db: Db,
-    @Inject(ELASTIC_TOKEN) private elastic: Elastic,
     private workerService: WorkerService,
     private redisService: RedisService,
     private eventEmitter: Emitter,
@@ -559,9 +566,16 @@ export class ClansService {
   }
 
   @OnEvent(WorkerEvents.CLAN_UPDATE_DETECTED)
-  async onClanUpdate(events: any[]) {
-    const operations = events.flatMap((ev) => [{ index: { _index: 'clan_event_logs' } }, ev]);
-    await this.elastic.bulk({ refresh: false, operations });
+  onClanUpdate(events: ClanUpdateEvent[]) {
+    this.bulkWriter.clanEvents.push(
+      ...events.map((event) => ({
+        tag: event.tag,
+        name: event.name,
+        op: event.op,
+        value: event.value,
+        createdAt: Math.floor(new Date(event.created_at).getTime() / 1000),
+      })),
+    );
   }
 
   @OnEvent(WorkerEvents.CLAN_UPSTREAM)

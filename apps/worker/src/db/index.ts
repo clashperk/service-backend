@@ -1,6 +1,6 @@
 export * from './clickhouse.module';
 export * from './collections';
-export * from './elastic.module';
+export * from './migrations';
 export * from './mongodb.module';
 export * from './mongodb.service';
 export * from './redis.module';
