@@ -50,10 +50,8 @@ export const clickhouseMigrations: ClickhouseMigration[] = [
     ],
   },
   {
-    // The Elasticsearch mappings these tables replace carried a `diff` field that the current
-    // trackers never populate. Kept so the one-off backfill of historical events stays lossless;
-    // rows written by the worker leave it at 0. Safe to drop this migration if the backfill's
-    // dry run reports no documents carrying `diff`.
+    // Carried over from the legacy event log documents that were backfilled into these tables,
+    // which had a `diff` field. Nothing writes it any more - rows from the worker leave it at 0.
     name: '0003_event_logs_diff_column',
     statements: [
       `ALTER TABLE clan_event_logs ADD COLUMN IF NOT EXISTS diff Int64 DEFAULT 0`,
