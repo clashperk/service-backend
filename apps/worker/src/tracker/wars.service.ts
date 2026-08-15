@@ -1,6 +1,6 @@
-import { ClashClient, ClashClientService, getPreviousBestAttack } from '@app/clash-client';
+import { ClashClient, ClashClientService, getPreviousBestAttack, Season } from '@app/clash-client';
 import { Flags, RedisChannels, RedisKeys, WarType, WorkerEvents } from '@app/constants';
-import { formatDuration, Season } from '@app/helpers';
+import { formatDuration } from '@app/helpers';
 import { Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import {
