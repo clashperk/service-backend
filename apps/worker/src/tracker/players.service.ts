@@ -9,7 +9,7 @@ import {
   UNITS_MAP_BY_ID,
   WorkerEvents,
 } from '@app/constants';
-import { formatDuration, transformAPIPlayer } from '@app/helpers';
+import { formatDuration, numCPUs, transformAPIPlayer } from '@app/helpers';
 import { APIPlayerTransformed, PartialMember } from '@app/helpers/types';
 import { Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -47,7 +47,7 @@ export class PlayersService {
   private logger = new Logger(PlayersService.name);
   private cached: Map<string, Cache> = new Map();
   private refreshInterval = 5 * 60 * 1000;
-  private bulkSize = 4;
+  private bulkSize = numCPUs;
   private clashClient: ClashClient;
 
   public constructor(
