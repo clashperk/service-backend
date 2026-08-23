@@ -19,6 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/api/test/jest-e2e.json",
     "prebuild": "ts-node scripts/make-index.ts",
+    "capture:feed": "ts-node -r tsconfig-paths/register scripts/capture-upstream-feed.ts",
     "migrate:clickhouse": "ts-node -r tsconfig-paths/register scripts/migrate-clickhouse.ts up",
     "migrate:clickhouse:status": "ts-node -r tsconfig-paths/register scripts/migrate-clickhouse.ts status",
     "release": "./scripts/release.sh"
