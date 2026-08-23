@@ -1,5 +1,5 @@
 import { ClashClient, ClashClientService } from '@app/clash-client';
-import { RedisChannels, WorkerEvents } from '@app/constants';
+import { INACTIVE_GUILD_DURATION, RedisChannels, WorkerEvents } from '@app/constants';
 import { formatDuration, isValidWorker } from '@app/helpers';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -66,6 +66,10 @@ export class WorkerService {
         {
           $match: {
             paused: false,
+            $or: [
+              { lastExecution: { $exists: false } },
+              { lastExecution: { $gt: new Date(Date.now() - INACTIVE_GUILD_DURATION) } },
+            ],
           },
         },
         {

@@ -16,6 +16,8 @@ export const SNOWFLAKE_REGEX = /^\d{17,19}/;
 
 export const TAG_REGEX = /^#?[0289CGJLOPQRUVY]+$/i;
 
+export const INACTIVE_GUILD_DURATION = 365 * 24 * 60 * 60 * 1000;
+
 export const LEGEND_LEAGUE_ID = 105000036;
 
 export const UNRANKED_TIER_ID = 105000000;

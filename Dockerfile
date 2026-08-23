@@ -4,14 +4,14 @@ WORKDIR /app
 
 FROM nodejs AS installer
 
-RUN npm install -g pnpm@10.26.2
+RUN npm install -g pnpm@11.22.0
 
 FROM installer AS builder
 
 # Which monorepo app to build: "api" or "worker".
 ARG APP=api
 
-COPY --chown=node:node package.json pnpm-lock.yaml ./
+COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN pnpm i
 
@@ -25,7 +25,7 @@ USER node
 
 FROM installer AS pruner
 
-COPY --chown=node:node package.json pnpm-lock.yaml ./
+COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 RUN pnpm i --prod
 

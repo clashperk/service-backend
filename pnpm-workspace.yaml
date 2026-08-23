@@ -1,0 +1,6 @@
+allowBuilds:
+  '@nestjs/core': false
+  '@scarf/scarf': false
+  '@sentry-internal/node-cpu-profiler': true
+  msgpackr-extract: false
+  unrs-resolver: true
