@@ -7,7 +7,7 @@ export function generateHash(body: string) {
 }
 
 /** Number of cluster forks the tracking worker (apps/worker) spawns. */
-export const numCPUs = process.env.NODE_ENV === 'production' ? 4 : 1;
+export const numCPUs = process.env.NODE_ENV === 'production' ? 2 : 1;
 
 /** Shards work across cluster forks: a unit `id` belongs to the current fork. */
 export const isValidWorker = (id: number) => {
