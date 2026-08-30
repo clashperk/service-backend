@@ -247,7 +247,8 @@ export interface PlayerTroopsRecord {
 export interface PlayerActivityRecord {
   tag: string;
   clanTag: string;
-  timestamp: number;
+  /** Seconds. Must stay named for the column: JSONEachRow silently drops fields the table does not have. */
+  createdAt: number;
   action: 'OPTED_IN' | 'OPTED_OUT' | 'LEFT_CLAN' | 'JOINED_CLAN' | 'UNKNOWN';
 }
 

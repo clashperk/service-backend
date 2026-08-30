@@ -68,7 +68,7 @@ export class PlayersService {
     this.bulkWriter.activities.push(
       ...players.map((player) => ({
         tag: player.tag,
-        timestamp: Math.floor(Date.now() / 1000),
+        createdAt: Math.floor(Date.now() / 1000),
         clanTag: player.clanTag,
         action: player.value === 'in' ? ('OPTED_IN' as const) : ('OPTED_OUT' as const),
       })),
@@ -237,7 +237,7 @@ export class PlayersService {
       ) {
         this.bulkWriter.activities.push({
           tag: player.tag,
-          timestamp: Math.floor(Date.now() / 1000),
+          createdAt: Math.floor(Date.now() / 1000),
           clanTag: player.clan?.tag ?? '#00000',
           action: 'UNKNOWN',
         });

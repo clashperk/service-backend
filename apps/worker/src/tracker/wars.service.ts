@@ -768,7 +768,7 @@ export class WarsService {
       });
       this.bulkWriter.activities.push({
         tag: m.tag,
-        timestamp: Math.floor(Date.now() / 1000),
+        createdAt: Math.floor(Date.now() / 1000),
         clanTag: clan.tag,
         action: 'UNKNOWN',
       });
