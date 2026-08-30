@@ -63,4 +63,4 @@ scripts/*.json
 .claude/**/*.local.md
 
 # upstream_feed capture (contains real player names/tags)
-upstream-corpus*.jsonl
+upstream-shapes*.jsonl

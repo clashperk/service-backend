@@ -1,19 +1,25 @@
 #!/usr/bin/env node
 
 /**
- * Captures the `upstream_feed` packets the worker publishes, and derives an
- * empirical schema from them.
+ * Collects one exemplar of every distinct `upstream_feed` packet shape.
  *
- * The packets are built inline as untyped objects at each emit site, and the
+ * The packets are built inline as untyped objects at each emit site and the
  * shapes are not uniform — the `clan` sub-object alone carries a different
- * field set in almost every op. Porting a tracker to Go means reproducing them
- * exactly, so the corpus this writes is the reference the Go encoder is tested
- * against.
+ * field set in almost every op. Reproducing them in Go means knowing the exact
+ * shapes, and reading the emit sites is not enough to be sure.
  *
- *   npm run capture:feed -- record [--out FILE] [--seconds N] [--max N]
+ * Recording everything for a fixed window does not work either: donation and
+ * feed packets arrive constantly, but league changes fire at a season boundary,
+ * clan games once a month, and town hall upgrades whenever a player finishes
+ * one. So this keeps one exemplar per distinct shape and nothing else, which
+ * means it can be left running for weeks for the cost of a few KB.
+ *
+ *   npm run capture:feed -- record [--out FILE] [--redact] [--seconds N]
  *   npm run capture:feed -- summarize [FILE]
  *
- * The corpus holds real player names and tags. It is gitignored; keep it that way.
+ * Restarting resumes: existing shapes are loaded first and only genuinely new
+ * ones are appended. With --redact, names and tags are replaced by stable
+ * placeholders, which makes the output safe to commit as Go test fixtures.
  */
 
 import 'dotenv/config';
@@ -23,7 +29,7 @@ import { appendFileSync, createReadStream, existsSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 
 const CHANNEL = 'upstream_feed';
-const DEFAULT_OUT = 'upstream-corpus.jsonl';
+const DEFAULT_OUT = 'upstream-shapes.jsonl';
 
 /** Mirrors libs/constants Flags; the bot switches on these raw values. */
 const OP_NAMES: Record<number, string> = {
@@ -50,44 +56,128 @@ const requireEnv = (key: string) => {
   return value;
 };
 
+/**
+ * A packet's shape signature: every flattened path plus its type. Two packets
+ * share a signature when the Go struct that encodes them would be identical.
+ */
+function signature(packet: unknown): string {
+  const fields = new Map<string, FieldStat>();
+  walk(packet, '', fields);
+
+  return [...fields]
+    .map(([path, stat]) => `${path}:${[...stat.types].sort().join('|')}`)
+    .sort()
+    .join(',');
+}
+
+/**
+ * Replaces names and tags with stable placeholders, so the same tag maps to the
+ * same value everywhere in a packet and cross-references still line up.
+ */
+function redact(value: unknown, key = '', seen = new Map<string, string>()): unknown {
+  if (Array.isArray(value)) return value.map((item) => redact(item, key, seen));
+
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([childKey, child]) => [childKey, redact(child, childKey, seen)]),
+    );
+  }
+
+  if (typeof value !== 'string') return value;
+
+  const isTag = key === 'tag' || key.endsWith('Tag');
+  const isName = key === 'name' || key.endsWith('Name');
+  if (!isTag && !isName) return value;
+
+  const existing = seen.get(value);
+  if (existing) return existing;
+
+  const placeholder = isTag ? `#TAG${seen.size.toString().padStart(4, '0')}` : `Name ${seen.size}`;
+  seen.set(value, placeholder);
+  return placeholder;
+}
+
 async function record() {
   const out = flag('out', DEFAULT_OUT)!;
-  const seconds = Number(flag('seconds', '900'));
-  const max = Number(flag('max', '100000'));
+  const shouldRedact = process.argv.includes('--redact');
+  const seconds = Number(flag('seconds', '0'));
+
+  // Resume: a shape already on disk is not new, so a restart adds nothing.
+  const known = new Set<string>();
+  if (existsSync(out)) {
+    const existing = createInterface({ input: createReadStream(out), crlfDelay: Infinity });
+    for await (const line of existing) {
+      if (!line.trim()) continue;
+      try {
+        known.add(JSON.parse(line).signature);
+      } catch {
+        continue;
+      }
+    }
+    console.log(`Resuming with ${known.size} shapes already recorded in ${out}`);
+  }
 
   const redis = new Redis(requireEnv('REDIS_URL'));
-  const counts = new Map<number, number>();
-  let total = 0;
+  const byOp = new Map<number, number>();
+  let seen = 0;
 
   const finish = async (reason: string) => {
     await redis.quit();
-    console.log(`\n${reason}. Wrote ${total} packets to ${out}`);
-    for (const [op, count] of [...counts].sort((a, b) => b[1] - a[1])) {
-      console.log(`  ${String(op).padStart(6)} ${(OP_NAMES[op] ?? '?').padEnd(18)} ${count}`);
+    console.log(`\n${reason}. ${known.size} distinct shapes from ${seen} packets -> ${out}`);
+    for (const [op, count] of [...byOp].sort((a, b) => a[0] - b[0])) {
+      console.log(
+        `  ${String(op).padStart(6)} ${(OP_NAMES[op] ?? '?').padEnd(18)} ${count} shapes`,
+      );
     }
+
+    const missing = Object.entries(OP_NAMES).filter(([op]) => !byOp.has(Number(op)));
+    if (missing.length) {
+      console.log(`\nNot seen yet: ${missing.map(([, name]) => name).join(', ')}`);
+      console.log('Rare ops need a longer run; league changes need a season boundary.');
+    }
+
     console.log(`\nNext: npm run capture:feed -- summarize ${out}`);
     process.exit(0);
   };
 
   await redis.subscribe(CHANNEL);
-  console.log(`Subscribed to ${CHANNEL}. Recording for ${seconds}s (max ${max})...`);
+  console.log(
+    `Subscribed to ${CHANNEL}. Recording distinct shapes${seconds ? ` for ${seconds}s` : ' until interrupted'}...`,
+  );
 
   redis.on('message', (_channel, message) => {
-    appendFileSync(out, message + '\n');
-    total += 1;
+    seen += 1;
 
+    let packet: Record<string, unknown>;
     try {
-      const op = JSON.parse(message).op;
-      counts.set(op, (counts.get(op) ?? 0) + 1);
+      packet = JSON.parse(message);
     } catch {
-      counts.set(-1, (counts.get(-1) ?? 0) + 1);
+      return;
     }
 
-    if (total % 250 === 0) process.stdout.write(`\r  ${total} packets`);
-    if (total >= max) void finish('Hit max');
+    const sig = signature(packet);
+    if (known.has(sig)) return;
+    known.add(sig);
+
+    const op = typeof packet.op === 'number' ? packet.op : -1;
+    byOp.set(op, (byOp.get(op) ?? 0) + 1);
+
+    appendFileSync(
+      out,
+      JSON.stringify({
+        op,
+        signature: sig,
+        firstSeen: new Date().toISOString(),
+        packet: shouldRedact ? redact(packet) : packet,
+      }) + '\n',
+    );
+
+    console.log(
+      `  new shape #${known.size} — op ${op} ${OP_NAMES[op] ?? '?'} (after ${seen} packets)`,
+    );
   });
 
-  setTimeout(() => void finish('Time is up'), seconds * 1000);
+  if (seconds) setTimeout(() => void finish('Time is up'), seconds * 1000);
   process.on('SIGINT', () => void finish('Interrupted'));
 }
 
@@ -149,16 +239,19 @@ async function summarize() {
       continue;
     }
 
-    const op = typeof packet.op === 'number' ? packet.op : -1;
+    // Shape files wrap the exemplar; a raw corpus line is the packet itself.
+    const inner = (packet.packet ?? packet) as Record<string, unknown>;
+
+    const op = typeof inner.op === 'number' ? inner.op : -1;
     const entry = byOp.get(op) ?? { packets: 0, fields: new Map<string, FieldStat>() };
     entry.packets += 1;
-    walk(packet, '', entry.fields);
+    walk(inner, '', entry.fields);
     byOp.set(op, entry);
   }
 
   for (const [op, entry] of [...byOp].sort((a, b) => a[0] - b[0])) {
     console.log(`\n${'='.repeat(78)}`);
-    console.log(`op ${op} — ${OP_NAMES[op] ?? 'UNKNOWN'} — ${entry.packets} packets`);
+    console.log(`op ${op} — ${OP_NAMES[op] ?? 'UNKNOWN'} — ${entry.packets} distinct shapes`);
     console.log('='.repeat(78));
 
     // Array-scoped paths repeat per element, so their share is relative to the
@@ -182,8 +275,9 @@ async function summarize() {
   }
 
   console.log(`\n${'='.repeat(78)}`);
-  console.log('OPTIONAL fields are the ones that need omitempty in Go. Everything');
-  console.log('else must always be emitted, including zero values and empty arrays.');
+  console.log('A field below 100% appears in some shapes of this op but not all,');
+  console.log('so it needs omitempty in Go. Everything at 100% must always be');
+  console.log('emitted, including zero values and empty arrays.');
 }
 
 const main = async () => {
