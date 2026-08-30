@@ -559,7 +559,7 @@ export class ClansService {
       ...players.map((player) => ({
         tag: player.tag,
         clanTag: clan.tag,
-        timestamp: Math.floor(Date.now() / 1000),
+        createdAt: Math.floor(Date.now() / 1000),
         action: player.op === 'JOINED' ? ('JOINED_CLAN' as const) : ('LEFT_CLAN' as const),
       })),
     );
