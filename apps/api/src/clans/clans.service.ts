@@ -60,7 +60,8 @@ export class ClansService {
       members: clan.members,
       memberList: clan.memberList.map((member) => {
         const link = linksMap.get(member.tag);
-        const isOwner = !!link && (link.userId === user.userId || link.linkedBy === user.userId);
+        const isOwner = link?.userId === user.userId;
+        const isLinker = link?.linkedBy === user.userId;
 
         return {
           name: member.name,
@@ -71,7 +72,7 @@ export class ClansService {
           username: link?.username ?? null,
           displayName: link?.displayName ?? null,
           verified: !!link?.verified,
-          deletable: !!link && (isAdmin || isOwner || (!link.verified && isLeader)),
+          deletable: !!link && (isAdmin || isOwner || (!link.verified && (isLinker || isLeader))),
         };
       }),
     };
