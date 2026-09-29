@@ -1,4 +1,5 @@
 export * from './api-users.entity';
+export * from './capital-contributions.entity';
 export * from './clan-categories.entity';
 export * from './clan-stores.entity';
 export * from './clan-wars.entity';

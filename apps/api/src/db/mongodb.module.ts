@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Db, MongoClient } from 'mongodb';
 import {
   ApiUsersEntity,
+  CapitalContributionsEntity,
   ClanCategoriesEntity,
   ClanStoresEntity,
   ClanWarsEntity,
@@ -39,6 +40,7 @@ export enum Collections {
   GOOGLE_SHEETS = 'GoogleSheets',
 
   CLAN_GAMES_POINTS = 'ClanGamesPoints',
+  CAPITAL_CONTRIBUTIONS = 'CapitalContributions',
 
   ROSTERS = 'Rosters',
   ROSTER_GROUPS = 'RosterCategories',
@@ -64,6 +66,7 @@ interface CollectionRecords {
   [Collections.GLOBAL_CLAN_HISTORY]: GlobalClanHistoryEntity;
   [Collections.LEGEND_ATTACKS]: LegendAttacksEntity;
   [Collections.CWL_GROUPS]: CWLGroupsEntity;
+  [Collections.CAPITAL_CONTRIBUTIONS]: CapitalContributionsEntity;
 
   [Collections.ROSTERS]: RostersEntity;
   [Collections.ROSTER_GROUPS]: RosterGroupsEntity;

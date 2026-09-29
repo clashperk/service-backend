@@ -1,6 +1,6 @@
 import { ClashClientService } from '@app/clash-client';
 import { ErrorCodes } from '@app/dto';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { APIPlayer } from 'clashofclans.js';
 import { Db, ObjectId, WithId } from 'mongodb';
 import { Collections, MONGODB_TOKEN, PlayerLinksEntity, RostersEntity } from '../db';
@@ -13,6 +13,8 @@ export class RostersService {
   ) {}
 
   async getRoster(input: { rosterId: string; guildId: string }) {
+    if (!ObjectId.isValid(input.rosterId)) throw new NotFoundException(ErrorCodes.NOT_FOUND);
+
     const roster = await this.rosters.findOne({
       _id: new ObjectId(input.rosterId),
       guildId: input.guildId,
@@ -32,6 +34,7 @@ export class RostersService {
 
   async transferRosterMembers({
     rosterId,
+    guildId,
     playerTags,
     newRosterId,
     newGroupId,
@@ -39,10 +42,15 @@ export class RostersService {
     rosterId: string;
     guildId: string;
     playerTags: string[];
-    newRosterId: string;
-    newGroupId: string;
+    newRosterId?: string;
+    newGroupId?: string;
   }) {
-    if (rosterId === newRosterId && newGroupId) {
+    // The guild guard only covers the guildId param, so both rosters and the group must belong to it.
+    await this.getRoster({ rosterId, guildId });
+    if (newGroupId) await this.getGroup({ groupId: newGroupId, guildId });
+
+    if (!newRosterId || newRosterId === rosterId) {
+      if (!newGroupId) throw new BadRequestException('newRosterId or newGroupId is required.');
       const roster = await this.swapMemberGroups({
         rosterId,
         playerTags,
@@ -52,11 +60,12 @@ export class RostersService {
       return { roster, result: [] };
     }
 
+    await this.getRoster({ rosterId: newRosterId, guildId });
     return this.swapRoster({
       rosterId,
       playerTags,
       newRosterId,
-      categoryId: newGroupId,
+      categoryId: newGroupId ?? null,
     });
   }
 
@@ -75,6 +84,14 @@ export class RostersService {
     );
 
     return this.getRosterById(rosterId);
+  }
+
+  private async getGroup({ groupId, guildId }: { groupId: string; guildId: string }) {
+    const group = ObjectId.isValid(groupId)
+      ? await this.groups.findOne({ _id: new ObjectId(groupId), guildId })
+      : null;
+    if (group) return group;
+    throw new NotFoundException(ErrorCodes.NOT_FOUND);
   }
 
   private async getRosterById(rosterId: string) {

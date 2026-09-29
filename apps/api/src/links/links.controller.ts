@@ -13,13 +13,13 @@ export class LinksController {
   constructor(private linksService: LinksService) {}
 
   @Post('/')
-  @Roles([UserRoles.MANAGE_LINKS])
+  @Roles([UserRoles.USER, UserRoles.MANAGE_LINKS])
   async link(@CurrentUser() user: JwtUser, @Body() body: CreateLinkInputDto): Promise<ResultOkDto> {
     return this.linksService.createLink(user.userId, body);
   }
 
   @Delete('/:playerTag')
-  @Roles([UserRoles.MANAGE_LINKS])
+  @Roles([UserRoles.USER, UserRoles.MANAGE_LINKS])
   async unlink(
     @CurrentUser() user: JwtUser,
     @Param('playerTag') playerTag: string,
