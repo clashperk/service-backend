@@ -58,7 +58,7 @@ export class LinksService {
         },
         $setOnInsert: {
           order: 0,
-          source: 'bot',
+          source: 'web',
           createdAt: new Date(),
         },
       },
@@ -90,13 +90,16 @@ export class LinksService {
     return { message: 'Ok' };
   }
 
-  /** Owners and linkers can always unlink; verified Leaders/Co-Leaders can unlink unverified members. */
+  /**
+   * Only the owner can unlink a verified account. Unverified links can be removed by
+   * whoever created them, or by a verified Leader/Co-Leader of the player's clan.
+   */
   private async assertCanUnlink(userId: string, link: PlayerLinksEntity) {
-    if (link.userId === userId || link.linkedBy === userId) return;
-
-    if (link.verified) {
+    if (link.userId !== userId && link.verified) {
       throw new ForbiddenException('You cannot unlink an account that is verified.');
     }
+
+    if (link.userId === userId || link.linkedBy === userId) return;
 
     const player = await this.clashClientService.getPlayer(link.tag);
     if (!player?.clan) {
