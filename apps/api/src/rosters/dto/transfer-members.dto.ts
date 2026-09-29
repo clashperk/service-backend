@@ -1,4 +1,5 @@
 import { ObjectIdValidator } from '@app/dto';
+import { ApiProperty } from '@nestjs/swagger';
 import { ArrayMinSize, IsArray, IsNotEmpty, Validate, ValidateIf } from 'class-validator';
 import { RostersEntity } from '../../db';
 
@@ -10,12 +11,14 @@ export class TransferRosterMembersInput {
   @ValidateIf((input) => !input.newGroupId)
   @Validate(ObjectIdValidator)
   @IsNotEmpty()
-  newRosterId: string;
+  @ApiProperty({ required: false, description: 'Required unless newGroupId is set.' })
+  newRosterId?: string;
 
   @ValidateIf((input) => !input.newRosterId)
   @Validate(ObjectIdValidator)
   @IsNotEmpty()
-  newGroupId: string;
+  @ApiProperty({ required: false, description: 'Required unless newRosterId is set.' })
+  newGroupId?: string;
 }
 
 export class TransferRosterMembersDto {
