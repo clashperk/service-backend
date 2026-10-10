@@ -1,6 +1,20 @@
+import { ApiProperty } from '@nestjs/swagger';
+
 export class ReminderClanDto {
   tag: string;
   name: string;
+}
+
+export class ReminderScheduleDto {
+  id: string;
+  clan: ReminderClanDto;
+  /** When the bot pings (or pinged) for this clan. */
+  timestamp: Date;
+  triggered: boolean;
+  /** Bot outcome once handled, e.g. `reminder_sent_successfully` or a skip reason. */
+  reason: string | null;
+  @ApiProperty({ enum: ['normal', 'friendly', 'cwl'], nullable: true })
+  warType: 'normal' | 'friendly' | 'cwl' | null;
 }
 
 export class ReminderBaseDto {
@@ -16,6 +30,8 @@ export class ReminderBaseDto {
   roles: string[];
   linkedOnly: boolean;
   clans: ReminderClanDto[];
+  /** Runs from the last 3 days and upcoming ones, oldest first. The bot drops older runs. */
+  schedules: ReminderScheduleDto[];
   createdAt: Date;
 }
 

@@ -34,3 +34,19 @@ export interface ClanGamesRemindersEntity extends ReminderBaseEntity {
   allMembers: boolean;
   minPoints: number;
 }
+
+export interface ReminderSchedulesEntity {
+  _id: ObjectId;
+  guild: string;
+  name: string;
+  tag: string;
+  duration: number;
+  reminderId: ObjectId;
+  triggered: boolean;
+  /** Set by the bot once a schedule is handled: why it was sent or skipped. */
+  reason?: string;
+  isFriendly?: boolean;
+  warTag?: string | null;
+  timestamp: Date;
+  createdAt: Date;
+}
