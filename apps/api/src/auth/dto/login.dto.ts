@@ -1,5 +1,12 @@
 import { EnumArray } from '@app/decorators';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { UserRoles } from './user-roles.dto';
 
 export class LoginInputDto {
@@ -102,4 +109,16 @@ export class HandoffUserDto {
   applicationId: string | null;
 
   avatarUrl: string | null;
+}
+
+export class BotGuildsInputDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @ArrayMaxSize(200)
+  @IsString({ each: true })
+  guildIds: string[];
+}
+
+export class BotGuildsDto {
+  guilds: HandoffGuildDto[];
 }

@@ -223,6 +223,21 @@ export class AuthService {
     return { token, guild: { id: payload.guildId, ...guild }, user };
   }
 
+  /** The subset of `guildIds` that ClashPerk is in, with each server's name and icon. */
+  async getBotGuilds(guildIds: string[]) {
+    const guilds = await this.guilds
+      .find({ guild: { $in: guildIds } }, { projection: { _id: 0, guild: 1, name: 1, iconUrl: 1 } })
+      .toArray();
+
+    return {
+      guilds: guilds.map((guild) => ({
+        id: guild.guild as string,
+        name: (guild.name as string) || 'Unknown',
+        iconUrl: (guild.iconUrl as string) || null,
+      })),
+    };
+  }
+
   async revalidateJwtUser(payload: JwtUser) {
     if (payload.roles.includes(UserRoles.ADMIN)) return payload;
 
