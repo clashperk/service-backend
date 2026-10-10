@@ -1,7 +1,7 @@
 import { REST } from '@discordjs/rest';
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { APIGuild, APIGuildMember, APIUser, Routes } from 'discord-api-types/v10';
+import { APIChannel, APIGuild, APIGuildMember, APIUser, Routes } from 'discord-api-types/v10';
 import { URLSearchParams } from 'url';
 
 const rest = new REST({ version: '10' });
@@ -54,6 +54,21 @@ export class DiscordOauthService {
     });
 
     return payload as APIGuild;
+  }
+
+  async listChannels(input: { guildId: string; token: string | null }): Promise<APIChannel[]> {
+    const rest = new REST({ version: '10' });
+
+    input.token ??= this.configService.getOrThrow<string>('DISCORD_TOKEN');
+    rest.setToken(input.token);
+
+    const payload = await rest.get(Routes.guildChannels(input.guildId), {
+      headers: {
+        Authorization: `Bot ${input.token}`,
+      },
+    });
+
+    return payload as APIChannel[];
   }
 
   public toAvatarUrl(userId: string, avatar: string | null) {

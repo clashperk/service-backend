@@ -4,8 +4,11 @@ import { Db, MongoClient } from 'mongodb';
 import {
   ApiUsersEntity,
   CapitalContributionsEntity,
+  CapitalRaidRemindersEntity,
   ClanCategoriesEntity,
+  ClanGamesRemindersEntity,
   ClanStoresEntity,
+  ClanWarRemindersEntity,
   ClanWarsEntity,
   CustomBotsEntity,
   CWLGroupsEntity,
@@ -15,6 +18,7 @@ import {
   LegendAttacksEntity,
   PlayerLinksEntity,
   PlayersEntity,
+  ReminderSchedulesEntity,
   RosterGroupsEntity,
   RostersEntity,
   SettingsEntity,
@@ -45,6 +49,13 @@ export enum Collections {
   ROSTERS = 'Rosters',
   ROSTER_GROUPS = 'RosterCategories',
 
+  CLAN_WAR_REMINDERS = 'Reminders',
+  CAPITAL_RAID_REMINDERS = 'RaidReminders',
+  CLAN_GAMES_REMINDERS = 'ClanGamesReminders',
+  CLAN_WAR_SCHEDULES = 'Schedulers',
+  CAPITAL_RAID_SCHEDULES = 'RaidSchedulers',
+  CLAN_GAMES_SCHEDULES = 'ClanGamesSchedulers',
+
   GLOBAL_CLANS = 'global_clans',
   GLOBAL_PLAYERS = 'global_players',
   GLOBAL_CLAN_HISTORY = 'global_clan_history',
@@ -70,6 +81,13 @@ interface CollectionRecords {
 
   [Collections.ROSTERS]: RostersEntity;
   [Collections.ROSTER_GROUPS]: RosterGroupsEntity;
+
+  [Collections.CLAN_WAR_REMINDERS]: ClanWarRemindersEntity;
+  [Collections.CAPITAL_RAID_REMINDERS]: CapitalRaidRemindersEntity;
+  [Collections.CLAN_GAMES_REMINDERS]: ClanGamesRemindersEntity;
+  [Collections.CLAN_WAR_SCHEDULES]: ReminderSchedulesEntity;
+  [Collections.CAPITAL_RAID_SCHEDULES]: ReminderSchedulesEntity;
+  [Collections.CLAN_GAMES_SCHEDULES]: ReminderSchedulesEntity;
 }
 
 declare module 'mongodb' {

@@ -2,7 +2,32 @@ import { DiscordOauthService } from '@app/discord-oauth';
 import { Inject, Injectable } from '@nestjs/common';
 import { AnyBulkWriteOperation, Db, ObjectId } from 'mongodb';
 import { ClanCategoriesEntity, ClanStoresEntity, Collections, MONGODB_TOKEN } from '../db';
-import { GuildClanDto, ReorderClanCategoriesInput } from './dto';
+import {
+  GuildClanDto,
+  GuildRemindersDto,
+  ReminderBaseDto,
+  ReminderScheduleDto,
+  ReorderClanCategoriesInput,
+} from './dto';
+
+// Only war schedules carry `isFriendly`; raid and clan games schedules have no war type.
+const toWarType = (schedule: { warTag?: string | null; isFriendly?: boolean }) => {
+  if (schedule.warTag) return 'cwl' as const;
+  if (schedule.isFriendly === undefined) return null;
+  return schedule.isFriendly ? ('friendly' as const) : ('normal' as const);
+};
+
+type ReminderEntityBase = {
+  _id: ObjectId;
+  channel: string;
+  threadId?: string;
+  message: string;
+  duration: number;
+  roles: string[];
+  linkedOnly?: boolean;
+  clans: string[];
+  createdAt: Date;
+};
 
 const uncategorizedId = 'uncategorized';
 
@@ -134,6 +159,132 @@ export class GuildsService {
     await this.settings.updateOne({ guildId }, { $set: { clansSortingKey: 'order' } });
 
     return this.getGuildClans(guildId);
+  }
+
+  async getGuildReminders(input: {
+    guildId: string;
+    applicationId: string | null;
+  }): Promise<GuildRemindersDto> {
+    const { guildId } = input;
+    const [
+      clanWars,
+      capitalRaids,
+      clanGames,
+      warSchedules,
+      raidSchedules,
+      gamesSchedules,
+      clans,
+      channelNames,
+    ] = await Promise.all([
+      this.db.collection(Collections.CLAN_WAR_REMINDERS).find({ guild: guildId }).toArray(),
+      this.db.collection(Collections.CAPITAL_RAID_REMINDERS).find({ guild: guildId }).toArray(),
+      this.db.collection(Collections.CLAN_GAMES_REMINDERS).find({ guild: guildId }).toArray(),
+      this.getSchedules(Collections.CLAN_WAR_SCHEDULES, guildId),
+      this.getSchedules(Collections.CAPITAL_RAID_SCHEDULES, guildId),
+      this.getSchedules(Collections.CLAN_GAMES_SCHEDULES, guildId),
+      this.clans.find({ guild: guildId }, { projection: { name: 1, tag: 1 } }).toArray(),
+      this.getChannelNames(input),
+    ]);
+
+    const clanNames = new Map(clans.map((clan) => [clan.tag, clan.name]));
+    const schedulesByReminder = new Map<string, ReminderScheduleDto[]>();
+    for (const schedule of [...warSchedules, ...raidSchedules, ...gamesSchedules]) {
+      const key = schedule.reminderId.toHexString();
+      const list = schedulesByReminder.get(key) ?? [];
+      list.push({
+        id: schedule._id.toHexString(),
+        clan: { tag: schedule.tag, name: clanNames.get(schedule.tag) ?? schedule.name },
+        timestamp: schedule.timestamp,
+        triggered: schedule.triggered,
+        reason: schedule.reason ?? null,
+        warType: toWarType(schedule),
+      });
+      schedulesByReminder.set(key, list);
+    }
+
+    // Picks fields explicitly so the webhook token never leaves the API.
+    const toBase = (reminder: ReminderEntityBase): ReminderBaseDto => ({
+      id: reminder._id.toHexString(),
+      shortId: reminder._id.toHexString().slice(-5).toUpperCase(),
+      channelId: reminder.channel,
+      channelName: channelNames.get(reminder.channel) ?? null,
+      threadId: reminder.threadId ?? null,
+      message: reminder.message,
+      duration: reminder.duration,
+      roles: reminder.roles,
+      linkedOnly: reminder.linkedOnly ?? false,
+      clans: reminder.clans.map((tag) => ({ tag, name: clanNames.get(tag) ?? tag })),
+      schedules: schedulesByReminder.get(reminder._id.toHexString()) ?? [],
+      createdAt: reminder.createdAt,
+    });
+
+    return {
+      clanWars: clanWars.map((reminder) => ({
+        ...toBase(reminder),
+        disabled: reminder.disabled,
+        townHalls: reminder.townHalls,
+        remaining: reminder.remaining,
+        warTypes: reminder.warTypes,
+        smartSkip: reminder.smartSkip,
+        silent: reminder.silent,
+        randomLimit: reminder.randomLimit ?? null,
+      })),
+      capitalRaids: capitalRaids.map((reminder) => ({
+        ...toBase(reminder),
+        allMembers: reminder.allMembers,
+        minThreshold: reminder.minThreshold,
+        remaining: reminder.remaining,
+      })),
+      clanGames: clanGames.map((reminder) => ({
+        ...toBase(reminder),
+        allMembers: reminder.allMembers,
+        minPoints: reminder.minPoints,
+      })),
+    };
+  }
+
+  private getSchedules(
+    collection:
+      | Collections.CLAN_WAR_SCHEDULES
+      | Collections.CAPITAL_RAID_SCHEDULES
+      | Collections.CLAN_GAMES_SCHEDULES,
+    guildId: string,
+  ) {
+    return this.db
+      .collection(collection)
+      .find(
+        { guild: guildId },
+        {
+          projection: {
+            reminderId: 1,
+            tag: 1,
+            name: 1,
+            timestamp: 1,
+            triggered: 1,
+            reason: 1,
+            isFriendly: 1,
+            warTag: 1,
+          },
+          sort: { timestamp: 1 },
+        },
+      )
+      .toArray();
+  }
+
+  /** Channel names are cosmetic, so a bot without access to the server just yields none. */
+  private async getChannelNames(input: { guildId: string; applicationId: string | null }) {
+    try {
+      const bot = input.applicationId
+        ? await this.bots.findOne({ serviceId: input.applicationId })
+        : null;
+      const channels = await this.discordOauthService.listChannels({
+        guildId: input.guildId,
+        token: bot ? bot.token : null,
+      });
+      return new Map(channels.map((channel) => [channel.id, channel.name ?? null]));
+    } catch {
+      return new Map<string, string | null>();
+    }
   }
 
   private get clans() {
