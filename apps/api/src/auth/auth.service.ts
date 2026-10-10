@@ -223,6 +223,37 @@ export class AuthService {
     return { token, guild: { id: payload.guildId, ...guild }, user };
   }
 
+  /** The subset of `guildIds` that ClashPerk is in, with each server's name, icon and clan count. */
+  async getBotGuilds(guildIds: string[]) {
+    const [guilds, clanCounts] = await Promise.all([
+      this.guilds
+        .find(
+          { guild: { $in: guildIds } },
+          { projection: { _id: 0, guild: 1, name: 1, iconUrl: 1 } },
+        )
+        .toArray(),
+      this.clans
+        .aggregate<{
+          _id: string;
+          count: number;
+        }>([
+          { $match: { guild: { $in: guildIds } } },
+          { $group: { _id: '$guild', count: { $sum: 1 } } },
+        ])
+        .toArray(),
+    ]);
+    const clansByGuild = new Map(clanCounts.map((row) => [row._id, row.count]));
+
+    return {
+      guilds: guilds.map((guild) => ({
+        id: guild.guild as string,
+        name: (guild.name as string) || 'Unknown',
+        iconUrl: (guild.iconUrl as string) || null,
+        clanCount: clansByGuild.get(guild.guild as string) ?? 0,
+      })),
+    };
+  }
+
   async revalidateJwtUser(payload: JwtUser) {
     if (payload.roles.includes(UserRoles.ADMIN)) return payload;
 
@@ -261,5 +292,9 @@ export class AuthService {
 
   private get guilds() {
     return this.db.collection(Collections.BOT_GUILDS);
+  }
+
+  private get clans() {
+    return this.db.collection(Collections.CLAN_STORES);
   }
 }

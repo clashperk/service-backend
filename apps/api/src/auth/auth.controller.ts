@@ -1,11 +1,13 @@
 import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { paragraph } from '@app/helpers';
-import { Body, Controller, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiExtraModels, ApiOperation } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
+  BotGuildsDto,
+  BotGuildsInputDto,
   GenerateTokenDto,
   GenerateTokenInputDto,
   HandoffTokenDto,
@@ -88,5 +90,14 @@ export class AuthController {
   @ApiKeyAuth()
   async createHandoffToken(@Body() body: HandoffTokenInputDto): Promise<HandoffTokenDto> {
     return this.authService.createHandoffToken(body);
+  }
+
+  @Post('/bot-guilds')
+  @ApiExcludeRoute()
+  @UseGuards(ApiKeyGuard)
+  @ApiKeyAuth()
+  @HttpCode(200)
+  async getBotGuilds(@Body() body: BotGuildsInputDto): Promise<BotGuildsDto> {
+    return this.authService.getBotGuilds(body.guildIds);
   }
 }
