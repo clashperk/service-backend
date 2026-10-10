@@ -53,6 +53,7 @@ export class GuildsService {
       id: member.user.id,
       username: member.user.username,
       displayName: member.user.global_name || member.user.username,
+      avatarUrl: this.discordOauthService.toAvatarUrl(member.user.id, member.user.avatar),
     }));
   }
 
