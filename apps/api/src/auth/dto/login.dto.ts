@@ -119,6 +119,10 @@ export class BotGuildsInputDto {
   guildIds: string[];
 }
 
+export class BotGuildDto extends HandoffGuildDto {
+  clanCount: number;
+}
+
 export class BotGuildsDto {
-  guilds: HandoffGuildDto[];
+  guilds: BotGuildDto[];
 }
