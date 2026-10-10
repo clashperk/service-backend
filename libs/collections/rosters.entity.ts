@@ -13,11 +13,13 @@ export class RostersEntity {
   minHeroLevels?: number;
   roleId?: string | null;
   colorCode?: number;
+  /** null when the roster was detached from a clan ("All Clans") */
+  @ApiProperty({ nullable: true })
   clan: {
     tag: string;
     name: string;
     badgeUrl: string;
-  };
+  } | null;
   members: RosterMemberOfRostersEntity[];
   layout?: string;
   sheetId?: string;

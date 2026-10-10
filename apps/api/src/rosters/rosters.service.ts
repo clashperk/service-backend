@@ -297,8 +297,8 @@ export class RostersService {
         return {
           success: false,
           message: isOwner
-            ? `You are already signed up for another roster (${dup.clan.name} - ${dup.name})`
-            : `This player is already signed up for another roster (${dup.clan.name} - ${dup.name})`,
+            ? `You are already signed up for another roster (${dup.clan?.name ?? 'All Clans'} - ${dup.name})`
+            : `This player is already signed up for another roster (${dup.clan?.name ?? 'All Clans'} - ${dup.name})`,
         };
       }
     }
@@ -319,8 +319,8 @@ export class RostersService {
         return {
           success: false,
           message: isOwner
-            ? `You are already signed up for another roster (${dup.clan.name} - ${dup.name}) that does not allow multi-signup.`
-            : `This player is already signed up for another roster (${dup.clan.name} - ${dup.name}) that does not allow multi-signup.`,
+            ? `You are already signed up for another roster (${dup.clan?.name ?? 'All Clans'} - ${dup.name}) that does not allow multi-signup.`
+            : `This player is already signed up for another roster (${dup.clan?.name ?? 'All Clans'} - ${dup.name}) that does not allow multi-signup.`,
         };
       }
     }
