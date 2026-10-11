@@ -4,6 +4,7 @@ import { Db, MongoClient } from 'mongodb';
 import {
   ApiUsersEntity,
   CapitalContributionsEntity,
+  CapitalRaidSeasonsEntity,
   CapitalRaidRemindersEntity,
   ClanCategoriesEntity,
   ClanGamesRemindersEntity,
@@ -45,6 +46,7 @@ export enum Collections {
 
   CLAN_GAMES_POINTS = 'ClanGamesPoints',
   CAPITAL_CONTRIBUTIONS = 'CapitalContributions',
+  CAPITAL_RAID_SEASONS = 'CapitalRaidSeasons',
 
   ROSTERS = 'Rosters',
   ROSTER_GROUPS = 'RosterCategories',
@@ -78,6 +80,7 @@ interface CollectionRecords {
   [Collections.LEGEND_ATTACKS]: LegendAttacksEntity;
   [Collections.CWL_GROUPS]: CWLGroupsEntity;
   [Collections.CAPITAL_CONTRIBUTIONS]: CapitalContributionsEntity;
+  [Collections.CAPITAL_RAID_SEASONS]: CapitalRaidSeasonsEntity;
 
   [Collections.ROSTERS]: RostersEntity;
   [Collections.ROSTER_GROUPS]: RosterGroupsEntity;
