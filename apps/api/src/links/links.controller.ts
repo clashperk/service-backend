@@ -1,6 +1,6 @@
 import { ResultOkDto } from '@app/dto';
 import { codeBlock } from '@app/helpers';
-import { Body, Controller, Delete, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, HttpCode, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import { CreateLinkInputDto, GetLinksInputDto, LinksDto } from './dto';
@@ -29,6 +29,16 @@ export class LinksController {
       userId: user.userId,
       isAdmin: JwtUser.isAdmin(user),
     });
+  }
+
+  @Put('/:playerTag/default')
+  @Roles([UserRoles.USER])
+  @ApiOperation({ summary: 'Make one of your own linked accounts your default' })
+  async setDefaultLink(
+    @CurrentUser() user: JwtUser,
+    @Param('playerTag') playerTag: string,
+  ): Promise<ResultOkDto> {
+    return this.linksService.setDefaultLink({ playerTag, userId: user.userId });
   }
 
   @Post('/query')
