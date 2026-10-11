@@ -44,6 +44,14 @@ export class LinksService {
       this.clashClientService.getPlayerOrThrow(playerTag),
     ]);
 
+    // A new account goes last, like the bot's /verify, so linking never changes the default.
+    // Re-linking an account the user already owns keeps its place.
+    const ownLink = existing?.userId === targetUserId;
+    const lastLink = ownLink
+      ? null
+      : await this.links.findOne({ userId: targetUserId }, { sort: { order: -1 } });
+    const order = ownLink ? {} : { order: lastLink ? (lastLink.order ?? 0) + 1 : 0 };
+
     await this.links.updateOne(
       { tag: player.tag },
       {
@@ -53,11 +61,11 @@ export class LinksService {
           username: user.username,
           discriminator: user.discriminator,
           displayName: user.global_name || user.username,
-          verified: isVerified || (existing?.userId === targetUserId && existing.verified),
+          verified: isVerified || (ownLink && existing.verified),
           linkedBy: userId,
+          ...order,
         },
         $setOnInsert: {
-          order: 0,
           source: 'web',
           createdAt: new Date(),
         },
@@ -86,6 +94,35 @@ export class LinksService {
       action: 'unlink',
       createdAt: new Date(),
     });
+
+    return { message: 'Ok' };
+  }
+
+  /**
+   * Makes one of the user's own links their default account. The default is the link
+   * with the lowest `order`, the same rule the bot's link command uses.
+   */
+  public async setDefaultLink(input: { userId: string; playerTag: string }) {
+    const { userId, playerTag } = input;
+
+    const link = await this.links.findOne({ tag: playerTag });
+    if (!link || link.userId !== userId) {
+      throw new ForbiddenException('You can only change the default for your own accounts.');
+    }
+
+    const [first] = await this.links
+      .find({ userId, tag: { $ne: link.tag } }, { projection: { order: 1 } })
+      .sort({ order: 1 })
+      .limit(1)
+      .toArray();
+
+    // Ties go to whichever link the database returns first, so it must be strictly lower.
+    if (first && (link.order ?? 0) >= (first.order ?? 0)) {
+      await this.links.updateOne(
+        { tag: link.tag },
+        { $set: { order: (first.order ?? 0) - 1, updatedAt: new Date() } },
+      );
+    }
 
     return { message: 'Ok' };
   }
