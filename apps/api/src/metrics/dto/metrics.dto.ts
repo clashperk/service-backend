@@ -1,11 +1,15 @@
 import { DateTime, NumberString } from '@app/decorators';
-import { IsOptional, Max, Min } from 'class-validator';
+import { IsOptional, Matches, Max, Min } from 'class-validator';
+
+const SNOWFLAKE_REGEX = /^\d{17,20}$/;
 
 export class GetCommandsUsageLogsInputDto {
   @IsOptional()
+  @Matches(SNOWFLAKE_REGEX, { message: 'userId must be a valid Discord snowflake' })
   userId?: string;
 
   @IsOptional()
+  @Matches(SNOWFLAKE_REGEX, { message: 'guildId must be a valid Discord snowflake' })
   guildId?: string;
 
   @IsOptional()
