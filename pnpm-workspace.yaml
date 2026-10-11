@@ -4,3 +4,5 @@ allowBuilds:
   '@sentry-internal/node-cpu-profiler': true
   msgpackr-extract: false
   unrs-resolver: true
+minimumReleaseAgeExclude:
+  - clashofclans.js@5.0.1
