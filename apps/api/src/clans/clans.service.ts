@@ -4,7 +4,7 @@ import { Db } from 'mongodb';
 import { JwtUser } from '../auth';
 import { Collections, MONGODB_TOKEN } from '../db';
 import { ClanMembersService } from './clan-members.service';
-import { CapitalContributionDto, ClanLinksDto } from './dto';
+import { CapitalContributionDto, CapitalRaidsDto, ClanLinksDto } from './dto';
 
 const CLAN_LEADER_ROLES = ['leader', 'coLeader'];
 
@@ -33,6 +33,32 @@ export class ClansService {
         { projection: { _id: 0 } },
       )
       .sort({ _id: -1 })
+      .toArray();
+
+    return { items };
+  }
+
+  async getCapitalRaids(clanTag: string, limit: number): Promise<CapitalRaidsDto> {
+    const items = await this.db
+      .collection(Collections.CAPITAL_RAID_SEASONS)
+      .find(
+        { tag: clanTag },
+        {
+          projection: {
+            _id: 0,
+            weekId: 0,
+            badgeURL: 0,
+            clanCapitalPoints: 0,
+            capitalLeague: 0,
+            _clanCapitalPoints: 0,
+            _capitalLeague: 0,
+            createdAt: 0,
+            updatedAt: 0,
+          },
+        },
+      )
+      .sort({ weekId: -1 })
+      .limit(limit)
       .toArray();
 
     return { items };
