@@ -5,7 +5,41 @@ import { APIClanWar, getWarResult } from 'clashofclans.js';
 import moment from 'moment';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
-import { ClanWarDto, ClanWarLeaguesDto, CurrentWarDto } from './dto';
+import {
+  ClanWarDto,
+  ClanWarLeaguesDto,
+  ClanWarListDto,
+  ClanWarSummaryDto,
+  CurrentWarDto,
+} from './dto';
+
+// Member lists make a stored war ~50 KB; the list only needs the score.
+const SUMMARY_PROJECTION = {
+  '_id': 0,
+  'id': 1,
+  'warType': 1,
+  'state': 1,
+  'teamSize': 1,
+  'attacksPerMember': 1,
+  'preparationStartTime': 1,
+  'startTime': 1,
+  'endTime': 1,
+  'warTag': 1,
+  'clan.tag': 1,
+  'clan.name': 1,
+  'clan.badgeUrls': 1,
+  'clan.clanLevel': 1,
+  'clan.attacks': 1,
+  'clan.stars': 1,
+  'clan.destructionPercentage': 1,
+  'opponent.tag': 1,
+  'opponent.name': 1,
+  'opponent.badgeUrls': 1,
+  'opponent.clanLevel': 1,
+  'opponent.attacks': 1,
+  'opponent.stars': 1,
+  'opponent.destructionPercentage': 1,
+};
 
 @Injectable()
 export class WarsService {
@@ -146,6 +180,49 @@ export class WarsService {
       clan,
       opponent,
       result: getWarResult(clan, opponent),
+    };
+  }
+
+  /** Stored wars the clan was on either side of, newest first; `before` pages by start time. */
+  public async getClanWars(input: {
+    clanTag: string;
+    limit: number;
+    before?: number;
+  }): Promise<ClanWarListDto> {
+    const { clanTag, limit, before } = input;
+    const wars = await this.wars
+      .find(
+        {
+          $or: [{ 'clan.tag': clanTag }, { 'opponent.tag': clanTag }],
+          ...(before ? { startTime: { $lt: new Date(before) } } : {}),
+        },
+        { projection: SUMMARY_PROJECTION, sort: { startTime: -1 }, limit: limit + 1 },
+      )
+      .toArray();
+
+    const page = wars.slice(0, limit);
+    const items = page.map((war): ClanWarSummaryDto => {
+      const clan = war.clan.tag === clanTag ? war.clan : war.opponent;
+      const opponent = war.clan.tag === clanTag ? war.opponent : war.clan;
+      return {
+        id: war.id,
+        warType: war.warType,
+        state: war.state as ClanWarSummaryDto['state'],
+        teamSize: war.teamSize,
+        attacksPerMember: war.attacksPerMember || 1,
+        preparationStartTime: war.preparationStartTime,
+        startTime: war.startTime,
+        endTime: war.endTime,
+        warTag: war.warTag ?? null,
+        result: getWarResult(clan, opponent),
+        clan,
+        opponent,
+      };
+    });
+
+    return {
+      items,
+      next: wars.length > limit ? page[page.length - 1].startTime.getTime() : null,
     };
   }
 
