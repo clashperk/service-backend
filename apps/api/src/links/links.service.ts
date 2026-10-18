@@ -30,7 +30,8 @@ export class LinksService {
       .toArray();
   }
 
-  public async createLink(userId: string, input: CreateLinkInputDto) {
+  public async createLink(caller: { userId: string; isAdmin: boolean }, input: CreateLinkInputDto) {
+    const { userId, isAdmin } = caller;
     const { apiToken, playerTag, userId: targetUserId } = input;
     const existing = await this.links.findOne({ tag: playerTag });
     const isVerified = await this.clashClientService.verifyPlayerOrThrow(playerTag, apiToken);
@@ -43,6 +44,14 @@ export class LinksService {
       this.discordOauthService.getUser(targetUserId),
       this.clashClientService.getPlayerOrThrow(playerTag),
     ]);
+
+    if (targetUserId !== userId && !isAdmin) {
+      if (!player.clan || !(await this.isVerifiedClanLeader(userId, player.clan.tag))) {
+        throw new ForbiddenException(
+          'You can only link for others, if you are a verified Leader/Co-Leader in the clan.',
+        );
+      }
+    }
 
     // A new account goes last, like the bot's /verify, so linking never changes the default.
     // Re-linking an account the user already owns keeps its place.
@@ -143,21 +152,23 @@ export class LinksService {
       throw new ForbiddenException('The player is no longer in your clan.');
     }
 
-    const [clan, userLinks] = await Promise.all([
-      this.clashClientService.getClanOrThrow(player.clan.tag),
-      this.links.find({ userId, verified: true }, { projection: { tag: 1 } }).toArray(),
-    ]);
-
-    const userTags = new Set(userLinks.map((link) => link.tag));
-    const isLeader = clan.memberList.some(
-      (member) => userTags.has(member.tag) && ['leader', 'coLeader'].includes(member.role),
-    );
-
-    if (!isLeader) {
+    if (!(await this.isVerifiedClanLeader(userId, player.clan.tag))) {
       throw new ForbiddenException(
         'You can only unlink, if you are a verified Leader/Co-Leader in the clan.',
       );
     }
+  }
+
+  private async isVerifiedClanLeader(userId: string, clanTag: string) {
+    const [clan, userLinks] = await Promise.all([
+      this.clashClientService.getClanOrThrow(clanTag),
+      this.links.find({ userId, verified: true }, { projection: { tag: 1 } }).toArray(),
+    ]);
+
+    const userTags = new Set(userLinks.map((link) => link.tag));
+    return clan.memberList.some(
+      (member) => userTags.has(member.tag) && ['leader', 'coLeader'].includes(member.role),
+    );
   }
 
   private get projection() {

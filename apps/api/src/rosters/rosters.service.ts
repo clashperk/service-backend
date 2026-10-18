@@ -83,7 +83,7 @@ export class RostersService {
       { $pull: { members: { tag: { $in: playerTags } } } },
     );
 
-    return this.getRosterById(rosterId);
+    return this.getRoster({ rosterId, guildId });
   }
 
   private async getGroup({ groupId, guildId }: { groupId: string; guildId: string }) {

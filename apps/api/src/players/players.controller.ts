@@ -2,7 +2,7 @@ import { Cache } from '@app/decorators';
 import { ResultOkDto } from '@app/dto';
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard, Roles, UserRoles } from '../auth';
+import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   AggregateAttackHistoryItemsDto,
   AggregateClanWarLeagueHistoryItemsDto,
@@ -20,7 +20,7 @@ import { PlayerWarsService } from './services/player-wars.service';
 
 @Controller('/players')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class PlayersController {
   constructor(
     private playerWarsService: PlayerWarsService,
