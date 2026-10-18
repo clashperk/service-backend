@@ -64,7 +64,7 @@ export class WarsService {
   public async getClanWar(input: { clanTag: string; warId: string }) {
     const { clanTag, warId } = input;
     const body = await this.wars.findOne(
-      { id: Number(warId) },
+      { id: Number(warId), $or: [{ 'clan.tag': clanTag }, { 'opponent.tag': clanTag }] },
       {
         projection: {
           _id: 0,
@@ -78,12 +78,8 @@ export class WarsService {
     );
     if (!body) throw new NotFoundException(ErrorCodes.NOT_FOUND);
 
-    const clan = [body.clan.tag, body.opponent.tag].includes(clanTag)
-      ? body.clan.tag === clanTag
-        ? body.clan
-        : body.opponent
-      : body.clan;
-    const opponent = body.clan.tag === clan.tag ? body.opponent : body.clan;
+    const clan = body.clan.tag === clanTag ? body.clan : body.opponent;
+    const opponent = body.clan.tag === clanTag ? body.opponent : body.clan;
 
     return {
       ...body,
