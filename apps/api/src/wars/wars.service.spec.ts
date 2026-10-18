@@ -5,7 +5,13 @@ import { WarsService } from './wars.service';
 // clash-client pulls in JSON the test setup can't load; getClanWar never calls it.
 jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
-type War = { id: number; clan: { tag: string }; opponent: { tag: string } };
+type War = {
+  id: number;
+  state: string;
+  endTime: Date;
+  clan: { tag: string };
+  opponent: { tag: string };
+};
 
 type Filter = { id: number; $or: Record<'clan.tag' | 'opponent.tag', string>[] };
 
@@ -27,8 +33,10 @@ const createService = (wars: War[]) => {
   return new WarsService(db, null as never);
 };
 
-const war = (clan: string, opponent: string): War => ({
+const war = (clan: string, opponent: string, endTime = new Date(Date.now() - 1000)): War => ({
   id: 7,
+  state: 'inWar',
+  endTime,
   clan: { tag: clan, stars: 3, destructionPercentage: 100 } as War['clan'],
   opponent: { tag: opponent, stars: 1, destructionPercentage: 50 } as War['opponent'],
 });
@@ -41,6 +49,16 @@ describe('WarsService.getClanWar', () => {
 
     expect(result.clan.tag).toBe('#B');
     expect(result.opponent.tag).toBe('#A');
+  });
+
+  it('reports a stored war past its end time as ended', async () => {
+    const ended = await createService([war('#A', '#B')]).getClanWar({ clanTag: '#A', warId: '7' });
+    expect(ended.state).toBe('warEnded');
+
+    const running = await createService([
+      war('#A', '#B', new Date(Date.now() + 60_000)),
+    ]).getClanWar({ clanTag: '#A', warId: '7' });
+    expect(running.state).toBe('inWar');
   });
 
   it('returns 404 for a war the clan was not in', async () => {
@@ -154,6 +172,7 @@ type StoredWar = {
   warType: number;
   state: string;
   startTime: Date;
+  endTime: Date;
   clan: { tag: string; stars: number; destructionPercentage: number };
   opponent: { tag: string; stars: number; destructionPercentage: number };
 };
@@ -189,6 +208,7 @@ const storedWar = (id: number, day: number, clan: string, opponent: string): Sto
   warType: 1,
   state: 'warEnded',
   startTime: new Date(Date.UTC(2026, 9, day)),
+  endTime: new Date(Date.UTC(2026, 9, day + 1)),
   clan: { tag: clan, stars: 30, destructionPercentage: 90 },
   opponent: { tag: opponent, stars: 20, destructionPercentage: 70 },
 });

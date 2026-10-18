@@ -41,6 +41,10 @@ const SUMMARY_PROJECTION = {
   'opponent.destructionPercentage': 1,
 };
 
+// The tracker can miss a war's last update and leave it "inWar" after it ended.
+const storedState = <S extends string>(war: { state: S; endTime: Date }): S | 'warEnded' =>
+  war.endTime.getTime() <= Date.now() ? 'warEnded' : war.state;
+
 @Injectable()
 export class WarsService {
   constructor(
@@ -177,6 +181,7 @@ export class WarsService {
 
     return {
       ...body,
+      state: storedState(body),
       clan,
       opponent,
       result: getWarResult(clan, opponent),
@@ -207,7 +212,7 @@ export class WarsService {
       return {
         id: war.id,
         warType: war.warType,
-        state: war.state as ClanWarSummaryDto['state'],
+        state: storedState(war) as ClanWarSummaryDto['state'],
         teamSize: war.teamSize,
         attacksPerMember: war.attacksPerMember || 1,
         preparationStartTime: war.preparationStartTime,
