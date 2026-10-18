@@ -4,6 +4,8 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import {
   ClanWarDto,
+  ClanWarLeagueSeasonsDto,
+  ClanWarLeagueSeasonsInputDto,
   ClanWarLeaguesDto,
   ClanWarListDto,
   ClanWarListInputDto,
@@ -27,6 +29,15 @@ export class WarsController {
   @Cache(60 * 5)
   async getClanWarLeagueForClan(@Param('clanTag') clanTag: string): Promise<ClanWarLeaguesDto> {
     return this.warsService.getClanWarLeagueForClan(clanTag);
+  }
+
+  @Get('/:clanTag/clan-war-leagues/seasons')
+  @Cache(60 * 5)
+  async getClanWarLeagueSeasons(
+    @Param('clanTag') clanTag: string,
+    @Query() query: ClanWarLeagueSeasonsInputDto,
+  ): Promise<ClanWarLeagueSeasonsDto> {
+    return this.warsService.getClanWarLeagueSeasons({ clanTag, limit: query.limit });
   }
 
   @Get('/:clanTag')
