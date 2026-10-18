@@ -1,3 +1,4 @@
+import { ClanDto } from '@app/clash-client';
 import { Cache } from '@app/decorators';
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -17,6 +18,12 @@ import {
 @ApiBearerAuth()
 export class ClansController {
   constructor(private clansService: ClansService) {}
+
+  @Get('/:clanTag')
+  @Cache(120)
+  async getClan(@Param('clanTag') clanTag: string): Promise<ClanDto> {
+    return this.clansService.getClan(clanTag);
+  }
 
   @Get('/:clanTag/lastseen')
   @Cache(600)

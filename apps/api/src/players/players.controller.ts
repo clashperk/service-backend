@@ -1,3 +1,4 @@
+import { PlayerDto } from '@app/clash-client';
 import { Cache } from '@app/decorators';
 import { ResultOkDto } from '@app/dto';
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
@@ -27,6 +28,12 @@ export class PlayersController {
     private playersService: PlayersService,
     private globalService: GlobalService,
   ) {}
+
+  @Get('/:playerTag')
+  @Cache(120)
+  getPlayer(@Param('playerTag') playerTag: string): Promise<PlayerDto> {
+    return this.playersService.getPlayer(playerTag);
+  }
 
   @Get('/:playerTag/battle-log')
   @Cache(600)
