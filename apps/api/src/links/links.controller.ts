@@ -15,7 +15,10 @@ export class LinksController {
   @Post('/')
   @Roles([UserRoles.USER, UserRoles.MANAGE_LINKS])
   async link(@CurrentUser() user: JwtUser, @Body() body: CreateLinkInputDto): Promise<ResultOkDto> {
-    return this.linksService.createLink(user.userId, body);
+    return this.linksService.createLink(
+      { userId: user.userId, isAdmin: JwtUser.isAdmin(user) },
+      body,
+    );
   }
 
   @Delete('/:playerTag')
