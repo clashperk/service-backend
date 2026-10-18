@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-18 — Clan activity is one query over three ClickHouse tables
+Decided by: Claude, pending Suvajit's review. Town Hall upgrades come from `clan_member_event_logs`, clan milestones from `clan_event_logs` and joins/leaves from `player_activities`, merged with `UNION ALL` in one query so Home can ask for up to 10 clans at once (POST, because of the tag list; cached 5 min by body). `player_activities` has no names, so players are named from `Players` and clans from `global_clans`. League ids are named from the Clash API's war and capital league lists, fetched once per process. Promotions and demotions are not tracked anywhere yet, so they aren't in the feed.
+
 ## 2026-10-18 — One game calendar for the api
 Decided by: Claude, pending Suvajit's review. `events/game-calendar.ts` holds the date rules the bot uses in `guild-events-handler.ts`: Clan Games 22nd–28th 08:00 UTC, CWL from the 1st 08:00 UTC (2-day signup, 9 days in all), raid weekends Friday–Monday 07:00 UTC, season end from `Season.getSeason`. Supercell can now run more than one CWL a month, so the CWL dates are the usual schedule, not a guarantee. The Clan Games member cap is 10,000 (Suvajit); the bot's `getClanGamesMaxPoints` still returns 4,000/5,000.
 
