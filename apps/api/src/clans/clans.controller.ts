@@ -9,6 +9,8 @@ import {
   CapitalContributionInputDto,
   CapitalRaidsDto,
   CapitalRaidsInputDto,
+  ClanGamesDto,
+  ClanGamesInputDto,
   ClanLinksDto,
   LastSeenDto,
 } from './dto';
@@ -47,6 +49,15 @@ export class ClansController {
     @Query() query: CapitalRaidsInputDto,
   ): Promise<CapitalRaidsDto> {
     return this.clansService.getCapitalRaids(clanTag, query.limit);
+  }
+
+  @Get('/:clanTag/clan-games')
+  @Cache(300)
+  async getClanGames(
+    @Param('clanTag') clanTag: string,
+    @Query() query: ClanGamesInputDto,
+  ): Promise<ClanGamesDto> {
+    return this.clansService.getClanGames(clanTag, query.season);
   }
 
   @Get('/:clanTag/links')

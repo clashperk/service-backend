@@ -3,14 +3,18 @@ import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
 import { Db } from 'mongodb';
-import { CLICKHOUSE_TOKEN, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
+import { SeasonCounter } from '@app/collections';
+import { Collections, CLICKHOUSE_TOKEN, GO_REDIS_TOKEN, MONGODB_TOKEN } from '../db';
 import {
   BattleLogAggregateItemsDto,
   BattleLogDailyDto,
   BattleLogDto,
   BattleLogLeaderboardDto,
   BattleLogLeaderboardInputDto,
+  PlayerSeasonStatsItemsDto,
 } from './dto';
+
+const gained = (counter?: SeasonCounter) => (counter ? counter.current - counter.initial : 0);
 
 @Injectable()
 export class PlayersService {
@@ -24,6 +28,43 @@ export class PlayersService {
 
   async getPlayer(playerTag: string) {
     return this.clashClientService.getPlayerOrThrow(playerTag);
+  }
+
+  async getSeasonStats(playerTag: string, limit: number): Promise<PlayerSeasonStatsItemsDto> {
+    const seasons = await this.db
+      .collection(Collections.PLAYER_SEASONS)
+      .find({ tag: playerTag })
+      .sort({ season: -1 })
+      .limit(limit)
+      .toArray();
+
+    return {
+      items: seasons.map((season) => {
+        const clans = Object.values(season.clans ?? {}).map((clan) => ({
+          tag: clan.tag,
+          name: clan.name,
+          donations: clan.donations.total,
+          donationsReceived: clan.donationsReceived.total,
+        }));
+        return {
+          season: season.season,
+          townHallLevel: season.townHallLevel,
+          trophies: season.trophies?.current ?? 0,
+          attackWins: season.attackWins ?? 0,
+          defenseWins: season.defenseWins ?? 0,
+          donations: clans.reduce((sum, clan) => sum + clan.donations, 0),
+          donationsReceived: clans.reduce((sum, clan) => sum + clan.donationsReceived, 0),
+          warStars: gained(season.clanWarStars),
+          cwlStars: gained(season.clanWarLeagueStars),
+          capitalGold: gained(season.capitalGoldContributions),
+          clanGamesPoints: gained(season.clanGamesPoints),
+          goldLoot: gained(season.goldLoots),
+          elixirLoot: gained(season.elixirLoots),
+          darkElixirLoot: gained(season.darkElixirLoots),
+          clans,
+        };
+      }),
+    };
   }
 
   async getPlayerBattleLog(playerTag: string) {

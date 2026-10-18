@@ -7,6 +7,7 @@ import {
   CapitalRaidSeasonsEntity,
   CapitalRaidRemindersEntity,
   ClanCategoriesEntity,
+  ClanGamesPointsEntity,
   ClanGamesRemindersEntity,
   ClanStoresEntity,
   ClanWarRemindersEntity,
@@ -18,6 +19,7 @@ import {
   GlobalPlayerEntity,
   LegendAttacksEntity,
   PlayerLinksEntity,
+  PlayerSeasonsEntity,
   PlayersEntity,
   ReminderSchedulesEntity,
   RosterGroupsEntity,
@@ -41,6 +43,7 @@ export enum Collections {
   LEGEND_ATTACKS = 'LegendAttacks',
 
   PLAYERS = 'Players',
+  PLAYER_SEASONS = 'PlayerSeasons',
 
   GOOGLE_SHEETS = 'GoogleSheets',
 
@@ -73,6 +76,8 @@ interface CollectionRecords {
   [Collections.PLAYER_LINKS]: PlayerLinksEntity;
   [Collections.CLAN_WARS]: ClanWarsEntity;
   [Collections.PLAYERS]: PlayersEntity;
+  [Collections.PLAYER_SEASONS]: PlayerSeasonsEntity;
+  [Collections.CLAN_GAMES_POINTS]: ClanGamesPointsEntity;
 
   [Collections.GLOBAL_CLANS]: GlobalClanEntity;
   [Collections.GLOBAL_PLAYERS]: GlobalPlayerEntity;

@@ -4,7 +4,12 @@ import { Db } from 'mongodb';
 import { JwtUser } from '../auth';
 import { Collections, MONGODB_TOKEN } from '../db';
 import { ClanMembersService } from './clan-members.service';
-import { CapitalContributionDto, CapitalRaidsDto, ClanLinksDto } from './dto';
+import {
+  CLAN_GAMES_MAX_POINTS,
+  clanGamesWindow,
+  latestClanGamesSeason,
+} from '../events/game-calendar';
+import { CapitalContributionDto, CapitalRaidsDto, ClanGamesDto, ClanLinksDto } from './dto';
 
 const CLAN_LEADER_ROLES = ['leader', 'coLeader'];
 
@@ -15,6 +20,42 @@ export class ClansService {
     private clanMembersService: ClanMembersService,
     @Inject(MONGODB_TOKEN) private db: Db,
   ) {}
+
+  async getClanGames(
+    clanTag: string,
+    season = latestClanGamesSeason(new Date()),
+  ): Promise<ClanGamesDto> {
+    const players = await this.db
+      .collection(Collections.CLAN_GAMES_POINTS)
+      .find(
+        { __clans: clanTag, season },
+        { projection: { name: 1, tag: 1, initial: 1, current: 1, completedAt: 1 } },
+      )
+      .limit(60)
+      .toArray();
+
+    // Most points first; among members who hit the cap, whoever finished first.
+    const members = players
+      .map((player) => ({
+        name: player.name,
+        tag: player.tag,
+        points: player.current - player.initial,
+        completedAt: player.completedAt ?? null,
+      }))
+      .sort(
+        (a, b) =>
+          b.points - a.points ||
+          (a.completedAt?.getTime() ?? Infinity) - (b.completedAt?.getTime() ?? Infinity),
+      );
+
+    return {
+      season,
+      ...clanGamesWindow(season),
+      maxPoints: CLAN_GAMES_MAX_POINTS,
+      totalPoints: members.reduce((sum, m) => sum + Math.min(m.points, CLAN_GAMES_MAX_POINTS), 0),
+      members,
+    };
+  }
 
   async getClan(clanTag: string) {
     return this.clashClientService.getClanOrThrow(clanTag);
