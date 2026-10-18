@@ -22,6 +22,10 @@ export class PlayersService {
     @Inject(CLICKHOUSE_TOKEN) private clickhouse: ClickHouseClient,
   ) {}
 
+  async getPlayer(playerTag: string) {
+    return this.clashClientService.getPlayerOrThrow(playerTag);
+  }
+
   async getPlayerBattleLog(playerTag: string) {
     const result = await this.clickhouse.query({
       query: `

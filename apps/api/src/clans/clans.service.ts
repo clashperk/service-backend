@@ -16,6 +16,10 @@ export class ClansService {
     @Inject(MONGODB_TOKEN) private db: Db,
   ) {}
 
+  async getClan(clanTag: string) {
+    return this.clashClientService.getClanOrThrow(clanTag);
+  }
+
   async getLastSeen(clanTag: string) {
     const clan = await this.clashClientService.getClanOrThrow(clanTag);
     const playerTags = clan.memberList.map((m) => m.tag);

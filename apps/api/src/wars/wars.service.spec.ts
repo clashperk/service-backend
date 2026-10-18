@@ -51,3 +51,100 @@ describe('WarsService.getClanWar', () => {
     );
   });
 });
+
+type RawWar = {
+  state: string;
+  clan: { tag: string; stars: number; destructionPercentage: number };
+  opponent: { tag: string; stars: number; destructionPercentage: number };
+  startTime: string;
+  preparationStartTime: string;
+  endTime: string;
+};
+
+const rawWar = (state: string, clan: string, opponent: string): RawWar => ({
+  state,
+  clan: { tag: clan, stars: 10, destructionPercentage: 80 },
+  opponent: { tag: opponent, stars: 8, destructionPercentage: 70 },
+  startTime: '20261018T120000.000Z',
+  preparationStartTime: '20261017T120000.000Z',
+  endTime: '20261019T120000.000Z',
+});
+
+const createLiveService = (live: {
+  currentWar?: RawWar | null;
+  isWarLogPublic?: boolean;
+  rounds?: string[][];
+  leagueWars?: Record<string, RawWar>;
+}) => {
+  const clashClientService = {
+    getCurrentWar: () =>
+      Promise.resolve({
+        body: live.currentWar ?? null,
+        isWarLogPublic: live.isWarLogPublic ?? true,
+      }),
+    getClanWarLeagueGroup: () =>
+      Promise.resolve(live.rounds ? { rounds: live.rounds.map((warTags) => ({ warTags })) } : null),
+    getLeagueRoundWithWarTag: (warTag: string) =>
+      Promise.resolve({ body: live.leagueWars?.[warTag] ?? null, warTag }),
+  };
+  return new WarsService({} as Db, clashClientService as never);
+};
+
+describe('WarsService.getCurrentWar', () => {
+  it('returns the regular war from the clan side', async () => {
+    const service = createLiveService({ currentWar: rawWar('inWar', '#A', '#B') });
+
+    const { war, isWarLogPublic } = await service.getCurrentWar('#A');
+
+    expect(isWarLogPublic).toBe(true);
+    expect(war?.state).toBe('inWar');
+    expect(war?.clan.tag).toBe('#A');
+    expect(war?.round).toBeNull();
+  });
+
+  it('prefers the CWL round in war over the one in preparation', async () => {
+    const service = createLiveService({
+      currentWar: rawWar('notInWar', '#A', '#B'),
+      rounds: [
+        ['#W1', '#W2'],
+        ['#W3', '#W4'],
+        ['#W5', '#W6'],
+        ['#0', '#0'],
+      ],
+      leagueWars: {
+        '#W3': rawWar('inWar', '#C', '#D'),
+        '#W4': rawWar('inWar', '#B', '#A'),
+        '#W5': rawWar('preparation', '#A', '#C'),
+        '#W6': rawWar('preparation', '#B', '#D'),
+      },
+    });
+
+    const { war } = await service.getCurrentWar('#A');
+
+    expect(war?.state).toBe('inWar');
+    expect(war?.round).toBe(2);
+    expect(war?.warTag).toBe('#W4');
+    expect(war?.clan.tag).toBe('#A');
+    expect(war?.opponent.tag).toBe('#B');
+  });
+
+  it('falls back to CWL when the war log is private', async () => {
+    const service = createLiveService({
+      isWarLogPublic: false,
+      rounds: [['#W1']],
+      leagueWars: { '#W1': rawWar('preparation', '#A', '#B') },
+    });
+
+    const { war, isWarLogPublic } = await service.getCurrentWar('#A');
+
+    expect(isWarLogPublic).toBe(false);
+    expect(war?.state).toBe('preparation');
+    expect(war?.round).toBe(1);
+  });
+
+  it('returns no war when the clan is in neither', async () => {
+    const service = createLiveService({ currentWar: rawWar('notInWar', '#A', '#B') });
+
+    expect(await service.getCurrentWar('#A')).toEqual({ isWarLogPublic: true, war: null });
+  });
+});
