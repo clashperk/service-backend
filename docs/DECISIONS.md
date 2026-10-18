@@ -19,3 +19,6 @@ Decided by: Claude, pending Suvajit's review. Sorts by `weekId` (covered by the 
 
 ## 2026-10-18 — War list pages by start time, without member lists
 Decided by: Claude, pending Suvajit's review. `GET /wars/:clanTag` matches `clan.tag` or `opponent.tag` (both indexed), sorts by `startTime` and pages with `before` instead of skip, so a page stays cheap however deep you go. The sort runs in memory, which is fine: `ClanWars` keeps 36 months, a few hundred wars per clan. The projection drops `members`, which is most of a stored war's size; one war's detail stays on `GET /wars/:clanTag/:warId`.
+
+## 2026-10-18 — CWL seasons come from the clan's own stored wars
+Decided by: Claude, pending Suvajit's review. The worker stores only the tracked clan's rounds, not the whole group's, so past seasons can't have standings; live standings stay with `GET /wars/:clanTag/clan-war-leagues/groups`. Seasons are picked with a `$group` on `season` before loading wars, so `limit` bounds the work. Round numbers come from the stored `CWLGroups` doc via `leagueGroupId`; without it `round` and `leagueId` are null rather than guessed from start times.

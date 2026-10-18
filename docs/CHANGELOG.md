@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-18 (CWL seasons)
+- Add `GET /wars/:clanTag/clan-war-leagues/seasons?limit=` (1–12, default 3): the clan's CWL seasons from its stored wars, newest first. Each has the clan's war league and group size (from the stored group), its rounds in order with result and score, and each member's wars, attacks, stars, 3-stars, total destruction and missed attacks
+
 ## 2026-10-18 (war history)
 - Add `GET /wars/:clanTag?limit=&before=` (limit 1–50, default 20): the clan's stored wars newest first, from its own side, with type, state, result and each side's stars, destruction and attacks but no member lists. `next` is the last war's start time; pass it as `before` for the next page
 
