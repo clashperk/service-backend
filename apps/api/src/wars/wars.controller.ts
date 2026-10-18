@@ -1,11 +1,12 @@
 import { Cache } from '@app/decorators';
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import {
   ClanWarDto,
   ClanWarLeagueSeasonsDto,
   ClanWarLeagueSeasonsInputDto,
+  ClanWarLeagueStandingsDto,
   ClanWarLeaguesDto,
   ClanWarListDto,
   ClanWarListInputDto,
@@ -38,6 +39,15 @@ export class WarsController {
     @Query() query: ClanWarLeagueSeasonsInputDto,
   ): Promise<ClanWarLeagueSeasonsDto> {
     return this.warsService.getClanWarLeagueSeasons({ clanTag, limit: query.limit });
+  }
+
+  @Get('/:clanTag/clan-war-leagues/groups/:groupId/standings')
+  @Cache(60 * 5)
+  async getClanWarLeagueStandings(
+    @Param('clanTag') clanTag: string,
+    @Param('groupId', ParseIntPipe) groupId: number,
+  ): Promise<ClanWarLeagueStandingsDto> {
+    return this.warsService.getClanWarLeagueStandings({ clanTag, groupId });
   }
 
   @Get('/:clanTag')

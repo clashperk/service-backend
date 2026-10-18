@@ -1,4 +1,4 @@
-import { ClanWarDto } from '@app/clash-client/dto';
+import { ClanBadge, ClanWarDto } from '@app/clash-client/dto';
 import { NumberString } from '@app/decorators';
 import { ApiProperty } from '@nestjs/swagger';
 import { Max, Min } from 'class-validator';
@@ -74,6 +74,14 @@ export class ClanWarLeagueMemberDto {
 export class ClanWarLeagueSeasonDto {
   season: string;
 
+  /** The stored group (for standings); null when it wasn't stored. */
+  @ApiProperty({ type: 'number', nullable: true })
+  groupId: number | null;
+
+  /** The game's season id for the group, e.g. "2026-10-02"; null when the group wasn't stored. */
+  @ApiProperty({ type: 'string', nullable: true })
+  groupSeason: string | null;
+
   /** The clan's war league that season; null when the group wasn't stored. */
   @ApiProperty({ type: 'number', nullable: true })
   leagueId: number | null;
@@ -91,4 +99,30 @@ export class ClanWarLeagueSeasonDto {
 export class ClanWarLeagueSeasonsDto {
   /** Newest season first. */
   items: ClanWarLeagueSeasonDto[];
+}
+
+export class ClanWarLeagueStandingDto {
+  tag: string;
+  name: string;
+  @ApiProperty({ type: () => ClanBadge, nullable: true })
+  badgeUrls: ClanBadge | null;
+  /** Stars plus 10 per war won, as the game ranks them. */
+  stars: number;
+  /** Total destruction over all wars: each war's percentage times its size. */
+  destruction: number;
+  wins: number;
+  /** League at the start of the season. */
+  leagueId: number;
+}
+
+export class ClanWarLeagueStandingsDto {
+  groupId: number;
+  season: string;
+  /** Rounds with at least one war started. */
+  roundsPlayed: number;
+  totalRounds: number;
+  /** False when some wars no longer load from the game, so the table is partial. */
+  complete: boolean;
+  /** Best first. */
+  rows: ClanWarLeagueStandingDto[];
 }

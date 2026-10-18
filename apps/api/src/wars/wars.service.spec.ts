@@ -391,3 +391,89 @@ describe('WarsService.getClanWarLeagueSeasons', () => {
     expect(items.map((season) => season.season)).toEqual(['2026-10']);
   });
 });
+
+type LeagueSide = {
+  tag: string;
+  stars: number;
+  destructionPercentage: number;
+  badgeUrls: { small: string };
+};
+
+const leagueWar = (state: string, a: [string, number, number], b: [string, number, number]) => {
+  const side = ([tag, stars, destructionPercentage]: [string, number, number]): LeagueSide => ({
+    tag,
+    stars,
+    destructionPercentage,
+    badgeUrls: { small: `${tag}.png` },
+  });
+  return { state, teamSize: 15, clan: side(a), opponent: side(b) };
+};
+
+describe('WarsService.getClanWarLeagueStandings', () => {
+  const group = {
+    id: 9,
+    season: '2026-10-02',
+    clans: ['#A', '#B', '#C', '#D'].map((tag) => ({ tag, name: tag, leagueId: 48000010 })),
+    rounds: [{ warTags: ['#W1', '#W2'] }, { warTags: ['#W3', '#W4'] }, { warTags: ['#0', '#0'] }],
+  };
+
+  const createStandingsService = (wars: Record<string, ReturnType<typeof leagueWar> | null>) => {
+    const db = {
+      collection: () => ({
+        findOne: (filter: { 'id': number; 'clans.tag': string }) =>
+          Promise.resolve(
+            filter.id === group.id && group.clans.some((clan) => clan.tag === filter['clans.tag'])
+              ? group
+              : null,
+          ),
+      }),
+    } as unknown as Db;
+    const clashClientService = {
+      getLeagueRoundWithWarTag: (warTag: string) =>
+        Promise.resolve({ body: wars[warTag] ?? null, warTag }),
+    };
+    return new WarsService(db, clashClientService as never);
+  };
+
+  it('ranks by stars with 10 per win, then total destruction', async () => {
+    const service = createStandingsService({
+      '#W1': leagueWar('warEnded', ['#A', 40, 90], ['#B', 30, 80]),
+      '#W2': leagueWar('warEnded', ['#C', 35, 85], ['#D', 35, 70]),
+      '#W3': leagueWar('inWar', ['#A', 20, 50], ['#C', 25, 60]),
+      '#W4': leagueWar('preparation', ['#B', 0, 0], ['#D', 0, 0]),
+    });
+
+    const standings = await service.getClanWarLeagueStandings({ clanTag: '#A', groupId: 9 });
+
+    // #A and #C both reach 70 (the in-war round counts stars but no win); #C has more destruction.
+    expect(standings.rows.map((row) => [row.tag, row.stars, row.wins])).toEqual([
+      ['#C', 70, 1],
+      ['#A', 70, 1],
+      ['#D', 35, 0],
+      ['#B', 30, 0],
+    ]);
+    expect(standings.rows[1].destruction).toBe(15 * 90 + 15 * 50);
+    expect(standings.roundsPlayed).toBe(2);
+    expect(standings.totalRounds).toBe(3);
+    expect(standings.complete).toBe(true);
+    expect(standings.rows[0].badgeUrls?.small).toBe(`${standings.rows[0].tag}.png`);
+  });
+
+  it('flags a table with wars that no longer load', async () => {
+    const service = createStandingsService({
+      '#W1': leagueWar('warEnded', ['#A', 40, 90], ['#B', 30, 80]),
+    });
+
+    const standings = await service.getClanWarLeagueStandings({ clanTag: '#A', groupId: 9 });
+
+    expect(standings.complete).toBe(false);
+    expect(standings.roundsPlayed).toBe(1);
+  });
+
+  it('returns 404 for a group the clan was not in', async () => {
+    const service = createStandingsService({});
+    await expect(service.getClanWarLeagueStandings({ clanTag: '#Z', groupId: 9 })).rejects.toThrow(
+      NotFoundException,
+    );
+  });
+});

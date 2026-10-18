@@ -10,6 +10,7 @@ import {
   ClanWarDto,
   ClanWarLeagueMemberDto,
   ClanWarLeagueSeasonsDto,
+  ClanWarLeagueStandingsDto,
   ClanWarLeaguesDto,
   ClanWarListDto,
   ClanWarSummaryDto,
@@ -337,7 +338,10 @@ export class WarsService {
     const groupIds = [...new Set(wars.flatMap((war) => war.leagueGroupId ?? []))];
     const groups = await this.db
       .collection(Collections.CWL_GROUPS)
-      .find({ id: { $in: groupIds } }, { projection: { _id: 0, id: 1, rounds: 1, clans: 1 } })
+      .find(
+        { id: { $in: groupIds } },
+        { projection: { _id: 0, id: 1, season: 1, rounds: 1, clans: 1 } },
+      )
       .toArray();
 
     return {
@@ -346,6 +350,8 @@ export class WarsService {
         const group = groups.find((group) => group.id === seasonWars[0].leagueGroupId);
         return {
           season,
+          groupId: group?.id ?? null,
+          groupSeason: group?.season ?? null,
           leagueId: group?.clans.find((clan) => clan.tag === clanTag)?.leagueId ?? null,
           groupSize: group?.clans.length ?? null,
           rounds: seasonWars.map((war) => {
@@ -367,6 +373,66 @@ export class WarsService {
           members: memberTotals(seasonWars, clanTag),
         };
       }),
+    };
+  }
+
+  /** A stored group's table from its wars, fetched live by war tag; the game keeps them for a while after the season. */
+  public async getClanWarLeagueStandings(input: {
+    clanTag: string;
+    groupId: number;
+  }): Promise<ClanWarLeagueStandingsDto> {
+    const group = await this.db
+      .collection(Collections.CWL_GROUPS)
+      .findOne({ 'id': input.groupId, 'clans.tag': input.clanTag });
+    if (!group) throw new NotFoundException(ErrorCodes.NOT_FOUND);
+
+    const rounds = group.rounds.map(({ warTags }) => warTags.filter((tag) => tag !== '#0'));
+    const results = await Promise.all(
+      rounds.flat().map((warTag) => this.clashClientService.getLeagueRoundWithWarTag(warTag)),
+    );
+
+    const rows = new Map(
+      group.clans.map((clan) => [
+        clan.tag,
+        {
+          tag: clan.tag,
+          name: clan.name,
+          badgeUrls: null as APIClanWar['clan']['badgeUrls'] | null,
+          stars: 0,
+          destruction: 0,
+          wins: 0,
+          leagueId: clan.leagueId,
+        },
+      ]),
+    );
+    const started = new Set<string>();
+    for (const { body, warTag } of results) {
+      if (!body || body.state === 'preparation') continue;
+      started.add(warTag);
+      const ended = body.state === 'warEnded';
+      for (const [side, other] of [
+        [body.clan, body.opponent],
+        [body.opponent, body.clan],
+      ]) {
+        const row = rows.get(side.tag);
+        if (!row) continue;
+        row.badgeUrls = side.badgeUrls;
+        row.stars += side.stars;
+        row.destruction += side.destructionPercentage * body.teamSize;
+        if (ended && getWarResult(side, other) === 'win') {
+          row.stars += 10;
+          row.wins += 1;
+        }
+      }
+    }
+
+    return {
+      groupId: group.id,
+      season: group.season,
+      roundsPlayed: rounds.filter((tags) => tags.some((tag) => started.has(tag))).length,
+      totalRounds: group.clans.length - 1,
+      complete: results.every(({ body }) => body),
+      rows: [...rows.values()].sort((a, b) => b.stars - a.stars || b.destruction - a.destruction),
     };
   }
 
