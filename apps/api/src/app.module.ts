@@ -27,6 +27,7 @@ import { PlayersModule } from './players/players.module';
 import { RostersModule } from './rosters/rosters.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
+import { EventsModule } from './events/events.module';
 import { WarsModule } from './wars/wars.module';
 import { WebhookModule } from './webhook/webhook.module';
 
@@ -62,6 +63,7 @@ import { WebhookModule } from './webhook/webhook.module';
     PlayersModule,
     LegendsModule,
     WarsModule,
+    EventsModule,
     RostersModule,
     UsersModule,
     GuildsModule,
