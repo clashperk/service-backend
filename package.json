@@ -124,6 +124,7 @@
       "^@app/decorators(|/.*)$": "<rootDir>/libs/decorators/$1",
       "^@app/discord-oauth(|/.*)$": "<rootDir>/libs/discord-oauth/src/$1",
       "^@app/dto(|/.*)$": "<rootDir>/libs/dto/$1",
+      "^@app/auth(|/.*)$": "<rootDir>/libs/auth/$1",
       "^@app/collections(|/.*)$": "<rootDir>/libs/collections/$1",
       "^@app/google-sheet(|/.*)$": "<rootDir>/libs/google-sheet/src/$1",
       "^@app/helpers(|/.*)$": "<rootDir>/libs/helpers/$1",
