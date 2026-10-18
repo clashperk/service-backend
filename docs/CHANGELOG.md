@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-18 (war history)
+- Add `GET /wars/:clanTag?limit=&before=` (limit 1–50, default 20): the clan's stored wars newest first, from its own side, with type, state, result and each side's stars, destruction and attacks but no member lists. `next` is the last war's start time; pass it as `before` for the next page
+
 ## 2026-10-18 (activity)
 - Add `POST /clans/activity` with `{ clanTags (1–10), days (1–30, default 7), limit (1–100, default 50), types (optional) }`: the clans' Town Hall upgrades, joins and leaves, clan and Capital Hall level-ups, and war and capital league changes, newest first, with player, clan and league names filled in
 

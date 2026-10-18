@@ -16,3 +16,6 @@ Decided by: Suvajit (as specified). Only admins or verified Leader/Co-Leaders of
 
 ## 2026-10-11 — Capital raids endpoint ported from v1 with two changes
 Decided by: Claude, pending Suvajit's review. Sorts by `weekId` (covered by the `{ tag, weekId }` index) instead of v1's `_id` sort with `allowDiskUse`; wraps results in `{ items }` to match the other clans endpoints instead of v1's bare array, so v1 callers need a one-line change.
+
+## 2026-10-18 — War list pages by start time, without member lists
+Decided by: Claude, pending Suvajit's review. `GET /wars/:clanTag` matches `clan.tag` or `opponent.tag` (both indexed), sorts by `startTime` and pages with `before` instead of skip, so a page stays cheap however deep you go. The sort runs in memory, which is fine: `ClanWars` keeps 36 months, a few hundred wars per clan. The projection drops `members`, which is most of a stored war's size; one war's detail stays on `GET /wars/:clanTag/:warId`.
