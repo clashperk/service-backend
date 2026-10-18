@@ -27,7 +27,12 @@ export class ClanActivityService {
   ) {}
 
   /** Town Hall upgrades, joins and leaves, and clan milestones, newest first. */
-  async getActivity({ clanTags, days, limit }: ClanActivityInputDto): Promise<ClanActivityDto> {
+  async getActivity({
+    clanTags,
+    days,
+    limit,
+    types,
+  }: ClanActivityInputDto): Promise<ClanActivityDto> {
     const result = await this.clickhouse.query({
       query: `
         SELECT * FROM (
@@ -50,10 +55,11 @@ export class ClanActivityService {
           WHERE clanTag IN {clanTags:Array(String)} AND action IN ('JOINED_CLAN', 'LEFT_CLAN')
             AND createdAt > now() - toIntervalDay({days:UInt8})
         )
+        WHERE type IN {types:Array(String)}
         ORDER BY createdAt DESC
         LIMIT {limit:UInt16}
       `,
-      query_params: { clanTags, days, limit },
+      query_params: { clanTags, days, limit, types },
       format: 'JSONEachRow',
     });
     const rows = await result.json<ActivityRow>();

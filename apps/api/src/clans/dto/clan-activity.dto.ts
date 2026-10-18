@@ -1,5 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ArrayMaxSize, ArrayMinSize, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsIn,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
+
+export const CLAN_ACTIVITY_TYPES = [
+  'town_hall_upgrade',
+  'joined',
+  'left',
+  'clan_level_up',
+  'capital_hall_level_up',
+  'war_league_change',
+  'capital_league_change',
+] as const;
+
+export type ClanActivityType = (typeof CLAN_ACTIVITY_TYPES)[number];
 
 export class ClanActivityInputDto {
   @IsString({ each: true })
@@ -21,19 +42,19 @@ export class ClanActivityInputDto {
   @Max(100)
   @ApiProperty({ required: false, default: 50, minimum: 1, maximum: 100 })
   limit: number = 50;
+
+  /** Only these event types; all of them when omitted. */
+  @IsOptional()
+  @IsIn(CLAN_ACTIVITY_TYPES, { each: true })
+  @ArrayMinSize(1)
+  @ApiProperty({
+    required: false,
+    enum: CLAN_ACTIVITY_TYPES,
+    enumName: 'ClanActivityType',
+    isArray: true,
+  })
+  types: ClanActivityType[] = [...CLAN_ACTIVITY_TYPES];
 }
-
-export const CLAN_ACTIVITY_TYPES = [
-  'town_hall_upgrade',
-  'joined',
-  'left',
-  'clan_level_up',
-  'capital_hall_level_up',
-  'war_league_change',
-  'capital_league_change',
-] as const;
-
-export type ClanActivityType = (typeof CLAN_ACTIVITY_TYPES)[number];
 
 export class ClanActivityPlayerDto {
   tag: string;
@@ -46,7 +67,7 @@ export class ClanActivityClanDto {
 }
 
 export class ClanActivityItemDto {
-  @ApiProperty({ enum: CLAN_ACTIVITY_TYPES })
+  @ApiProperty({ enum: CLAN_ACTIVITY_TYPES, enumName: 'ClanActivityType' })
   type: ClanActivityType;
 
   createdAt: Date;

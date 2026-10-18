@@ -39,9 +39,11 @@ const collection = (docs: { tag: string; name: string }[]) =>
     collection: () => ({ find: () => ({ toArray: () => Promise.resolve(docs) }) }),
   }) as unknown as Db;
 
+const query = jest.fn(() => Promise.resolve({ json: () => Promise.resolve(rows) }));
+
 const createService = () =>
   new ClanActivityService(
-    { query: () => Promise.resolve({ json: () => Promise.resolve(rows) }) } as never,
+    { query } as never,
     collection([{ tag: '#P1', name: 'Newcomer' }]),
     collection([{ tag: '#C1', name: 'Clan One' }]),
     { getLeagueNames: () => Promise.resolve(new Map([[48000010, 'Crystal League I']])) } as never,
@@ -49,7 +51,12 @@ const createService = () =>
 
 describe('ClanActivityService.getActivity', () => {
   it('fills missing names and splits levels from leagues', async () => {
-    const { items } = await createService().getActivity({ clanTags: ['#C1'], days: 7, limit: 50 });
+    const { items } = await createService().getActivity({
+      clanTags: ['#C1'],
+      days: 7,
+      limit: 50,
+      types: ['joined', 'town_hall_upgrade', 'war_league_change'],
+    });
 
     expect(items[0]).toEqual({
       type: 'joined',
@@ -66,5 +73,20 @@ describe('ClanActivityService.getActivity', () => {
       level: null,
       league: 'Crystal League I',
     });
+  });
+
+  it('filters by type in the query so the limit applies after filtering', async () => {
+    await createService().getActivity({
+      clanTags: ['#C1'],
+      days: 7,
+      limit: 20,
+      types: ['joined', 'left'],
+    });
+
+    const [{ query: sql, query_params }] = query.mock.calls.at(-1) as unknown as [
+      { query: string; query_params: Record<string, unknown> },
+    ];
+    expect(sql).toMatch(/WHERE type IN \{types:Array\(String\)\}\s+ORDER BY/);
+    expect(query_params.types).toEqual(['joined', 'left']);
   });
 });
