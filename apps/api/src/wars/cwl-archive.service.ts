@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { APIClanWar } from 'clashofclans.js';
 import { CWLGroupsEntity } from '../db';
 
-const ARCHIVE_URL = 'https://clan-war-league-api-production.up.railway.app';
+const ARCHIVE_URL = 'https://archive.clashperk.com';
 
 /**
  * The CWL archive the bot also reads: it keeps a season's wars after the game drops their war tags.
