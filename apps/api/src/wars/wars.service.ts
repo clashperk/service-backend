@@ -1,11 +1,11 @@
 import { ClashClientService } from '@app/clash-client';
 import { ErrorCodes } from '@app/dto';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { getWarResult } from 'clashofclans.js';
+import { APIClanWar, getWarResult } from 'clashofclans.js';
 import moment from 'moment';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
-import { ClanWarLeaguesDto } from './dto';
+import { ClanWarDto, ClanWarLeaguesDto, CurrentWarDto } from './dto';
 
 @Injectable()
 export class WarsService {
@@ -59,6 +59,66 @@ export class WarsService {
     }
 
     return payload;
+  }
+
+  async getCurrentWar(clanTag: string): Promise<CurrentWarDto> {
+    const { body, isWarLogPublic } = await this.clashClientService.getCurrentWar(clanTag);
+    if (body && body.state !== 'notInWar') {
+      return { isWarLogPublic, war: this.toClanWar(body, clanTag) };
+    }
+
+    // During CWL /currentwar reports notInWar; the round wars are public even with a private log.
+    return { isWarLogPublic, war: await this.getCurrentLeagueWar(clanTag) };
+  }
+
+  private async getCurrentLeagueWar(clanTag: string): Promise<ClanWarDto | null> {
+    const group = await this.clashClientService.getClanWarLeagueGroup(clanTag);
+    if (!group) return null;
+
+    // The last started round is usually in preparation and the one before it in war.
+    const rounds = group.rounds
+      .map((round, index) => ({ warTags: round.warTags, round: index + 1 }))
+      .filter(({ warTags }) => !warTags.includes('#0'))
+      .slice(-2);
+
+    const wars = await Promise.all(
+      rounds.flatMap(({ warTags, round }) =>
+        warTags.map(async (warTag) => {
+          const { body } = await this.clashClientService.getLeagueRoundWithWarTag(warTag);
+          if (!body || (body.clan.tag !== clanTag && body.opponent.tag !== clanTag)) return null;
+          return this.toClanWar(body, clanTag, { round, warTag });
+        }),
+      ),
+    );
+
+    const ours = wars.filter((war): war is ClanWarDto => !!war);
+    return (
+      ours.find((war) => war.state === 'inWar') ??
+      ours.find((war) => war.state === 'preparation') ??
+      ours.at(-1) ??
+      null
+    );
+  }
+
+  private toClanWar(
+    body: APIClanWar,
+    clanTag: string,
+    league?: { round: number; warTag: string },
+  ): ClanWarDto {
+    const clan = body.clan.tag === clanTag ? body.clan : body.opponent;
+    const opponent = body.clan.tag === clanTag ? body.opponent : body.clan;
+
+    return {
+      ...body,
+      startTime: moment(body.startTime).toDate(),
+      preparationStartTime: moment(body.preparationStartTime).toDate(),
+      endTime: moment(body.endTime).toDate(),
+      clan,
+      opponent,
+      round: league?.round ?? null,
+      warTag: league?.warTag ?? null,
+      result: getWarResult(clan, opponent),
+    };
   }
 
   public async getClanWar(input: { clanTag: string; warId: string }) {

@@ -71,6 +71,19 @@ export class ClashClientService {
     return body;
   }
 
+  /** `isWarLogPublic` is false when the API answers 403 (private war log). */
+  async getCurrentWar(clanTag: string) {
+    const { body, res } = await this.clashClient.getCurrentWar(clanTag);
+    return { body: res.ok ? body : null, isWarLogPublic: res.status !== 403 };
+  }
+
+  async getClanWarLeagueGroup(clanTag: string) {
+    const { body, res } = await this.clashClient.getClanWarLeagueGroup(clanTag);
+    if (!res.ok || body.state === 'notInWar') return null;
+
+    return body;
+  }
+
   async verifyPlayerOrThrow(playerTag: string, apiToken: string | null) {
     if (!apiToken) return false;
 
