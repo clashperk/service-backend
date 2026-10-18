@@ -6,6 +6,7 @@ import moment from 'moment';
 import { Db } from 'mongodb';
 import { ClanWarsEntity, Collections, MONGODB_TOKEN } from '../db';
 import { WarTypes } from '../players/dto/war-types.enum';
+import { CwlArchiveService } from './cwl-archive.service';
 import {
   ClanWarDto,
   ClanWarLeagueMemberDto,
@@ -126,6 +127,7 @@ export class WarsService {
   constructor(
     @Inject(MONGODB_TOKEN) private db: Db,
     private clashClientService: ClashClientService,
+    private cwlArchiveService: CwlArchiveService,
   ) {}
 
   async getClanWarLeagueGroups(clanTag: string): Promise<ClanWarLeaguesDto> {
@@ -390,6 +392,13 @@ export class WarsService {
     const results = await Promise.all(
       rounds.flat().map((warTag) => this.clashClientService.getLeagueRoundWithWarTag(warTag)),
     );
+    // The game drops war tags at the next CWL; the archive still has those wars.
+    if (results.some(({ body }) => !body)) {
+      const archived = await this.cwlArchiveService.getSeasonWars(input.clanTag, group);
+      for (const result of results) {
+        result.body ??= archived.get(result.warTag) ?? null;
+      }
+    }
 
     const rows = new Map(
       group.clans.map((clan) => [

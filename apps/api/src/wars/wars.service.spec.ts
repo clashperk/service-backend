@@ -30,7 +30,7 @@ const createService = (wars: War[]) => {
       ),
   };
   const db = { collection: () => collection } as unknown as Db;
-  return new WarsService(db, null as never);
+  return new WarsService(db, null as never, null as never);
 };
 
 const war = (clan: string, opponent: string, endTime = new Date(Date.now() - 1000)): War => ({
@@ -105,7 +105,7 @@ const createLiveService = (live: {
     getLeagueRoundWithWarTag: (warTag: string) =>
       Promise.resolve({ body: live.leagueWars?.[warTag] ?? null, warTag }),
   };
-  return new WarsService({} as Db, clashClientService as never);
+  return new WarsService({} as Db, clashClientService as never, null as never);
 };
 
 describe('WarsService.getCurrentWar', () => {
@@ -200,7 +200,11 @@ const createListService = (wars: StoredWar[]) => {
         ),
     }),
   };
-  return new WarsService({ collection: () => collection } as unknown as Db, null as never);
+  return new WarsService(
+    { collection: () => collection } as unknown as Db,
+    null as never,
+    null as never,
+  );
 };
 
 const storedWar = (id: number, day: number, clan: string, opponent: string): StoredWar => ({
@@ -321,7 +325,7 @@ const createSeasonService = (
     },
   };
   const db = { collection: (name: keyof typeof collections) => collections[name] } as unknown as Db;
-  return new WarsService(db, null as never);
+  return new WarsService(db, null as never, null as never);
 };
 
 const member = (tag: string, townhallLevel: number, attacks?: Attack[]): Member => ({
@@ -417,7 +421,10 @@ describe('WarsService.getClanWarLeagueStandings', () => {
     rounds: [{ warTags: ['#W1', '#W2'] }, { warTags: ['#W3', '#W4'] }, { warTags: ['#0', '#0'] }],
   };
 
-  const createStandingsService = (wars: Record<string, ReturnType<typeof leagueWar> | null>) => {
+  const createStandingsService = (
+    wars: Record<string, ReturnType<typeof leagueWar> | null>,
+    archived: Record<string, ReturnType<typeof leagueWar>> = {},
+  ) => {
     const db = {
       collection: () => ({
         findOne: (filter: { 'id': number; 'clans.tag': string }) =>
@@ -432,7 +439,10 @@ describe('WarsService.getClanWarLeagueStandings', () => {
       getLeagueRoundWithWarTag: (warTag: string) =>
         Promise.resolve({ body: wars[warTag] ?? null, warTag }),
     };
-    return new WarsService(db, clashClientService as never);
+    const cwlArchiveService = {
+      getSeasonWars: () => Promise.resolve(new Map(Object.entries(archived))),
+    };
+    return new WarsService(db, clashClientService as never, cwlArchiveService as never);
   };
 
   it('ranks by stars with 10 per win, then total destruction', async () => {
@@ -468,6 +478,23 @@ describe('WarsService.getClanWarLeagueStandings', () => {
 
     expect(standings.complete).toBe(false);
     expect(standings.roundsPlayed).toBe(1);
+  });
+
+  it('fills wars the game no longer has from the archive', async () => {
+    const service = createStandingsService(
+      { '#W1': leagueWar('warEnded', ['#A', 40, 90], ['#B', 30, 80]) },
+      {
+        '#W2': leagueWar('warEnded', ['#C', 35, 85], ['#D', 35, 70]),
+        '#W3': leagueWar('warEnded', ['#A', 20, 50], ['#C', 25, 60]),
+        '#W4': leagueWar('warEnded', ['#B', 10, 30], ['#D', 12, 40]),
+      },
+    );
+
+    const standings = await service.getClanWarLeagueStandings({ clanTag: '#A', groupId: 9 });
+
+    expect(standings.complete).toBe(true);
+    expect(standings.roundsPlayed).toBe(2);
+    expect(standings.rows[0]).toMatchObject({ tag: '#C', stars: 80, wins: 2 });
   });
 
   it('returns 404 for a group the clan was not in', async () => {

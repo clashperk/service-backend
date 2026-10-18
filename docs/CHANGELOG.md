@@ -2,7 +2,7 @@
 
 ## 2026-10-18 (CWL seasons)
 - Add `GET /wars/:clanTag/clan-war-leagues/seasons?limit=` (1–12, default 3): the clan's CWL seasons from its stored wars, newest first. Each has the clan's war league and group size (from the stored group), its rounds in order with result and score, and each member's wars, attacks, stars, 3-stars, total destruction and missed attacks. Each season also has its stored `groupId` and the game's `groupSeason`
-- Add `GET /wars/:clanTag/clan-war-leagues/groups/:groupId/standings`: the group's table from all its wars, loaded live by war tag (stars plus 10 per win, total destruction, wins, starting league), with `roundsPlayed`, `totalRounds` and `complete` (false when some wars no longer load)
+- Add `GET /wars/:clanTag/clan-war-leagues/groups/:groupId/standings`: the group's table from all its wars, loaded live by war tag (stars plus 10 per win, total destruction, wins, starting league), with `roundsPlayed`, `totalRounds` and `complete` (false when some wars no longer load). Wars the game has dropped are filled from the CWL archive the bot uses
 
 ## 2026-10-18 (war history)
 - Add `GET /wars/:clanTag?limit=&before=` (limit 1–50, default 20): the clan's stored wars newest first, from its own side, with type, state, result and each side's stars, destruction and attacks but no member lists. `next` is the last war's start time; pass it as `before` for the next page
