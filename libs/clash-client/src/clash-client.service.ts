@@ -84,6 +84,29 @@ export class ClashClientService {
     return body;
   }
 
+  private leagueNames: Promise<Map<number, string>> | null = null;
+
+  /** War and capital league names by id; fetched once, since Supercell rarely changes them. */
+  getLeagueNames() {
+    this.leagueNames ??= Promise.all([
+      this.clashClient.getWarLeagues(),
+      this.clashClient.getCapitalLeagues(),
+    ])
+      .then((lists) => {
+        const names = new Map<number, string>();
+        for (const { res, body } of lists) {
+          if (!res.ok) throw new Error('League list unavailable');
+          for (const league of body.items) names.set(league.id, league.name);
+        }
+        return names;
+      })
+      .catch((error: Error) => {
+        this.leagueNames = null;
+        throw error;
+      });
+    return this.leagueNames;
+  }
+
   async verifyPlayerOrThrow(playerTag: string, apiToken: string | null) {
     if (!apiToken) return false;
 

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-18 (activity)
+- Add `POST /clans/activity` with `{ clanTags (1–10), days (1–30, default 7), limit (1–100, default 50), types (optional) }`: the clans' Town Hall upgrades, joins and leaves, clan and Capital Hall level-ups, and war and capital league changes, newest first, with player, clan and league names filled in
+
 ## 2026-10-18 (Home)
 - Add `GET /players/:playerTag/seasons?limit=` (1–12, default 2): season stats from `PlayerSeasons`, newest first — trophies, attack and defense wins, donations given and received (summed over clans), and the season's gains in war stars, CWL stars, capital gold, Clan Games points and loot
 - Add `GET /clans/:clanTag/clan-games?season=`: each member's points and finish time for a Clan Games (`YYYY-MM`, default the latest), the 22nd–28th window, the 10,000-point member cap and the clan total counted to that cap
