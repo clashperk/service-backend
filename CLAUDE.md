@@ -110,3 +110,7 @@ Only relative imports can cross these boundaries (apps have no `@app/*` alias), 
 - TypeScript is `nodenext` module/resolution and only **partially strict** (`strictNullChecks` on; `noImplicitAny`, `strictPropertyInitialization`, `strictBindCallApply` off). ESLint runs **type-checked** rules; `*.controller.ts` files additionally require explicit return types on every method.
 - Config comes from `.env` (loaded via `dotenv` + `@nestjs/config`, global). Prefer `configService.getOrThrow(...)` for required vars (the established pattern). Required keys include the JWT/cookie/API secrets, the three datastores' URLs (note the dual `MONGODB_*` and `GLOBAL_MONGODB_*`, plus `GO_REDIS_URL`), `CLASH_API_*`, Discord, Google, and Cloudflare Turnstile credentials.
 - Deployment: multi-stage `Dockerfile` (pnpm build → prod prune), shipped to ECR and run via `docker-compose.yml`. Sentry is initialized first thing in `main.ts` via `sentry.instrument.ts`.
+
+## Versioning
+
+Every PR bumps the `package.json` version (patch unless told otherwise).
