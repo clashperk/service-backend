@@ -4,3 +4,4 @@ export * from './clan-war-attack-log.dto';
 export * from './legend-attacks.dto';
 export * from './legend-thresholds.dto';
 export * from './war-types.enum';
+export * from './player-season-stats.dto';

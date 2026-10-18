@@ -14,6 +14,8 @@ import {
   BattleLogLeaderboardDto,
   BattleLogLeaderboardInputDto,
   ClanHistoryItemsDto,
+  PlayerSeasonStatsInputDto,
+  PlayerSeasonStatsItemsDto,
 } from './dto';
 import { PlayersService } from './players.service';
 import { GlobalService } from './services/global.service';
@@ -33,6 +35,15 @@ export class PlayersController {
   @Cache(120)
   getPlayer(@Param('playerTag') playerTag: string): Promise<PlayerDto> {
     return this.playersService.getPlayer(playerTag);
+  }
+
+  @Get('/:playerTag/seasons')
+  @Cache(600)
+  getSeasonStats(
+    @Param('playerTag') playerTag: string,
+    @Query() query: PlayerSeasonStatsInputDto,
+  ): Promise<PlayerSeasonStatsItemsDto> {
+    return this.playersService.getSeasonStats(playerTag, query.limit);
   }
 
   @Get('/:playerTag/battle-log')
