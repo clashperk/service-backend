@@ -394,7 +394,7 @@ export class WarsService {
     );
     // The game drops war tags at the next CWL; the archive still has those wars.
     if (results.some(({ body }) => !body)) {
-      const archived = await this.cwlArchiveService.getSeasonWars(input.clanTag, group);
+      const archived = await this.cwlArchiveService.getSeasonWars(input.clanTag, group.season);
       for (const result of results) {
         result.body ??= archived.get(result.warTag) ?? null;
       }

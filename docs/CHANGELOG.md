@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-19 (build fix)
+- Fix the 2.0.39 build: the standings endpoint passed the whole CWL group to the archive lookup, which now takes the season
+
 ## 2026-10-18 (CWL seasons)
 - Add `GET /wars/:clanTag/clan-war-leagues/seasons?limit=` (1–12, default 3): the clan's CWL seasons from its stored wars, newest first. Each has the clan's war league and group size (from the stored group), its rounds in order with result and score, and each member's wars, attacks, stars, 3-stars, total destruction and missed attacks. Each season also has its stored `groupId` and the game's `groupSeason`
 - Add `GET /wars/:clanTag/clan-war-leagues/groups/:groupId/standings`: the group's table from all its wars, loaded live by war tag (stars plus 10 per win, total destruction, wins, starting league), with `roundsPlayed`, `totalRounds` and `complete` (false when some wars no longer load). Wars the game has dropped are filled from the CWL archive the bot uses
