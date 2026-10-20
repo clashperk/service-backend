@@ -60,3 +60,6 @@ Decided by: Suvajit. `BetaGuilds` replaces the bot's `BETA_TESTERS` GitHub varia
 
 ## 2026-10-20 — Tickets from the dashboard
 Decided by: Suvajit. The API writes `TicketPanels` and `TicketSettings` as `/ticket setup` does; the bot reads them fresh on every click, so it needs no reload. Posting stays with `/ticket post`, because the bot doesn't record where panels are posted and buttons-mode IDs live in its Redis. Type IDs are kept on every edit since posted buttons and opened tickets point at them. Fields the bot never uses (closed category, hero requirements, max accounts) are left out.
+
+## 2026-10-20 — The `user` role means a dashboard session
+Decided by: Suvajit. PortalUsers sign in with `/auth/login` and get the API's own tokens (version `v2`); the dashboard signs its users' tokens with version `1`. `JwtStrategy` marks non-dashboard tokens as `portal`, and `RolesGuard` refuses them on routes whose only role is `user`, before the admin bypass, so a PortalUser can't reach server settings even if given `user` or `admin`. Routes meant for API users name their role (`fetch:*`, `manage:*`) alongside `user`. Checked on 2026-10-20: no PortalUser has `user`; two have `admin`.

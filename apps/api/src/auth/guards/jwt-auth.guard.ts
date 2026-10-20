@@ -45,11 +45,9 @@ export class JwtAuthGuard extends AuthGuard(AuthGuardStrategies.JWT) {
       return super.canActivate(context);
     }
 
-    if (userId && SNOWFLAKE_REGEX.test(userId)) {
-      req.user = Object.assign(fallbackUser, { userId });
-    } else {
-      req.user = fallbackUser;
-    }
+    // A copy per request: the shared object must not carry one caller's ID into the next.
+    req.user =
+      userId && SNOWFLAKE_REGEX.test(userId) ? { ...fallbackUser, userId } : { ...fallbackUser };
 
     return true;
   }

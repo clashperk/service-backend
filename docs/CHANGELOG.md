@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20 (API tokens off dashboard routes)
+- Tokens from `/auth/login` (PortalUsers) and `/auth/turnstile` can no longer use routes that only allow the `user` role (every `/guilds/:guildId/*` route, roster writes, tickets, default links), even with the `admin` role. Routes that also name an API role, like `fetch:rosters` on the roster list, still work
+- API-key requests with `x-user-id` no longer change the shared service user, so one caller's ID can't carry into another request
+
 ## 2026-10-20 (buttons)
 - Add `GET /guilds/:guildId/buttons` and `PUT /guilds/:guildId/buttons/:buttonType` (`link`, `refresh`, `myRosters`) for the messages `/setup buttons` posts: title, description, image, thumbnail, color, button style, and for the link button whether the player token is required, optional or hidden. Stored in `Settings` (`linkEmbeds`, `refreshEmbeds`, `myRostersEmbeds`) in the bot's shape; the link settings also drive the button on welcome messages. Messages already posted keep their old look
 

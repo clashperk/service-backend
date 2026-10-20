@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthGuardStrategies } from '../app.constants';
+import { AuthGuardStrategies, DASHBOARD_TOKEN_VERSION } from '../app.constants';
 import { AuthService } from '../auth.service';
 import { JwtUser } from '../dto';
 
@@ -23,6 +23,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, AuthGuardStrategies.
   }
 
   async validate(payload: JwtUser): Promise<JwtUser> {
-    return this.authService.revalidateJwtUser(payload);
+    const user = await this.authService.revalidateJwtUser(payload);
+    return { ...user, portal: payload.version !== DASHBOARD_TOKEN_VERSION };
   }
 }
