@@ -113,7 +113,7 @@ Only relative imports can cross these boundaries (apps have no `@app/*` alias), 
 
 ## API first
 
-Every write is meant to go through this API: the dashboard uses it now, and the bot will move its commands onto the same endpoints later (not yet). Build each endpoint so the bot can call it:
+Every write is meant to go through this API: the dashboard uses it now, and the bot will move its commands onto the same endpoints later (not yet). Product direction lives in the dashboard repo's roadmap: [`clashperk/clashperk-client` → `docs/roadmap.md`](https://github.com/clashperk/clashperk-client/blob/main/docs/roadmap.md). Build each endpoint so the bot can call it:
 
 - Do the whole operation the bot command does: its validation and limits, the record in the bot's format, and follow-up work (schedules, records the bot reloads from).
 - Keep dashboard-only inputs optional (e.g. a Discord sign-in webhook).
