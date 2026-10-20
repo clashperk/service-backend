@@ -64,7 +64,18 @@ export class GuildsService {
       this.clans
         .find(
           { guild: guildId },
-          { projection: { name: 1, tag: 1, order: 1, categoryId: 1 }, sort: { order: 1 } },
+          {
+            projection: {
+              name: 1,
+              tag: 1,
+              order: 1,
+              categoryId: 1,
+              alias: 1,
+              nickname: 1,
+              channels: 1,
+            },
+            sort: { order: 1 },
+          },
         )
         .toArray(),
       this.categories
@@ -92,6 +103,9 @@ export class GuildsService {
         level: 10,
         members: 50,
         categoryId: clan.categoryId?.toHexString() || uncategorizedId,
+        alias: clan.alias ?? null,
+        nickname: clan.nickname ?? null,
+        channels: clan.channels ?? [],
       };
     });
 

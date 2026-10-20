@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20 (clan settings)
+- Add `PATCH /guilds/:guildId/clans/:clanTag` (`{ alias?, nickname?, channels? }`), as `/alias create` and `/setup clan` set them: alias up to 15 characters with no spaces or leading #, unique in the server ignoring case; short name (`nickname`) up to 15; clan channels must be channels or threads in the server and can belong to one clan. `null` or an empty list clears a field
+- `GET /guilds/:guildId/clans` returns each clan's `alias`, `nickname` and `channels`
+
 ## 2026-10-20 (roster writes)
 - Rosters can be created, edited (including opening and closing sign-ups), cloned and deleted: `POST /rosters/:guildId/create`, `PATCH`, `DELETE /rosters/:guildId/:rosterId`, `POST .../clone`. Records use `/roster create`'s format, start from the server's last-used settings and save them back, and seed the Confirmed and Substitute groups the first time
 - Add `POST /rosters/:guildId/:rosterId/members/check`: runs the sign-up checks on up to 100 tags without saving and says why each player can or can't join

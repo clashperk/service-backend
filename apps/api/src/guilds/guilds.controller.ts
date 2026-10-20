@@ -23,6 +23,7 @@ import {
   AutoRoleClanInput,
   AutoRolesDto,
   AutoRolesInput,
+  ClanSettingsInput,
   CapitalRaidReminderInput,
   ClanCategoryInput,
   ClanLogDto,
@@ -94,6 +95,21 @@ export class GuildsController {
     @Param('clanTag') clanTag: string,
   ): Promise<GuildClansDto> {
     return this.guildClansService.remove({ guildId, clanTag });
+  }
+
+  @Patch('/:guildId/clans/:clanTag')
+  updateGuildClan(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+    @Body() body: ClanSettingsInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<GuildClansDto> {
+    return this.guildClansService.updateSettings({
+      guildId,
+      clanTag,
+      body,
+      applicationId: user.applicationId || null,
+    });
   }
 
   @Post('/:guildId/categories')
