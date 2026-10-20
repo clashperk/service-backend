@@ -143,11 +143,13 @@ export class ClanGamesReminderInput extends ReminderBaseInput {
 export class GuildChannelDto {
   id: string;
   name: string;
-  /** Discord channel type: 0 text, 5 announcement. */
+  /** Discord channel type: 0 text, 5 announcement, 15 forum, 16 media; 10, 11, 12 threads. */
   type: number;
+  /** A channel's category, or a thread's channel. */
   parentId: string | null;
-  position: number;
-  /** ClashPerk already has a webhook here, so a reminder needs no Discord sign-in. */
+  /** False for a forum or media channel, which is listed only as the heading of its posts. */
+  selectable: boolean;
+  /** ClashPerk already has a webhook here (a thread's is its channel's), so no Discord sign-in is needed. */
   hasWebhook: boolean;
 }
 

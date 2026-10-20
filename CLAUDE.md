@@ -111,6 +111,15 @@ Only relative imports can cross these boundaries (apps have no `@app/*` alias), 
 - Config comes from `.env` (loaded via `dotenv` + `@nestjs/config`, global). Prefer `configService.getOrThrow(...)` for required vars (the established pattern). Required keys include the JWT/cookie/API secrets, the three datastores' URLs (note the dual `MONGODB_*` and `GLOBAL_MONGODB_*`, plus `GO_REDIS_URL`), `CLASH_API_*`, Discord, Google, and Cloudflare Turnstile credentials.
 - Deployment: multi-stage `Dockerfile` (pnpm build → prod prune), shipped to ECR and run via `docker-compose.yml`. Sentry is initialized first thing in `main.ts` via `sentry.instrument.ts`.
 
+## API first
+
+Every write is meant to go through this API: the dashboard uses it now, and the bot will move its commands onto the same endpoints later (not yet). Product direction lives in the dashboard repo's roadmap: [`clashperk/clashperk-client` → `docs/roadmap.md`](https://github.com/clashperk/clashperk-client/blob/main/docs/roadmap.md). Build each endpoint so the bot can call it:
+
+- Do the whole operation the bot command does: its validation and limits, the record in the bot's format, and follow-up work (schedules, records the bot reloads from).
+- Keep dashboard-only inputs optional (e.g. a Discord sign-in webhook).
+- The bot will call with the API key and `x-user-id`; that caller skips the server check, so the bot keeps checking the member's permission itself.
+- Return errors a person can read as-is.
+
 ## Versioning
 
 Every PR bumps the `package.json` version (patch unless told otherwise).

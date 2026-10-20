@@ -40,7 +40,7 @@ const setup = (logs: Doc[] = []) => {
     checkChannel: jest.fn(),
     checkRole: jest.fn(),
     resolveWebhook: jest.fn().mockResolvedValue(null),
-    listChannels: jest.fn().mockResolvedValue([{ id: CHANNEL, name: 'war-feed' }]),
+    channelNames: jest.fn().mockResolvedValue(new Map([[CHANNEL, 'war-feed']])),
   };
   return { service: new GuildLogsService(db, discord as never), updates, discord };
 };

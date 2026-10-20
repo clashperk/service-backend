@@ -9,6 +9,7 @@ import {
   ReminderScheduleDto,
   ReorderClanCategoriesInput,
 } from './dto';
+import { GuildDiscordService } from './guild-discord.service';
 
 // Only war schedules carry `isFriendly`; raid and clan games schedules have no war type.
 const toWarType = (schedule: { warTag?: string | null; isFriendly?: boolean }) => {
@@ -36,6 +37,7 @@ export class GuildsService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private readonly discordOauthService: DiscordOauthService,
+    private readonly guildDiscordService: GuildDiscordService,
   ) {}
 
   async listMembers(input: { guildId: string; query: string; applicationId: string | null }) {
@@ -167,25 +169,21 @@ export class GuildsService {
     applicationId: string | null;
   }): Promise<GuildRemindersDto> {
     const { guildId } = input;
-    const [
-      clanWars,
-      capitalRaids,
-      clanGames,
-      warSchedules,
-      raidSchedules,
-      gamesSchedules,
-      clans,
-      channelNames,
-    ] = await Promise.all([
-      this.db.collection(Collections.CLAN_WAR_REMINDERS).find({ guild: guildId }).toArray(),
-      this.db.collection(Collections.CAPITAL_RAID_REMINDERS).find({ guild: guildId }).toArray(),
-      this.db.collection(Collections.CLAN_GAMES_REMINDERS).find({ guild: guildId }).toArray(),
-      this.getSchedules(Collections.CLAN_WAR_SCHEDULES, guildId),
-      this.getSchedules(Collections.CAPITAL_RAID_SCHEDULES, guildId),
-      this.getSchedules(Collections.CLAN_GAMES_SCHEDULES, guildId),
-      this.clans.find({ guild: guildId }, { projection: { name: 1, tag: 1 } }).toArray(),
-      this.getChannelNames(input),
-    ]);
+    const [clanWars, capitalRaids, clanGames, warSchedules, raidSchedules, gamesSchedules, clans] =
+      await Promise.all([
+        this.db.collection(Collections.CLAN_WAR_REMINDERS).find({ guild: guildId }).toArray(),
+        this.db.collection(Collections.CAPITAL_RAID_REMINDERS).find({ guild: guildId }).toArray(),
+        this.db.collection(Collections.CLAN_GAMES_REMINDERS).find({ guild: guildId }).toArray(),
+        this.getSchedules(Collections.CLAN_WAR_SCHEDULES, guildId),
+        this.getSchedules(Collections.CAPITAL_RAID_SCHEDULES, guildId),
+        this.getSchedules(Collections.CLAN_GAMES_SCHEDULES, guildId),
+        this.clans.find({ guild: guildId }, { projection: { name: 1, tag: 1 } }).toArray(),
+      ]);
+    const channelNames = await this.guildDiscordService.channelNames(
+      guildId,
+      input.applicationId,
+      [...clanWars, ...capitalRaids, ...clanGames].map((reminder) => reminder.channel),
+    );
 
     const clanNames = new Map(clans.map((clan) => [clan.tag, clan.name]));
     const schedulesByReminder = new Map<string, ReminderScheduleDto[]>();
@@ -270,22 +268,6 @@ export class GuildsService {
         },
       )
       .toArray();
-  }
-
-  /** Channel names are cosmetic, so a bot without access to the server just yields none. */
-  private async getChannelNames(input: { guildId: string; applicationId: string | null }) {
-    try {
-      const bot = input.applicationId
-        ? await this.bots.findOne({ serviceId: input.applicationId })
-        : null;
-      const channels = await this.discordOauthService.listChannels({
-        guildId: input.guildId,
-        token: bot ? bot.token : null,
-      });
-      return new Map(channels.map((channel) => [channel.id, channel.name ?? null]));
-    } catch {
-      return new Map<string, string | null>();
-    }
   }
 
   private get clans() {
