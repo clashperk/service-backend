@@ -37,8 +37,28 @@ export interface ClanLogsEntity {
 /** The bot's Patreon record; an active one lifts the server's limits. */
 export interface PatronsEntity {
   _id: ObjectId;
+  /** Patreon's member ID. */
+  id: string;
+  name: string;
+  /** The Discord account that redeemed it, once someone has. */
+  userId?: string;
+  username?: string;
+  email?: string;
+  rewardId: string;
+  guilds: { id: string; name: string; limit: number }[];
   active: boolean;
-  guilds: { id: string; limit: number }[];
+  declined: boolean;
+  cancelled: boolean;
+  /** Patreon's patron status, e.g. `active_patron` or `former_patron`. */
+  status?: string;
+  entitledAmount: number;
+  lifetimeSupport: number;
+  isGifted?: boolean;
+  isLifetime?: boolean;
   /** A special tier, e.g. `lifetime` or `gifted`; unset for a regular pledge. */
   note?: string;
+  /** Set while a custom bot is attached. */
+  applicationId?: string;
+  lastChargeDate?: Date;
+  createdAt: Date;
 }
