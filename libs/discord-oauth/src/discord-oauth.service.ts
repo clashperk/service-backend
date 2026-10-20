@@ -1,7 +1,14 @@
 import { REST } from '@discordjs/rest';
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { APIChannel, APIGuild, APIGuildMember, APIUser, Routes } from 'discord-api-types/v10';
+import {
+  APIChannel,
+  APIGuild,
+  APIGuildMember,
+  APIUser,
+  APIWebhook,
+  Routes,
+} from 'discord-api-types/v10';
 import { URLSearchParams } from 'url';
 
 const rest = new REST({ version: '10' });
@@ -69,6 +76,19 @@ export class DiscordOauthService {
     });
 
     return payload as APIChannel[];
+  }
+
+  /** A webhook by its token, which needs no bot access; null when it no longer exists. */
+  async getWebhook(input: { id: string; token: string }): Promise<APIWebhook | null> {
+    try {
+      return (await new REST({ version: '10', authPrefix: 'Bot' }).get(
+        Routes.webhook(input.id, input.token),
+        { auth: false },
+      )) as APIWebhook;
+    } catch (error) {
+      if (error.status === 404 || error.status === 401) return null;
+      throw new HttpException(error.message, error.status ?? 500);
+    }
   }
 
   public toAvatarUrl(userId: string, avatar: string | null) {
