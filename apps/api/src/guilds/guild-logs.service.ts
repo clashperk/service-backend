@@ -24,12 +24,14 @@ export class GuildLogsService {
     clanTag: string;
   }): Promise<ClanLogDto[]> {
     await this.findClanOrThrow(input.guildId, input.clanTag);
-    const [logs, channelNames] = await Promise.all([
-      this.logs
-        .find({ guildId: input.guildId, clanTag: input.clanTag, logType: { $in: LOG_TYPES } })
-        .toArray(),
-      this.channelNames(input.guildId, input.applicationId),
-    ]);
+    const logs = await this.logs
+      .find({ guildId: input.guildId, clanTag: input.clanTag, logType: { $in: LOG_TYPES } })
+      .toArray();
+    const channelNames = await this.discord.channelNames(
+      input.guildId,
+      input.applicationId,
+      logs.map((log) => log.channelId),
+    );
     return logs.map((log) => this.toDto(log, channelNames.get(log.channelId) ?? null));
   }
 
@@ -52,7 +54,12 @@ export class GuildLogsService {
     const webhook =
       sameChannel && !body.webhook
         ? (existing?.webhook ?? null)
-        : await this.discord.resolveWebhook(guildId, body.channelId, body.webhook);
+        : await this.discord.resolveWebhook(
+            guildId,
+            input.applicationId,
+            body.channelId,
+            body.webhook,
+          );
 
     const now = new Date();
     const log = await this.logs.findOneAndUpdate(
@@ -76,7 +83,9 @@ export class GuildLogsService {
       },
       { upsert: true, returnDocument: 'after' },
     );
-    const channelNames = await this.channelNames(guildId, input.applicationId);
+    const channelNames = await this.discord.channelNames(guildId, input.applicationId, [
+      body.channelId,
+    ]);
     return this.toDto(log!, channelNames.get(body.channelId) ?? null);
   }
 
@@ -95,16 +104,6 @@ export class GuildLogsService {
       .findOne({ guild: guildId, tag: clanTag }, { projection: { _id: 1 } });
     if (!clan) throw new NotFoundException('That clan is not added to this server.');
     return clan;
-  }
-
-  /** Channel names are cosmetic, so a bot without access to the server just yields none. */
-  private async channelNames(guildId: string, applicationId: string | null) {
-    try {
-      const channels = await this.discord.listChannels({ guildId, applicationId });
-      return new Map(channels.map((channel) => [channel.id, channel.name]));
-    } catch {
-      return new Map<string, string>();
-    }
   }
 
   private toDto(log: WithId<ClanLogsEntity>, channelName: string | null): ClanLogDto {

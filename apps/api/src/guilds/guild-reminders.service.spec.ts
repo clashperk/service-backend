@@ -10,6 +10,9 @@ jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
 
 const GUILD = '111111111111111111';
 const CHANNEL = '222222222222222222';
+const THREAD = '444444444444444444';
+const FORUM = '555555555555555555';
+const POST = '666666666666666666';
 const MINUTE = 60_000;
 
 type Store = Record<string, Record<string, unknown>[]>;
@@ -26,6 +29,11 @@ const matches = (doc: Record<string, unknown>, filter: Record<string, unknown>) 
     if (cond instanceof ObjectId) return cond.equals(value as ObjectId);
     return value === cond;
   });
+
+const threads = [
+  { id: THREAD, name: 'war calls', type: 11, parent_id: CHANNEL },
+  { id: POST, name: 'recruiting', type: 11, parent_id: FORUM },
+];
 
 const setup = (store: Store, webhook: { guild_id: string; channel_id: string } | null = null) => {
   const collection = (name: string) => {
@@ -54,7 +62,16 @@ const setup = (store: Store, webhook: { guild_id: string; channel_id: string } |
   };
   const db = { collection } as unknown as Db;
   const discord = {
-    listChannels: () => Promise.resolve([{ id: CHANNEL, name: 'war', type: 0, position: 1 }]),
+    listChannels: () =>
+      Promise.resolve([
+        { id: CHANNEL, name: 'war', type: 0, position: 1 },
+        { id: FORUM, name: 'clans', type: 15, position: 2 },
+      ]),
+    listActiveThreads: () => Promise.resolve(threads),
+    getChannel: ({ channelId }: { channelId: string }) =>
+      Promise.resolve(
+        threads.find((thread) => thread.id === channelId) ?? { id: channelId, type: 0 },
+      ),
     getWebhook: () => Promise.resolve(webhook),
   };
   const schedules = { reschedule: jest.fn(), clear: jest.fn() };
@@ -120,6 +137,38 @@ describe('GuildRemindersService', () => {
       id: '333333333333333333',
       token: 't',
     });
+  });
+
+  it('posts in a thread through the webhook of its channel', async () => {
+    const store = clanStore();
+    store[Collections.CLAN_LOGS] = [
+      { guildId: GUILD, channelId: CHANNEL, webhook: { id: '333333333333333333', token: 't' } },
+    ];
+    const { service } = setup(store);
+
+    await service.create('clanWars', {
+      guildId: GUILD,
+      applicationId: null,
+      body: input({ channelId: THREAD }),
+    });
+
+    expect(store[Collections.CLAN_WAR_REMINDERS][0]).toMatchObject({
+      channel: THREAD,
+      webhook: { id: '333333333333333333', token: 't' },
+    });
+  });
+
+  it('takes forum posts but not the forum itself', async () => {
+    const { service } = setup(clanStore(), { guild_id: GUILD, channel_id: FORUM });
+    const create = (channelId: string) =>
+      service.create('clanWars', {
+        guildId: GUILD,
+        applicationId: null,
+        body: input({ channelId, webhook: { id: '333333333333333333', token: 't' } }),
+      });
+
+    await expect(create(FORUM)).rejects.toThrow(BadRequestException);
+    await expect(create(POST)).resolves.toBeDefined();
   });
 
   it('rejects a signed-in webhook from another channel', async () => {

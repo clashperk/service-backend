@@ -65,7 +65,12 @@ export class GuildRemindersService {
       guild: guildId,
       channel: channelId,
       message: body.message.trim(),
-      webhook: await this.discord.resolveWebhook(guildId, channelId, body.webhook),
+      webhook: await this.discord.resolveWebhook(
+        guildId,
+        input.applicationId,
+        channelId,
+        body.webhook,
+      ),
       createdAt: new Date(),
     };
     await this.reminders(kind).insertOne(reminder);
@@ -93,7 +98,7 @@ export class GuildRemindersService {
     const keepWebhook = existing.channel === channelId && !body.webhook;
     const webhook = keepWebhook
       ? (existing.webhook ?? null)
-      : await this.discord.resolveWebhook(guildId, channelId, body.webhook);
+      : await this.discord.resolveWebhook(guildId, input.applicationId, channelId, body.webhook);
 
     const update = { ...fields, channel: channelId, message: body.message.trim(), webhook };
     // A thread belongs to the old channel, so moving the reminder drops it.

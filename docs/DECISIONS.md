@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-20 — Threads are picked like channels and post through their parent's webhook
+The bot already stores a thread's ID as the record's channel and posts through the parent channel's webhook with `thread_id` (`client.util.hasPermissions`), and threads can't own webhooks, so the API saves threads the same way and checks or reuses webhooks by the parent. Only active threads are offered: the bot looks channels up in its cache, which holds archived threads only after they come back, and Discord's guild endpoint lists active threads in one call. Archived threads on saved records are named with one lookup each, since names are only shown. Forums and media channels are headings, not targets, because the bot can't post in them directly.
+
 ## 2026-10-20 — The bot reloads clan logs on its own
 The bot caches clan logs in memory and only reloaded them from `/setup clan-logs`. It now watches `ClanLogs` for setting changes (channel, enabled, role, color) and reloads that clan, so the API just writes the record. Updates to `messageId` or `lastPostedAt`, which the bot makes after every post, don't trigger a reload.
 

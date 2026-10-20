@@ -1,11 +1,18 @@
 import { DiscordOauthService } from '@app/discord-oauth';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { ChannelType } from 'discord-api-types/v10';
+import { APIChannel, ChannelType } from 'discord-api-types/v10';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
 import { GuildChannelDto, GuildRoleDto } from './dto';
 
 const POSTABLE_CHANNELS = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
+// Forum and media channels can't take messages, only their posts (threads) can.
+const THREAD_PARENTS = [...POSTABLE_CHANNELS, ChannelType.GuildForum, ChannelType.GuildMedia];
+const THREADS = [
+  ChannelType.AnnouncementThread,
+  ChannelType.PublicThread,
+  ChannelType.PrivateThread,
+];
 
 const REMINDER_COLLECTIONS = [
   Collections.CLAN_WAR_REMINDERS,
@@ -15,6 +22,9 @@ const REMINDER_COLLECTIONS = [
 
 export type Webhook = { id: string; token: string };
 
+const parentOf = (channel: APIChannel) =>
+  'parent_id' in channel ? (channel.parent_id ?? null) : null;
+
 /** The server's channels, roles and ClashPerk webhooks, shared by reminders and clan logs. */
 @Injectable()
 export class GuildDiscordService {
@@ -23,28 +33,55 @@ export class GuildDiscordService {
     private readonly discordOauthService: DiscordOauthService,
   ) {}
 
+  /** Channels in Discord's order, each followed by its active threads or forum posts. */
   async listChannels(input: {
     guildId: string;
     applicationId: string | null;
   }): Promise<GuildChannelDto[]> {
-    const [channels, webhooks] = await Promise.all([
-      this.discordOauthService.listChannels({
-        guildId: input.guildId,
-        token: await this.botToken(input.applicationId),
-      }),
-      this.knownWebhooks(input.guildId),
+    const token = await this.botToken(input.applicationId);
+    const [channels, threads] = await Promise.all([
+      this.discordOauthService.listChannels({ guildId: input.guildId, token }),
+      this.discordOauthService.listActiveThreads({ guildId: input.guildId, token }),
     ]);
-    return channels
-      .filter((channel) => POSTABLE_CHANNELS.includes(channel.type))
-      .map((channel) => ({
+    const webhooks = await this.knownWebhooks(input.guildId, threads);
+
+    const threadsByParent = new Map<string, APIChannel[]>();
+    for (const thread of threads.filter((thread) => THREADS.includes(thread.type))) {
+      const parentId = parentOf(thread);
+      if (parentId)
+        threadsByParent.set(parentId, [...(threadsByParent.get(parentId) ?? []), thread]);
+    }
+
+    const result: GuildChannelDto[] = [];
+    const parents = channels
+      .filter((channel) => THREAD_PARENTS.includes(channel.type))
+      .sort((a, b) => ('position' in a ? a.position : 0) - ('position' in b ? b.position : 0));
+    for (const channel of parents) {
+      const postable = POSTABLE_CHANNELS.includes(channel.type);
+      const children = (threadsByParent.get(channel.id) ?? []).sort((a, b) =>
+        (a.name ?? '').localeCompare(b.name ?? ''),
+      );
+      if (!postable && !children.length) continue;
+      result.push({
         id: channel.id,
         name: channel.name ?? channel.id,
         type: channel.type,
-        parentId: 'parent_id' in channel ? (channel.parent_id ?? null) : null,
-        position: 'position' in channel ? channel.position : 0,
+        parentId: parentOf(channel),
+        selectable: postable,
         hasWebhook: webhooks.has(channel.id),
-      }))
-      .sort((a, b) => a.position - b.position);
+      });
+      for (const thread of children) {
+        result.push({
+          id: thread.id,
+          name: thread.name ?? thread.id,
+          type: thread.type,
+          parentId: channel.id,
+          selectable: true,
+          hasWebhook: webhooks.has(channel.id),
+        });
+      }
+    }
+    return result;
   }
 
   async listRoles(input: {
@@ -65,8 +102,10 @@ export class GuildDiscordService {
   /** The bot posts wherever the record says, so the channel must be one of this server's. */
   async checkChannel(guildId: string, applicationId: string | null, channelId: string) {
     const channels = await this.listChannels({ guildId, applicationId });
-    if (!channels.some((channel) => channel.id === channelId)) {
-      throw new BadRequestException('Pick a text or announcement channel in this server.');
+    if (!channels.some((channel) => channel.id === channelId && channel.selectable)) {
+      throw new BadRequestException(
+        'Pick a text or announcement channel, or a thread, in this server.',
+      );
     }
   }
 
@@ -77,32 +116,64 @@ export class GuildDiscordService {
     }
   }
 
-  /** A webhook from Discord's sign-in must belong to this channel; otherwise reuse one ClashPerk already has there. */
+  /**
+   * Threads post through their parent channel's webhook. One from Discord's sign-in must be in
+   * that channel; otherwise reuse one ClashPerk already has there.
+   */
   async resolveWebhook(
     guildId: string,
+    applicationId: string | null,
     channelId: string,
     provided: Webhook | undefined,
   ): Promise<Webhook | null> {
+    const channel = await this.discordOauthService.getChannel({
+      channelId,
+      token: await this.botToken(applicationId),
+    });
+    const homeId = (channel && THREADS.includes(channel.type) && parentOf(channel)) || channelId;
     if (provided) {
       const webhook = await this.discordOauthService.getWebhook(provided);
-      if (!webhook || webhook.guild_id !== guildId || webhook.channel_id !== channelId) {
+      if (!webhook || webhook.guild_id !== guildId || webhook.channel_id !== homeId) {
         throw new BadRequestException("That webhook isn't in the chosen channel.");
       }
       return { id: provided.id, token: provided.token };
     }
     // Without a webhook the bot creates one in the channel the first time it posts.
-    return (await this.knownWebhooks(guildId)).get(channelId) ?? null;
+    const threads = channel && homeId !== channelId ? [channel] : [];
+    return (await this.knownWebhooks(guildId, threads)).get(homeId) ?? null;
   }
 
-  /** Webhooks ClashPerk already posts through in this server, by channel. */
-  async knownWebhooks(guildId: string) {
+  /** Names for saved channels; archived threads aren't listed, so they're looked up one by one. */
+  async channelNames(guildId: string, applicationId: string | null, channelIds: string[]) {
+    const names = new Map<string, string>();
+    try {
+      const channels = await this.listChannels({ guildId, applicationId });
+      for (const channel of channels) names.set(channel.id, channel.name);
+      const token = await this.botToken(applicationId);
+      const missing = [...new Set(channelIds)].filter((id) => !names.has(id));
+      const found = await Promise.all(
+        missing.map((channelId) => this.discordOauthService.getChannel({ channelId, token })),
+      );
+      for (const channel of found) {
+        if (channel && 'guild_id' in channel && channel.guild_id === guildId && channel.name) {
+          names.set(channel.id, channel.name);
+        }
+      }
+    } catch {
+      // Names are cosmetic, so a bot without access to the server just yields none.
+    }
+    return names;
+  }
+
+  /** Webhooks ClashPerk already posts through in this server, by the channel that owns them. */
+  private async knownWebhooks(guildId: string, threads: APIChannel[]) {
     const [reminders, logs] = await Promise.all([
       Promise.all(
         REMINDER_COLLECTIONS.map((collection) =>
           this.db
             .collection(collection)
             .find(
-              { guild: guildId, webhook: { $ne: null }, threadId: { $exists: false } },
+              { guild: guildId, webhook: { $ne: null } },
               { projection: { channel: 1, webhook: 1 } },
             )
             .toArray(),
@@ -113,12 +184,16 @@ export class GuildDiscordService {
         .find({ guildId, webhook: { $ne: null } }, { projection: { channelId: 1, webhook: 1 } })
         .toArray(),
     ]);
+    // A record in a thread holds its parent's webhook.
+    const homes = new Map(threads.map((thread) => [thread.id, parentOf(thread) ?? thread.id]));
     const byChannel = new Map<string, Webhook>();
-    for (const { channel, webhook } of reminders.flat()) {
-      if (webhook) byChannel.set(channel, { id: webhook.id, token: webhook.token });
-    }
-    for (const { channelId, webhook } of logs) {
-      if (webhook) byChannel.set(channelId, { id: webhook.id, token: webhook.token });
+    const records = [
+      ...reminders.flat().map(({ channel, webhook }) => ({ channelId: channel, webhook })),
+      ...logs.map(({ channelId, webhook }) => ({ channelId, webhook })),
+    ];
+    for (const { channelId, webhook } of records) {
+      if (!webhook) continue;
+      byChannel.set(homes.get(channelId) ?? channelId, { id: webhook.id, token: webhook.token });
     }
     return byChannel;
   }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 (threads)
+- `GET /guilds/:guildId/channels` adds active threads and forum or media posts, each listed under its channel. A forum or media channel with posts is listed only as their heading (`selectable: false`). `position` is gone; the list comes in Discord's order
+- Reminders and clan logs accept a thread or forum post as the channel. The webhook, from Discord's sign-in or reused, must belong to the thread's channel, which is how the bot posts there
+- Saved archived threads keep their names in the reminder and clan log lists
+
 ## 2026-10-20 (clan logs)
 - Add `GET /guilds/:guildId/clans/:clanTag/logs`, `PUT` and `DELETE /guilds/:guildId/clans/:clanTag/logs/:logType` for the log types `/setup clan-logs` offers. Records use the bot's format (clan record, deep link, 30-minute backfill); a log kept in the same channel keeps its webhook and self-updating message, and a moved one starts fresh. Channel and ping role must be in the server, and the clan must be added to it
 - Channel, role and webhook lookups are shared by reminders and clan logs

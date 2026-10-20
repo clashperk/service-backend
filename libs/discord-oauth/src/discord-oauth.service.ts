@@ -78,6 +78,28 @@ export class DiscordOauthService {
     return payload as APIChannel[];
   }
 
+  /** Active threads, forum posts included; Discord leaves archived ones out. */
+  async listActiveThreads(input: { guildId: string; token: string | null }) {
+    const token = input.token ?? this.configService.getOrThrow<string>('DISCORD_TOKEN');
+    const payload = (await new REST({ version: '10' })
+      .setToken(token)
+      .get(Routes.guildActiveThreads(input.guildId))) as { threads: APIChannel[] };
+    return payload.threads;
+  }
+
+  /** One channel or thread by ID; null when it's gone or the bot can't see it. */
+  async getChannel(input: { channelId: string; token: string | null }) {
+    const token = input.token ?? this.configService.getOrThrow<string>('DISCORD_TOKEN');
+    try {
+      return (await new REST({ version: '10' })
+        .setToken(token)
+        .get(Routes.channel(input.channelId))) as APIChannel;
+    } catch (error) {
+      if ([403, 404].includes(error.status)) return null;
+      throw new HttpException(error.message, error.status ?? 500);
+    }
+  }
+
   /** A webhook by its token, which needs no bot access; null when it no longer exists. */
   async getWebhook(input: { id: string; token: string }): Promise<APIWebhook | null> {
     try {
