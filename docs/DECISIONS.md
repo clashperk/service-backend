@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-20 — Adding a clan follows `/setup clan`, minus the bot-only parts
+The record matches `storage.register`: `verified`, `active`, `paused: false`, `patron`, and a `uniqueId` shared with other servers that have the clan (else the highest plus one), which the tracker keys on. The bot notices the new record through a `ClanStores` watcher, so the API doesn't call it. Verification matches `enforceSecurity`, using the caller's own links (`x-user-id` when the bot calls); the bot-owner bypass stays in the bot. A clan's channel links, color and alias aren't set here yet. Categories differ in two ways: the API doesn't create the bot's default categories when a server has none, and deleting one moves its clans to Uncategorized instead of leaving them pointing at a deleted category.
+
 ## 2026-10-20 — Threads are picked like channels and post through their parent's webhook
 The bot already stores a thread's ID as the record's channel and posts through the parent channel's webhook with `thread_id` (`client.util.hasPermissions`), and threads can't own webhooks, so the API saves threads the same way and checks or reuses webhooks by the parent. Only active threads are offered: the bot looks channels up in its cache, which holds archived threads only after they come back, and Discord's guild endpoint lists active threads in one call. Archived threads on saved records are named with one lookup each, since names are only shown. Forums and media channels are headings, not targets, because the bot can't post in them directly.
 

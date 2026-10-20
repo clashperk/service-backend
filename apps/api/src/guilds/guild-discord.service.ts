@@ -99,6 +99,15 @@ export class GuildDiscordService {
       .sort((a, b) => b.position - a.position);
   }
 
+  async memberCount(guildId: string, applicationId: string | null) {
+    const guild = await this.discordOauthService.getGuild({
+      guildId,
+      token: await this.botToken(applicationId),
+      withCounts: true,
+    });
+    return guild.approximate_member_count ?? 0;
+  }
+
   /** The bot posts wherever the record says, so the channel must be one of this server's. */
   async checkChannel(guildId: string, applicationId: string | null, channelId: string) {
     const channels = await this.listChannels({ guildId, applicationId });

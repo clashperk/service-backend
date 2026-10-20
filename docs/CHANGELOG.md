@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 (manage clans)
+- Add `POST /guilds/:guildId/clans` (`{ tag, categoryId? }`) and `DELETE /guilds/:guildId/clans/:clanTag`. Adding uses the bot's record and its verification rule: past 5, 20 or 100 clans (by server size), or for a clan already in more than 10 other servers, it needs `CP` plus the server ID's last two digits in the clan description or a verified Leader or Co-Leader account of the caller; supporters skip it. Removing also deletes the clan's logs, takes it off reminders (deleting reminders left with no clans) and clears their schedules
+- Add `POST /guilds/:guildId/categories`, `PATCH` and `DELETE /guilds/:guildId/categories/:categoryId` (names 1 to 36 characters, unique per server). Deleting a category moves its clans to Uncategorized
+- Each returns the server's clans and categories, as `GET /guilds/:guildId/clans` does
+
 ## 2026-10-20 (threads)
 - `GET /guilds/:guildId/channels` adds active threads and forum or media posts, each listed under its channel. A forum or media channel with posts is listed only as their heading (`selectable: false`). `position` is gone; the list comes in Discord's order
 - Reminders and clan logs accept a thread or forum post as the channel. The webhook, from Discord's sign-in or reused, must belong to the thread's channel, which is how the bot posts there
