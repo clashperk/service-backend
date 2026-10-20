@@ -35,6 +35,11 @@ export class RolesGuard implements CanActivate {
       });
     }
 
+    // `user` means a person signed in to the dashboard; API tokens never count as one, admin or not.
+    if (user.portal && roles.every((role) => role === UserRoles.USER)) {
+      throw new ForbiddenException();
+    }
+
     if (user.roles.includes(UserRoles.ADMIN)) return true;
 
     const isOk = roles.some((role) => user.roles.includes(role));
