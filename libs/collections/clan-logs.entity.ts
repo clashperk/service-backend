@@ -1,5 +1,16 @@
 import { ObjectId } from 'mongodb';
 
+export interface ClanEmbedMetadata {
+  /** Custom text, or "auto" for the in-game clan description. */
+  description?: string;
+  /** Custom requirement text, or "auto" for the in-game Town Hall requirement. */
+  accepts?: string;
+  bannerImage?: string | null;
+  /** Field keys from `ClanEmbedFields` in the bot; `*` is all of them. */
+  fields?: string[];
+  rulesText?: string;
+}
+
 /** The bot's clan log record: one per clan, log type and server. */
 export interface ClanLogsEntity {
   _id: ObjectId;
@@ -16,6 +27,8 @@ export interface ClanLogsEntity {
   /** The self-updating message, for logs that edit one message. */
   messageId: string | null;
   color: number | null;
+  /** The clan embed's settings, for `clan_embed_log` only. */
+  metadata?: ClanEmbedMetadata;
   lastPostedAt: Date;
   updatedAt: Date;
   createdAt: Date;

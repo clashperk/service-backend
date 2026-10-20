@@ -26,6 +26,9 @@ import {
   ClanSettingsInput,
   CapitalRaidReminderInput,
   ClanCategoryInput,
+  ClanEmbedDto,
+  ClanEmbedInput,
+  ClanEmbedStateDto,
   ClanLogDto,
   ClanLogLimitDto,
   ClanLogInput,
@@ -299,6 +302,43 @@ export class GuildsController {
   @Get('/:guildId/clan-logs/limit')
   getClanLogLimit(@Param('guildId') guildId: string): Promise<ClanLogLimitDto> {
     return this.guildLogsService.limit(guildId);
+  }
+
+  @Get('/:guildId/clans/:clanTag/embed')
+  getClanEmbed(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ClanEmbedStateDto> {
+    return this.guildLogsService.getEmbed({
+      guildId,
+      clanTag,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Put('/:guildId/clans/:clanTag/embed')
+  saveClanEmbed(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+    @Body() body: ClanEmbedInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ClanEmbedDto> {
+    return this.guildLogsService.saveEmbed({
+      guildId,
+      clanTag,
+      body,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Delete('/:guildId/clans/:clanTag/embed')
+  @HttpCode(204)
+  async deleteClanEmbed(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+  ): Promise<void> {
+    await this.guildLogsService.deleteEmbed({ guildId, clanTag });
   }
 
   @Get('/:guildId/clans/:clanTag/logs')
