@@ -26,6 +26,17 @@ export class ButtonEmbedConfig {
   token_field?: 'required' | 'optional' | 'hidden';
 }
 
+/** Who reminders ping, per reminder type; each list holds the members with that type's role. */
+export class ReminderExclusionConfig {
+  type: 'optIn' | 'optOut';
+  wars?: string;
+  raids?: string;
+  games?: string;
+  warsExclusionUserIds?: string[];
+  raidsExclusionUserIds?: string[];
+  gamesExclusionUserIds?: string[];
+}
+
 export class SettingsEntity {
   guildId: string;
   /** Clans that can have logs; unset means the free 2. */
@@ -34,6 +45,7 @@ export class SettingsEntity {
   color?: number | null;
   /** Webhooks per channel; the bot clamps it to 3 to 8. */
   webhookLimit?: number;
+  reminderExclusion?: ReminderExclusionConfig;
   /** Role IDs; older records hold a single ID. */
   managerRole?: string[] | string;
   rosterManagerRole?: string[] | string;

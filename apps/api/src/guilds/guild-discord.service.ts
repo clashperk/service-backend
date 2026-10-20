@@ -198,6 +198,20 @@ export class GuildDiscordService {
     return (await this.knownWebhooks(guildId, threads)).get(homeId) ?? null;
   }
 
+  /** The IDs of members holding each role. */
+  async roleMembers(guildId: string, applicationId: string | null, roleIds: string[]) {
+    const members = await this.discordRest.listAllMembers({
+      guildId,
+      token: await this.botToken(applicationId),
+    });
+    return new Map(
+      roleIds.map((roleId) => [
+        roleId,
+        members.filter((member) => member.roles.includes(roleId)).map((member) => member.user.id),
+      ]),
+    );
+  }
+
   /** Category channels, where the bot opens and moves ticket channels. */
   async listCategories(input: { guildId: string; applicationId: string | null }) {
     const { channels } = await this.serverChannels(input.guildId, input.applicationId);
