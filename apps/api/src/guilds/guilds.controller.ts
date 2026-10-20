@@ -45,6 +45,8 @@ import {
   ReorderClanCategoriesInput,
   ManagerRolesDto,
   ManagerRolesInput,
+  ServerConfigDto,
+  ServerConfigInput,
   FlagAlertLogInput,
   MaintenanceLogInput,
   ServerLogChannelInput,
@@ -58,6 +60,7 @@ import { BetaService } from '../beta/beta.service';
 import { GuildBetaDto } from '../beta/dto/beta-guilds.dto';
 import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildClansService } from './guild-clans.service';
+import { GuildConfigService } from './guild-config.service';
 import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
@@ -83,6 +86,7 @@ export class GuildsController {
     private guildServerLogsService: GuildServerLogsService,
     private guildButtonsService: GuildButtonsService,
     private guildManagersService: GuildManagersService,
+    private guildConfigService: GuildConfigService,
     private betaService: BetaService,
   ) {}
 
@@ -598,6 +602,19 @@ export class GuildsController {
       body,
       applicationId: user.applicationId || null,
     });
+  }
+
+  @Get('/:guildId/config')
+  getConfig(@Param('guildId') guildId: string): Promise<ServerConfigDto> {
+    return this.guildConfigService.get(guildId);
+  }
+
+  @Patch('/:guildId/config')
+  saveConfig(
+    @Param('guildId') guildId: string,
+    @Body() body: ServerConfigInput,
+  ): Promise<ServerConfigDto> {
+    return this.guildConfigService.save(guildId, body);
   }
 
   @Get('/:guildId/beta')

@@ -4,6 +4,7 @@ import { GuildTicketsController } from './guild-tickets.controller';
 import { GuildTicketsService } from './guild-tickets.service';
 import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildClansService } from './guild-clans.service';
+import { GuildConfigService } from './guild-config.service';
 import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
@@ -20,6 +21,7 @@ import { ReminderSchedulesService } from './reminder-schedules.service';
     GuildsService,
     GuildAutoRolesService,
     GuildClansService,
+    GuildConfigService,
     GuildDiscordService,
     GuildFlagsService,
     GuildLogsService,
