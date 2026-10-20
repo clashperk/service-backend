@@ -116,13 +116,25 @@ export class DiscordOauthService {
 
   /** One channel or thread by ID; null when it's gone or the bot can't see it. */
   async getChannel(input: { channelId: string; token: string | null }) {
+    const result = await this.findChannel(input);
+    return 'channel' in result ? result.channel : null;
+  }
+
+  /** Like `getChannel`, but says whether a missing channel is deleted or hidden from the bot. */
+  async findChannel(input: {
+    channelId: string;
+    token: string | null;
+  }): Promise<{ channel: APIChannel } | { missing: 'deleted' | 'noAccess' }> {
     const token = input.token ?? this.configService.getOrThrow<string>('DISCORD_TOKEN');
     try {
-      return (await new REST({ version: '10' })
-        .setToken(token)
-        .get(Routes.channel(input.channelId))) as APIChannel;
+      return {
+        channel: (await new REST({ version: '10' })
+          .setToken(token)
+          .get(Routes.channel(input.channelId))) as APIChannel,
+      };
     } catch (error) {
-      if ([403, 404].includes(error.status)) return null;
+      if (error.status === 404) return { missing: 'deleted' };
+      if (error.status === 403) return { missing: 'noAccess' };
       throw new HttpException(error.message, error.status ?? 500);
     }
   }

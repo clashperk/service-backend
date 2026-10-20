@@ -8,10 +8,11 @@ import {
   ClanLogDto,
   ClanLogInput,
   ClanLogLimitDto,
+  ChannelStatus,
   ClanLogType,
   GuildClanLogDto,
 } from './dto';
-import { GuildDiscordService } from './guild-discord.service';
+import { ChannelInfo, GuildDiscordService } from './guild-discord.service';
 
 const LOG_TYPES = Object.values(ClanLogType) as string[];
 // Links in posts open the game, as `/setup clan-logs` sets them.
@@ -42,12 +43,12 @@ export class GuildLogsService {
     const logs = await this.logs
       .find({ guildId: input.guildId, clanTag: input.clanTag, logType: { $in: LOG_TYPES } })
       .toArray();
-    const channelNames = await this.discord.channelNames(
+    const channels = await this.discord.channelInfo(
       input.guildId,
       input.applicationId,
       logs.map((log) => log.channelId),
     );
-    return logs.map((log) => this.toDto(log, channelNames.get(log.channelId) ?? null));
+    return logs.map((log) => this.toDto(log, channels.get(log.channelId)));
   }
 
   /** Every clan's logs, for viewing a server's logs by type or channel. */
@@ -67,11 +68,11 @@ export class GuildLogsService {
         logType: { $in: LOG_TYPES },
       })
       .toArray();
-    const channelNames = await this.discord.channelNames(input.guildId, input.applicationId, [
+    const channels = await this.discord.channelInfo(input.guildId, input.applicationId, [
       ...new Set(logs.map((log) => log.channelId)),
     ]);
     return logs.map((log) => ({
-      ...this.toDto(log, channelNames.get(log.channelId) ?? null),
+      ...this.toDto(log, channels.get(log.channelId)),
       clanTag: log.clanTag,
     }));
   }
@@ -125,10 +126,8 @@ export class GuildLogsService {
       },
       { upsert: true, returnDocument: 'after' },
     );
-    const channelNames = await this.discord.channelNames(guildId, input.applicationId, [
-      body.channelId,
-    ]);
-    return this.toDto(log!, channelNames.get(body.channelId) ?? null);
+    const channels = await this.discord.channelInfo(guildId, input.applicationId, [body.channelId]);
+    return this.toDto(log!, channels.get(body.channelId));
   }
 
   async delete(input: { guildId: string; clanTag: string; logType: ClanLogType }) {
@@ -262,12 +261,14 @@ export class GuildLogsService {
     return clan;
   }
 
-  private toDto(log: WithId<ClanLogsEntity>, channelName: string | null): ClanLogDto {
+  private toDto(log: WithId<ClanLogsEntity>, channel: ChannelInfo | undefined): ClanLogDto {
     return {
       id: log._id.toHexString(),
       logType: log.logType as ClanLogType,
       channelId: log.channelId,
-      channelName,
+      channelName: channel?.name ?? null,
+      channelStatus: channel?.status ?? ChannelStatus.UNKNOWN,
+      parentChannelName: channel?.parentName ?? null,
       isEnabled: log.isEnabled,
       roleId: log.roleId ?? null,
       color: log.color ?? null,

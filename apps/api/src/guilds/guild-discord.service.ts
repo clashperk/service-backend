@@ -3,7 +3,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { APIChannel, ChannelType } from 'discord-api-types/v10';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
-import { GuildChannelDto, GuildRoleDto } from './dto';
+import { ChannelStatus, GuildChannelDto, GuildRoleDto } from './dto';
 
 const POSTABLE_CHANNELS = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
 // Forum and media channels can't take messages, only their posts (threads) can.
@@ -21,6 +21,7 @@ const REMINDER_COLLECTIONS = [
 ] as const;
 
 export type Webhook = { id: string; token: string };
+export type ChannelInfo = { name: string | null; status: ChannelStatus; parentName: string | null };
 
 const parentOf = (channel: APIChannel) =>
   'parent_id' in channel ? (channel.parent_id ?? null) : null;
@@ -191,25 +192,88 @@ export class GuildDiscordService {
   }
 
   /** Names for saved channels; archived threads aren't listed, so they're looked up one by one. */
-  async channelNames(guildId: string, applicationId: string | null, channelIds: string[]) {
-    const names = new Map<string, string>();
+  /** Name, parent and whether ClashPerk can post there, for each channel or thread. */
+  async channelInfo(
+    guildId: string,
+    applicationId: string | null,
+    channelIds: string[],
+  ): Promise<Map<string, ChannelInfo>> {
+    const info = new Map<string, ChannelInfo>();
+    const ids = [...new Set(channelIds)];
+    if (!ids.length) return info;
+    let token: string | null;
+    let byId: Map<string, APIChannel>;
     try {
-      const channels = await this.listChannels({ guildId, applicationId });
-      for (const channel of channels) names.set(channel.id, channel.name);
-      const token = await this.botToken(applicationId);
-      const missing = [...new Set(channelIds)].filter((id) => !names.has(id));
-      const found = await Promise.all(
-        missing.map((channelId) => this.discordOauthService.getChannel({ channelId, token })),
-      );
-      for (const channel of found) {
-        if (channel && 'guild_id' in channel && channel.guild_id === guildId && channel.name) {
-          names.set(channel.id, channel.name);
-        }
-      }
+      token = await this.botToken(applicationId);
+      const [channels, threads] = await Promise.all([
+        this.discordOauthService.listChannels({ guildId, token }),
+        this.discordOauthService.listActiveThreads({ guildId, token }),
+      ]);
+      byId = new Map([...channels, ...threads].map((channel) => [channel.id, channel]));
     } catch {
-      // Names are cosmetic, so a bot without access to the server just yields none.
+      // Without access to the server's channel list, nothing can be checked.
+      for (const id of ids)
+        info.set(id, { name: null, status: ChannelStatus.UNKNOWN, parentName: null });
+      return info;
     }
-    return names;
+    // Archived threads aren't in either list, so each one is looked up on its own.
+    const lookups = await Promise.all(
+      ids
+        .filter((id) => !byId.has(id))
+        .map(async (channelId) => {
+          try {
+            return {
+              channelId,
+              result: await this.discordOauthService.findChannel({ channelId, token }),
+            };
+          } catch {
+            return { channelId, result: null };
+          }
+        }),
+    );
+    for (const { channelId, result } of lookups) {
+      if (
+        result &&
+        'channel' in result &&
+        'guild_id' in result.channel &&
+        result.channel.guild_id === guildId
+      ) {
+        byId.set(channelId, result.channel);
+      } else {
+        info.set(channelId, {
+          name: null,
+          parentName: null,
+          status: !result
+            ? ChannelStatus.UNKNOWN
+            : 'missing' in result && result.missing === 'noAccess'
+              ? ChannelStatus.NO_ACCESS
+              : ChannelStatus.DELETED,
+        });
+      }
+    }
+    for (const id of ids) {
+      const channel = byId.get(id);
+      if (!channel) continue;
+      const meta = 'thread_metadata' in channel ? channel.thread_metadata : undefined;
+      const parentId = parentOf(channel);
+      info.set(id, {
+        name: channel.name ?? null,
+        parentName: meta && parentId ? (byId.get(parentId)?.name ?? null) : null,
+        status: meta?.locked
+          ? ChannelStatus.LOCKED
+          : meta?.archived
+            ? ChannelStatus.ARCHIVED
+            : ChannelStatus.OK,
+      });
+    }
+    return info;
+  }
+
+  async channelNames(guildId: string, applicationId: string | null, channelIds: string[]) {
+    const info = await this.channelInfo(guildId, applicationId, channelIds);
+    return new Map(
+      [...info].flatMap(([id, channel]) => (channel.name ? [[id, channel.name] as const] : [])),
+    );
   }
 
   /** Webhooks ClashPerk already posts through in this server, by the channel that owns them. */

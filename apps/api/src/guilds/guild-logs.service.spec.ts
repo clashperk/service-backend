@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Db, ObjectId } from 'mongodb';
 import { Collections } from '../db';
-import { ClanEmbedField, ClanLogInput, ClanLogType } from './dto';
+import { ChannelStatus, ClanEmbedField, ClanLogInput, ClanLogType } from './dto';
 import { GuildLogsService } from './guild-logs.service';
 
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
@@ -83,6 +83,12 @@ const setup = (
     checkRole: jest.fn(),
     resolveWebhook: jest.fn().mockResolvedValue(null),
     channelNames: jest.fn().mockResolvedValue(new Map([[CHANNEL, 'war-feed']])),
+    channelInfo: jest.fn().mockResolvedValue(
+      new Map([
+        [CHANNEL, { name: 'war-feed', status: ChannelStatus.OK, parentName: null }],
+        [OTHER_CHANNEL, { name: null, status: ChannelStatus.DELETED, parentName: null }],
+      ]),
+    ),
   };
   return { service: new GuildLogsService(db, discord as never), updates, discord };
 };
@@ -188,11 +194,11 @@ describe('GuildLogsService', () => {
       },
     );
     const logs = await service.listAll({ guildId: GUILD, applicationId: null });
-    expect(logs.map((l) => [l.clanTag, l.channelName])).toEqual([
-      [TAG, 'war-feed'],
-      ['#OTHER', null],
+    expect(logs.map((l) => [l.clanTag, l.channelName, l.channelStatus])).toEqual([
+      [TAG, 'war-feed', ChannelStatus.OK],
+      ['#OTHER', null, ChannelStatus.DELETED],
     ]);
-    expect(discord.channelNames).toHaveBeenCalledWith(GUILD, null, [CHANNEL, OTHER_CHANNEL]);
+    expect(discord.channelInfo).toHaveBeenCalledWith(GUILD, null, [CHANNEL, OTHER_CHANNEL]);
   });
 
   describe('clan limit', () => {
