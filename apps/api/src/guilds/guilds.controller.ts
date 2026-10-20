@@ -31,6 +31,7 @@ import {
   ClanEmbedStateDto,
   ClanLogDto,
   ClanLogLimitDto,
+  GuildClanLogDto,
   ClanLogInput,
   ClanLogType,
   ClanGamesReminderInput,
@@ -302,6 +303,14 @@ export class GuildsController {
     @Param('reminderId') reminderId: string,
   ): Promise<void> {
     await this.guildRemindersService.delete('clanGames', { guildId, reminderId });
+  }
+
+  @Get('/:guildId/clan-logs')
+  listGuildClanLogs(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<GuildClanLogDto[]> {
+    return this.guildLogsService.listAll({ guildId, applicationId: user.applicationId || null });
   }
 
   @Get('/:guildId/clan-logs/limit')

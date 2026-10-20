@@ -89,6 +89,11 @@ export class ClanLogDto {
   updatedAt: Date;
 }
 
+/** A clan log with its clan, for listing every log in a server. */
+export class GuildClanLogDto extends ClanLogDto {
+  clanTag: string;
+}
+
 export class ClanLogLimitDto {
   /** How many clans can have logs in this server. */
   limit: number;

@@ -9,6 +9,7 @@ import {
   ClanLogInput,
   ClanLogLimitDto,
   ClanLogType,
+  GuildClanLogDto,
 } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
 
@@ -47,6 +48,32 @@ export class GuildLogsService {
       logs.map((log) => log.channelId),
     );
     return logs.map((log) => this.toDto(log, channelNames.get(log.channelId) ?? null));
+  }
+
+  /** Every clan's logs, for viewing a server's logs by type or channel. */
+  async listAll(input: {
+    guildId: string;
+    applicationId: string | null;
+  }): Promise<GuildClanLogDto[]> {
+    const clans = await this.db
+      .collection(Collections.CLAN_STORES)
+      .find({ guild: input.guildId }, { projection: { tag: 1 } })
+      .toArray();
+    // Logs of clans removed from the server stay in the database but no longer post.
+    const logs = await this.logs
+      .find({
+        guildId: input.guildId,
+        clanTag: { $in: clans.map((clan) => clan.tag) },
+        logType: { $in: LOG_TYPES },
+      })
+      .toArray();
+    const channelNames = await this.discord.channelNames(input.guildId, input.applicationId, [
+      ...new Set(logs.map((log) => log.channelId)),
+    ]);
+    return logs.map((log) => ({
+      ...this.toDto(log, channelNames.get(log.channelId) ?? null),
+      clanTag: log.clanTag,
+    }));
   }
 
   async save(input: {
