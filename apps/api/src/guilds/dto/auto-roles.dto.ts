@@ -1,8 +1,11 @@
-import { EnumArray } from '@app/decorators';
+import { EnumArray, EnumString } from '@app/decorators';
 import { ApiProperty, ApiPropertyOptional, ApiPropertyOptions } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
+  MaxLength,
+  ValidateNested,
   IsBoolean,
   IsIn,
   IsObject,
@@ -28,6 +31,31 @@ export const REMOVAL_DELAYS = [0, 1, 2, 4, 6, 8, 12, 18, 24, 36, 48, 72, 168, 28
   (hours) => hours * HOUR,
 );
 export const ADDITION_DELAYS = REMOVAL_DELAYS.filter((delay) => delay <= 24 * HOUR);
+
+/** Which linked account a nickname is built from. */
+export enum NicknameAccount {
+  DEFAULT = 'default-account',
+  BEST = 'best-account',
+  DEFAULT_OR_BEST = 'default-or-best-account',
+}
+
+const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value);
+
+/** Short labels for `{ROLE}`; blank uses the bot's default (Lead, Co-Lead, Eld, Mem). */
+export class NicknameRoleLabels {
+  @Transform(trim)
+  @MaxLength(10)
+  leader: string;
+  @Transform(trim)
+  @MaxLength(10)
+  coLeader: string;
+  @Transform(trim)
+  @MaxLength(10)
+  elder: string;
+  @Transform(trim)
+  @MaxLength(10)
+  member: string;
+}
 
 export class AutoRoleClanDto {
   tag: string;
@@ -79,6 +107,16 @@ export class AutoRolesDto {
   delayExclusions: DelayExclusion[];
 
   clans: AutoRoleClanDto[];
+
+  /** Nickname format for members in your clans; "" means none. */
+  familyNicknameFormat: string;
+  /** Nickname format for everyone else; "" means none. */
+  nonFamilyNicknameFormat: string;
+  /** Nicknames change on the bot's checks, not only on a refresh. */
+  autoNickname: boolean;
+  @EnumString(NicknameAccount, 'NicknameAccount')
+  nicknameAccount: NicknameAccount;
+  nicknameRoleLabels: NicknameRoleLabels;
 }
 
 const OptionalRole = () => ValidateIf((_, value) => value !== null && value !== undefined);
@@ -162,6 +200,25 @@ export class AutoRolesInput {
   @IsOptional()
   @EnumArray(DelayExclusion, 'DelayExclusion', { required: false })
   delayExclusions?: DelayExclusion[];
+
+  @IsOptional()
+  @Transform(trim)
+  @MaxLength(100)
+  familyNicknameFormat?: string;
+  @IsOptional()
+  @Transform(trim)
+  @MaxLength(100)
+  nonFamilyNicknameFormat?: string;
+  @IsOptional()
+  @IsBoolean()
+  autoNickname?: boolean;
+  @IsOptional()
+  @EnumString(NicknameAccount, 'NicknameAccount', { required: false })
+  nicknameAccount?: NicknameAccount;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => NicknameRoleLabels)
+  nicknameRoleLabels?: NicknameRoleLabels;
 }
 
 /** A clan's roles by in-game rank, plus its in-war role; null turns one off. */
