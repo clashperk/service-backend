@@ -39,4 +39,6 @@ export interface PatronsEntity {
   _id: ObjectId;
   active: boolean;
   guilds: { id: string; limit: number }[];
+  /** A special tier, e.g. `lifetime` or `gifted`; unset for a regular pledge. */
+  note?: string;
 }

@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { Db } from 'mongodb';
+import { Collections } from '../db';
 import { ServerConfigInput } from './dto';
 import { GuildConfigService } from './guild-config.service';
 
@@ -7,7 +8,7 @@ const GUILD = '111111111111111111';
 
 type Doc = Record<string, unknown>;
 
-const setup = (settings?: Doc) => {
+const setup = (settings?: Doc, patrons: Doc[] = []) => {
   const docs: Doc[] = settings ? [{ guildId: GUILD, ...settings }] : [];
   const collection = {
     findOne: (filter: Doc) =>
@@ -20,7 +21,21 @@ const setup = (settings?: Doc) => {
       return Promise.resolve();
     },
   };
-  const service = new GuildConfigService({ collection: () => collection } as unknown as Db);
+  const patronsCollection = {
+    findOne: (filter: Doc) =>
+      Promise.resolve(
+        patrons.find(
+          (p) =>
+            p.active === filter.active &&
+            (p.guilds as Doc[]).some((g) => g.id === filter['guilds.id']),
+        ) ?? null,
+      ),
+  };
+  const db = {
+    collection: (name: Collections) =>
+      name === Collections.PATRONS ? patronsCollection : collection,
+  } as unknown as Db;
+  const service = new GuildConfigService(db);
   return { service, docs };
 };
 
@@ -32,8 +47,13 @@ const validate = (body: unknown) =>
 
 describe('GuildConfigService', () => {
   it('reads the defaults, and clamps a limit the bot would clamp', async () => {
-    await expect(setup().service.get(GUILD)).resolves.toEqual({ color: null, webhookLimit: 8 });
-    await expect(setup({ color: 0x5865f2, webhookLimit: 20 }).service.get(GUILD)).resolves.toEqual({
+    await expect(setup().service.get(GUILD)).resolves.toMatchObject({
+      color: null,
+      webhookLimit: 8,
+    });
+    await expect(
+      setup({ color: 0x5865f2, webhookLimit: 20 }).service.get(GUILD),
+    ).resolves.toMatchObject({
       color: 0x5865f2,
       webhookLimit: 8,
     });
@@ -46,7 +66,20 @@ describe('GuildConfigService', () => {
 
     const result = await service.save(GUILD, { color: null });
     expect(docs[0]).toEqual({ guildId: GUILD, webhookLimit: 4 });
-    expect(result).toEqual({ color: null, webhookLimit: 4 });
+    expect(result).toMatchObject({ color: null, webhookLimit: 4 });
+  });
+
+  it('shows the subscription from an active pledge for this server', async () => {
+    await expect(setup().service.get(GUILD)).resolves.toMatchObject({
+      subscription: { active: false, tier: null },
+    });
+    const patrons = [
+      { active: false, note: 'gifted', guilds: [{ id: GUILD }] },
+      { active: true, note: 'lifetime', guilds: [{ id: GUILD }] },
+    ];
+    await expect(setup(undefined, patrons).service.get(GUILD)).resolves.toMatchObject({
+      subscription: { active: true, tier: 'lifetime' },
+    });
   });
 
   it('accepts a null colour and rejects limits outside 3 to 8', async () => {

@@ -20,7 +20,15 @@ export class ServerConfigInput {
   webhookLimit?: number;
 }
 
+/** Whether the server has a paid plan, from any payment provider. */
+export class SubscriptionDto {
+  active: boolean;
+  /** A special tier such as `lifetime` or `gifted`; null for a regular plan. */
+  tier: string | null;
+}
+
 export class ServerConfigDto {
   color: number | null;
   webhookLimit: number;
+  subscription: SubscriptionDto;
 }
