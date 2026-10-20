@@ -1,3 +1,4 @@
+import { fixTag } from '@app/helpers';
 import { ClashClientService } from '@app/clash-client';
 import { ErrorCodes } from '@app/dto';
 import {
@@ -53,7 +54,6 @@ type DefaultSettings = Partial<{
   useClanAlias: boolean;
 }>;
 
-const fixTag = (tag: string) => `#${tag.trim().toUpperCase().replace(/^#/, '').replace(/O/g, '0')}`;
 const groupKey = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '_');
 const homeHeroes = (player: APIPlayer) => player.heroes.filter((hero) => hero.village === 'home');
 const heroLevels = (player: APIPlayer) =>
