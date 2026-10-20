@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-10-20 — The API schedules reminders itself
+The bot schedules a new reminder for whatever is already running, then picks up later wars on its own. The API does the same on create and edit (current war and the last two CWL rounds, the latest raid weekend, the Clan Games window on the 22nd at 08:00 UTC), and writes the schedule records the bot watches, so no bot change is needed. Edits replace a reminder's schedules, as the bot's `reSchedule` does.
+
+## 2026-10-20 — Reminder webhooks: signed-in, reused, or left to the bot
+The dashboard can get a webhook through Discord's `webhook.incoming` sign-in, which works even when the bot can't manage webhooks in that channel. The dashboard swaps the code (it holds the Discord client secret) and sends the webhook; the API checks it belongs to the server and channel. Without one, the API reuses a webhook from another reminder or clan log in the channel, and otherwise saves none: the bot creates one when the reminder first fires. Channels are limited to text and announcement channels in the server, so a reminder can't point the bot at another server.
+
 ## 2026-10-18 — Clan activity is one query over three ClickHouse tables
 Decided by: Claude, pending Suvajit's review. Town Hall upgrades come from `clan_member_event_logs`, clan milestones from `clan_event_logs` and joins/leaves from `player_activities`, merged with `UNION ALL` in one query so Home can ask for up to 10 clans at once (POST, because of the tag list; cached 5 min by body). `player_activities` has no names, so players are named from `Players` and clans from `global_clans`. League ids are named from the Clash API's war and capital league lists, fetched once per process. Promotions and demotions are not tracked anywhere yet, so they aren't in the feed.
 
