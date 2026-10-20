@@ -1,3 +1,4 @@
+export * from './async';
 export * from './helper';
 export * from './tools';
 export * from './transform';

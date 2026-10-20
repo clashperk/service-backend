@@ -2,6 +2,7 @@ import { ChannelType } from 'discord-api-types/v10';
 import { Db } from 'mongodb';
 import { ChannelStatus } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
+import { memoryCache } from '../../test/fakes';
 
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
 
@@ -33,15 +34,10 @@ const setup = (lookups: Record<string, unknown>) => {
       find: () => ({ toArray: () => Promise.resolve([]) }),
     }),
   } as unknown as Db;
-  const store = new Map<string, unknown>();
-  const cache = {
-    get: (key: string) => Promise.resolve(store.get(key)),
-    set: (key: string, value: unknown) => Promise.resolve(store.set(key, value)),
-  };
-  return { service: new GuildDiscordService(db, oauth as never, cache as never), oauth };
+  return { service: new GuildDiscordService(db, oauth as never, memoryCache()), oauth };
 };
 
-describe('GuildDiscordService.channelInfo', () => {
+describe('GuildDiscordService.channelStatuses', () => {
   it('tells archived, locked, deleted, hidden and unchecked channels apart', async () => {
     const { service, oauth } = setup({
       '3': { channel: thread('3', { archived: true, locked: false }) },
@@ -50,7 +46,16 @@ describe('GuildDiscordService.channelInfo', () => {
       '6': { missing: 'noAccess' },
       '7': new Error('rate limited'),
     });
-    const info = await service.channelInfo(GUILD, null, ['1', '2', '3', '4', '5', '6', '7', '1']);
+    const info = await service.channelStatuses(GUILD, null, [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '1',
+    ]);
     expect(Object.fromEntries(info)).toEqual({
       '1': { name: 'clan-logs', status: ChannelStatus.OK, parentName: null },
       '2': { name: 'thread-2', status: ChannelStatus.OK, parentName: 'clan-logs' },
@@ -79,20 +84,20 @@ describe('GuildDiscordService.channelInfo', () => {
       return find(input);
     });
 
-    const first = await service.channelInfo(GUILD, null, ids);
+    const first = await service.channelStatuses(GUILD, null, ids);
     expect(peak).toBeLessThanOrEqual(3);
     expect(oauth.findChannel).toHaveBeenCalledTimes(25);
     expect(first.get('x0')?.status).toBe(ChannelStatus.DELETED);
     expect(first.get('x29')?.status).toBe(ChannelStatus.UNKNOWN);
 
-    await service.channelInfo(GUILD, null, ids.slice(0, 25));
+    await service.channelStatuses(GUILD, null, ids.slice(0, 25));
     expect(oauth.findChannel).toHaveBeenCalledTimes(25);
   });
 
   it('reuses the channel list across lookups within its cache time', async () => {
     const { service, oauth } = setup({});
     await service.listChannels({ guildId: GUILD, applicationId: null });
-    await service.channelInfo(GUILD, null, ['1']);
+    await service.channelStatuses(GUILD, null, ['1']);
     await service.listCategories({ guildId: GUILD, applicationId: null });
     await service.checkChannel(GUILD, null, '1');
     expect(oauth.listChannels).toHaveBeenCalledTimes(1);
@@ -100,7 +105,7 @@ describe('GuildDiscordService.channelInfo', () => {
 
   it("treats another server's channel as deleted", async () => {
     const { service } = setup({ '9': { channel: { ...TEXT, id: '9', guild_id: '222' } } });
-    const info = await service.channelInfo(GUILD, null, ['9']);
+    const info = await service.channelStatuses(GUILD, null, ['9']);
     expect(info.get('9')?.status).toBe(ChannelStatus.DELETED);
   });
 });

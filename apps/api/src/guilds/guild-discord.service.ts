@@ -1,20 +1,23 @@
 import { DiscordOauthService } from '@app/discord-oauth';
+import { cached, mapLimit } from '@app/helpers';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Cache } from 'cache-manager';
 import { APIChannel, ChannelType } from 'discord-api-types/v10';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
-import { ChannelStatus, GuildChannelDto, GuildRoleDto } from './dto';
-
-const POSTABLE_CHANNELS = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
-// Forum and media channels can't take messages, only their posts (threads) can.
-const THREAD_PARENTS = [...POSTABLE_CHANNELS, ChannelType.GuildForum, ChannelType.GuildMedia];
-const THREADS = [
-  ChannelType.AnnouncementThread,
-  ChannelType.PublicThread,
-  ChannelType.PrivateThread,
-];
+import {
+  byPosition,
+  ChannelLookup,
+  ChannelState,
+  describeChannel,
+  missingChannel,
+  parentOf,
+  POSTABLE_CHANNELS,
+  THREAD_PARENTS,
+  THREADS,
+} from './discord-channels';
+import { GuildChannelDto, GuildRoleDto } from './dto';
 
 const REMINDER_COLLECTIONS = [
   Collections.CLAN_WAR_REMINDERS,
@@ -22,34 +25,15 @@ const REMINDER_COLLECTIONS = [
   Collections.CLAN_GAMES_REMINDERS,
 ] as const;
 
+// A page load asks for the channel list several times.
+const SERVER_CHANNELS_TTL = 10 * 1000;
+// Deleted channels answer 404, and too many failed requests get the bot's IP blocked by Discord.
+const LOOKUP_TTL = 5 * 60 * 1000;
+const LOOKUP_CONCURRENCY = 3;
+const MAX_LOOKUPS = 25;
+
 export type Webhook = { id: string; token: string };
 type ServerChannels = { channels: APIChannel[]; threads: APIChannel[] };
-type ChannelLookup = Awaited<ReturnType<DiscordOauthService['findChannel']>>;
-
-// Unlisted channels looked up per request; more show as unknown rather than flooding Discord.
-const MAX_LOOKUPS = 25;
-const CHANNEL_LOOKUP_TTL = 5 * 60 * 1000;
-// One page load asks for the channel list several times; a new channel shows within 10 seconds.
-const SERVER_CHANNELS_TTL = 10 * 1000;
-
-/** Runs `fn` over `items` with at most `limit` calls in flight, keeping their order. */
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>) {
-  const results: R[] = new Array(items.length);
-  let next = 0;
-  const worker = async () => {
-    while (next < items.length) {
-      const index = next++;
-      results[index] = await fn(items[index]);
-    }
-  };
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
-  return results;
-}
-
-export type ChannelInfo = { name: string | null; status: ChannelStatus; parentName: string | null };
-
-const parentOf = (channel: APIChannel) =>
-  'parent_id' in channel ? (channel.parent_id ?? null) : null;
 
 /** The server's channels, roles and ClashPerk webhooks, shared by reminders and clan logs. */
 @Injectable()
@@ -60,19 +44,17 @@ export class GuildDiscordService {
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
-  /** The server's channels and active threads from Discord, cached briefly. */
-  private async serverChannels(guildId: string, applicationId: string | null) {
+  /** The server's channels and active threads, as Discord lists them. */
+  private serverChannels(guildId: string, applicationId: string | null) {
     const key = `discord:server-channels:${guildId}:${applicationId ?? 'clashperk'}`;
-    const cached = await this.cache.get<ServerChannels>(key);
-    if (cached) return cached;
-    const token = await this.botToken(applicationId);
-    const [channels, threads] = await Promise.all([
-      this.discordOauthService.listChannels({ guildId, token }),
-      this.discordOauthService.listActiveThreads({ guildId, token }),
-    ]);
-    const result: ServerChannels = { channels, threads };
-    await this.cache.set(key, result, SERVER_CHANNELS_TTL);
-    return result;
+    return cached<ServerChannels>(this.cache, key, SERVER_CHANNELS_TTL, async () => {
+      const token = await this.botToken(applicationId);
+      const [channels, threads] = await Promise.all([
+        this.discordOauthService.listChannels({ guildId, token }),
+        this.discordOauthService.listActiveThreads({ guildId, token }),
+      ]);
+      return { channels, threads };
+    });
   }
 
   /** Channels in Discord's order, each followed by its active threads or forum posts. */
@@ -93,7 +75,7 @@ export class GuildDiscordService {
     const result: GuildChannelDto[] = [];
     const parents = channels
       .filter((channel) => THREAD_PARENTS.includes(channel.type))
-      .sort((a, b) => ('position' in a ? a.position : 0) - ('position' in b ? b.position : 0));
+      .sort(byPosition);
     for (const channel of parents) {
       const postable = POSTABLE_CHANNELS.includes(channel.type);
       const children = (threadsByParent.get(channel.id) ?? []).sort((a, b) =>
@@ -221,99 +203,50 @@ export class GuildDiscordService {
     const { channels } = await this.serverChannels(input.guildId, input.applicationId);
     return channels
       .filter((channel) => channel.type === ChannelType.GuildCategory)
-      .sort((a, b) => ('position' in a ? a.position : 0) - ('position' in b ? b.position : 0))
+      .sort(byPosition)
       .map((channel) => ({ id: channel.id, name: channel.name ?? channel.id }));
   }
 
-  /** Names for saved channels; archived threads aren't listed, so they're looked up one by one. */
-  /** Name, parent and whether ClashPerk can post there, for each channel or thread. */
-  async channelInfo(
+  /** Name, thread parent and whether ClashPerk can post there, for each saved channel. */
+  async channelStatuses(
     guildId: string,
     applicationId: string | null,
     channelIds: string[],
-  ): Promise<Map<string, ChannelInfo>> {
-    const info = new Map<string, ChannelInfo>();
+  ): Promise<Map<string, ChannelState>> {
     const ids = [...new Set(channelIds)];
-    if (!ids.length) return info;
-    let token: string | null;
-    let byId: Map<string, APIChannel>;
-    try {
-      token = await this.botToken(applicationId);
-      const { channels, threads } = await this.serverChannels(guildId, applicationId);
-      byId = new Map([...channels, ...threads].map((channel) => [channel.id, channel]));
-    } catch {
-      // Without access to the server's channel list, nothing can be checked.
-      for (const id of ids)
-        info.set(id, { name: null, status: ChannelStatus.UNKNOWN, parentName: null });
-      return info;
-    }
-    // Archived threads aren't in either list, so each one is looked up on its own: a few at a
-    // time, and cached, since lookups of deleted channels count toward Discord's invalid-request ban.
-    const unlisted = ids.filter((id) => !byId.has(id));
-    const lookups = await mapLimit(unlisted.slice(0, MAX_LOOKUPS), 3, async (channelId) => ({
-      channelId,
-      result: await this.lookUpChannel(channelId, token),
-    }));
-    for (const channelId of unlisted.slice(MAX_LOOKUPS)) {
-      info.set(channelId, { name: null, status: ChannelStatus.UNKNOWN, parentName: null });
-    }
-    for (const { channelId, result } of lookups) {
-      if (
-        result &&
-        'channel' in result &&
-        'guild_id' in result.channel &&
-        result.channel.guild_id === guildId
-      ) {
-        byId.set(channelId, result.channel);
-      } else {
-        info.set(channelId, {
-          name: null,
-          parentName: null,
-          status: !result
-            ? ChannelStatus.UNKNOWN
-            : 'missing' in result && result.missing === 'noAccess'
-              ? ChannelStatus.NO_ACCESS
-              : ChannelStatus.DELETED,
-        });
+    if (!ids.length) return new Map();
+    const channels = await this.serverChannels(guildId, applicationId)
+      .then(({ channels, threads }) => new Map([...channels, ...threads].map((c) => [c.id, c])))
+      .catch(() => null);
+    if (!channels) return new Map(ids.map((id) => [id, missingChannel(null)]));
+
+    // Archived threads aren't listed, so they and deleted channels are looked up one by one.
+    const lookups = await this.lookUpChannels(
+      ids.filter((id) => !channels.has(id)),
+      applicationId,
+    );
+    for (const [id, lookup] of lookups) {
+      if (lookup && 'channel' in lookup && inGuild(lookup.channel, guildId)) {
+        channels.set(id, lookup.channel);
       }
     }
-    for (const id of ids) {
-      const channel = byId.get(id);
-      if (!channel) continue;
-      const meta = 'thread_metadata' in channel ? channel.thread_metadata : undefined;
-      const parentId = parentOf(channel);
-      info.set(id, {
-        name: channel.name ?? null,
-        parentName: meta && parentId ? (byId.get(parentId)?.name ?? null) : null,
-        status: meta?.locked
-          ? ChannelStatus.LOCKED
-          : meta?.archived
-            ? ChannelStatus.ARCHIVED
-            : ChannelStatus.OK,
-      });
-    }
-    return info;
-  }
-
-  /** One channel by ID, cached a few minutes; null when Discord didn't answer. */
-  private async lookUpChannel(channelId: string, token: string | null) {
-    const key = `discord:channel:${channelId}`;
-    const cached = await this.cache.get<ChannelLookup>(key);
-    if (cached) return cached;
-    try {
-      const result = await this.discordOauthService.findChannel({ channelId, token });
-      await this.cache.set(key, result, CHANNEL_LOOKUP_TTL);
-      return result;
-    } catch {
-      return null;
-    }
-  }
-
-  async channelNames(guildId: string, applicationId: string | null, channelIds: string[]) {
-    const info = await this.channelInfo(guildId, applicationId, channelIds);
     return new Map(
-      [...info].flatMap(([id, channel]) => (channel.name ? [[id, channel.name] as const] : [])),
+      ids.map((id) => {
+        const channel = channels.get(id);
+        return [id, channel ? describeChannel(channel, channels) : missingChannel(lookups.get(id))];
+      }),
     );
+  }
+
+  /** Up to `MAX_LOOKUPS` channels by ID; a null result means Discord didn't answer. */
+  private async lookUpChannels(ids: string[], applicationId: string | null) {
+    const token = await this.botToken(applicationId);
+    const results = await mapLimit(ids.slice(0, MAX_LOOKUPS), LOOKUP_CONCURRENCY, (channelId) =>
+      cached(this.cache, `discord:channel:${channelId}`, LOOKUP_TTL, () =>
+        this.discordOauthService.findChannel({ channelId, token }),
+      ).catch((): ChannelLookup | null => null),
+    );
+    return new Map(results.map((result, index) => [ids[index], result]));
   }
 
   /** Webhooks ClashPerk already posts through in this server, by the channel that owns them. */
@@ -357,3 +290,6 @@ export class GuildDiscordService {
     return bot?.token ?? null;
   }
 }
+
+const inGuild = (channel: APIChannel, guildId: string) =>
+  'guild_id' in channel && channel.guild_id === guildId;
