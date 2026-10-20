@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   Put,
-  ParseBoolPipe,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -174,17 +173,13 @@ export class GuildsController {
   }
 
   @Get('/:guildId/channels')
-  @ApiQuery({ name: 'fresh', type: Boolean, required: false })
   listChannels(
     @Param('guildId') guildId: string,
     @CurrentUser() user: JwtUser,
-    /** Skips the short cache, for a picker's refresh button. */
-    @Query('fresh', new ParseBoolPipe({ optional: true })) fresh?: boolean,
   ): Promise<GuildChannelDto[]> {
     return this.guildDiscordService.listChannels({
       guildId,
       applicationId: user.applicationId || null,
-      fresh,
     });
   }
 

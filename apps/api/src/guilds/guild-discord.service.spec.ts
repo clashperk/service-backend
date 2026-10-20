@@ -89,22 +89,13 @@ describe('GuildDiscordService.channelInfo', () => {
     expect(oauth.findChannel).toHaveBeenCalledTimes(25);
   });
 
-  it('reuses the channel list for 30 seconds unless asked for a fresh one', async () => {
+  it('reuses the channel list across lookups within its cache time', async () => {
     const { service, oauth } = setup({});
     await service.listChannels({ guildId: GUILD, applicationId: null });
     await service.channelInfo(GUILD, null, ['1']);
     await service.listCategories({ guildId: GUILD, applicationId: null });
+    await service.checkChannel(GUILD, null, '1');
     expect(oauth.listChannels).toHaveBeenCalledTimes(1);
-    await service.listChannels({ guildId: GUILD, applicationId: null, fresh: true });
-    expect(oauth.listChannels).toHaveBeenCalledTimes(2);
-  });
-
-  it('checks a channel again fresh before rejecting it, for one made since the list was cached', async () => {
-    const { service, oauth } = setup({});
-    await service.listChannels({ guildId: GUILD, applicationId: null });
-    oauth.listChannels.mockResolvedValue([TEXT, { ...TEXT, id: '8', name: 'new' }]);
-    await expect(service.checkChannel(GUILD, null, '8')).resolves.toBeUndefined();
-    await expect(service.checkChannel(GUILD, null, '99')).rejects.toThrow('Pick a text');
   });
 
   it("treats another server's channel as deleted", async () => {
