@@ -3,18 +3,25 @@ import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
 import { ServerConfigDto, ServerConfigInput, WEBHOOK_LIMIT } from './dto';
 
-/** The embed colour and webhook limit that `/config` stores in `Settings`. */
+/** What `/config` shows: embed colour, webhook limit and subscription status. */
 @Injectable()
 export class GuildConfigService {
   constructor(@Inject(MONGODB_TOKEN) private readonly db: Db) {}
 
   async get(guildId: string): Promise<ServerConfigDto> {
-    const settings = await this.settings.findOne({ guildId });
+    const [settings, patron] = await Promise.all([
+      this.settings.findOne({ guildId }),
+      this.db
+        .collection(Collections.PATRONS)
+        .findOne({ 'active': true, 'guilds.id': guildId }, { projection: { note: 1 } }),
+    ]);
     const limit = settings?.webhookLimit ?? WEBHOOK_LIMIT.max;
     return {
       color: settings?.color ?? null,
       // The bot clamps whatever is stored, so show what it uses.
       webhookLimit: Math.max(WEBHOOK_LIMIT.min, Math.min(WEBHOOK_LIMIT.max, limit)),
+      // Patreon is the only provider so far.
+      subscription: { active: !!patron, tier: patron?.note ?? null },
     };
   }
 
