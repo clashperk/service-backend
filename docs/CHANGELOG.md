@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-20 (buttons)
+- Add `GET /guilds/:guildId/buttons` and `PUT /guilds/:guildId/buttons/:buttonType` (`link`, `refresh`, `myRosters`) for the messages `/setup buttons` posts: title, description, image, thumbnail, color, button style, and for the link button whether the player token is required, optional or hidden. Stored in `Settings` (`linkEmbeds`, `refreshEmbeds`, `myRostersEmbeds`) in the bot's shape; the link settings also drive the button on welcome messages. Messages already posted keep their old look
+
 ## 2026-10-20 (clan embed)
 - Add `GET`, `PUT` and `DELETE /guilds/:guildId/clans/:clanTag/embed` for the self-updating clan embed, as `/setup clan-embed` stores it (`clan_embed_log` in `ClanLogs`): channel, color, description and requirement text (null for the in-game ones), banner image and which fields to show. Saving makes it due at once so the bot posts or edits it on its next refresh; a new clan counts toward the clan log limit
 

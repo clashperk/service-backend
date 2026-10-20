@@ -12,6 +12,20 @@ export class WelcomeLogConfig {
   embedColor: number | null;
 }
 
+/** A `/setup buttons` message; the bot posts it as saved, so every field is always written. */
+export class ButtonEmbedConfig {
+  title: string;
+  description: string;
+  /** Empty for none. */
+  image_url: string;
+  thumbnail_url: string;
+  /** Discord button style, 1 to 4. */
+  button_style: number;
+  embed_color: number | null;
+  /** Link button only. */
+  token_field?: 'required' | 'optional' | 'hidden';
+}
+
 export class SettingsEntity {
   guildId: string;
   /** Clans that can have logs; unset means the free 2. */
@@ -26,4 +40,8 @@ export class SettingsEntity {
   /** Where the bot posts maintenance breaks; it sends as itself, not a webhook. */
   eventsChannel?: string;
   welcomeLog?: WelcomeLogConfig;
+  /** Also sets the link button on welcome messages. */
+  linkEmbeds?: ButtonEmbedConfig;
+  refreshEmbeds?: ButtonEmbedConfig;
+  myRostersEmbeds?: ButtonEmbedConfig;
 }
