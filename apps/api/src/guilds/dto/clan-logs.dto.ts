@@ -72,3 +72,11 @@ export class ClanLogDto {
   color: number | null;
   updatedAt: Date;
 }
+
+export class ClanLogLimitDto {
+  /** How many clans can have logs in this server. */
+  limit: number;
+  /** Clans that already have logs; adding logs to these never hits the limit. */
+  clanTags: string[];
+  patron: boolean;
+}

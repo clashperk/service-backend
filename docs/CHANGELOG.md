@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20 (clan log limit)
+- Saving a clan's first log is refused (403) once the server has logs for `Settings.clanLimit` clans (2 when unset; Patreon raises it), as `/setup clan-logs` does. Any log, on or off, counts its clan; logs of removed clans don't. Clans that already have logs can get more
+- Add `GET /guilds/:guildId/clan-logs/limit` with the limit, the clans that count and whether the server is a patron
+
 ## 2026-10-20 (manager roles)
 - Add `GET` and `PATCH /guilds/:guildId/managers` for the bot manager, roster manager, flags manager and links manager roles, as `/config` stores them (lists of role IDs; older single IDs read as a list; an empty list removes the role)
 - Add `POST /auth/managed-guilds` (API key): the servers, out of those given, where a user holds the bot manager role. The dashboard lets them in like Manage Server
