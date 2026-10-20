@@ -50,6 +50,21 @@ export class DiscordRestService {
     return payload as APIGuildMember[];
   }
 
+  /** Every member of a server, 1,000 per request; needs the Server Members intent. */
+  async listAllMembers(input: { guildId: string; token: string | null }) {
+    const rest = this.bot(input.token);
+    const members: APIGuildMember[] = [];
+    let after = '0';
+    for (;;) {
+      const page = (await rest.get(Routes.guildMembers(input.guildId), {
+        query: new URLSearchParams({ limit: '1000', after }),
+      })) as APIGuildMember[];
+      members.push(...page);
+      if (page.length < 1000) return members;
+      after = page[page.length - 1].user.id;
+    }
+  }
+
   async getGuild(input: {
     guildId: string;
     token: string | null;

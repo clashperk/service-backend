@@ -45,6 +45,8 @@ import {
   ReorderClanCategoriesInput,
   ManagerRolesDto,
   ManagerRolesInput,
+  ReminderPingsDto,
+  ReminderPingsInput,
   ServerConfigDto,
   ServerConfigInput,
   FlagAlertLogInput,
@@ -65,6 +67,7 @@ import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildManagersService } from './guild-managers.service';
+import { GuildReminderPingsService } from './guild-reminder-pings.service';
 import { GuildRemindersService } from './guild-reminders.service';
 import { GuildButtonsService } from './guild-buttons.service';
 import { GuildServerLogsService } from './guild-server-logs.service';
@@ -78,6 +81,7 @@ export class GuildsController {
   constructor(
     private guildsService: GuildsService,
     private guildRemindersService: GuildRemindersService,
+    private guildReminderPingsService: GuildReminderPingsService,
     private guildDiscordService: GuildDiscordService,
     private guildLogsService: GuildLogsService,
     private guildClansService: GuildClansService,
@@ -194,6 +198,24 @@ export class GuildsController {
   ): Promise<GuildRoleDto[]> {
     return this.guildDiscordService.listRoles({
       guildId,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Get('/:guildId/reminders/pings')
+  getReminderPings(@Param('guildId') guildId: string): Promise<ReminderPingsDto> {
+    return this.guildReminderPingsService.get(guildId);
+  }
+
+  @Put('/:guildId/reminders/pings')
+  saveReminderPings(
+    @Param('guildId') guildId: string,
+    @Body() body: ReminderPingsInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ReminderPingsDto> {
+    return this.guildReminderPingsService.save({
+      guildId,
+      body,
       applicationId: user.applicationId || null,
     });
   }

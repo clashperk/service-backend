@@ -169,9 +169,7 @@
     "Electrofire Wizard",
     "Battle Copter"
   ],
-  "BUILDER_HEROES": [
-    "Battle Machine"
-  ],
+  "BUILDER_HEROES": ["Battle Machine"],
   "HEROES": [
     "Barbarian King",
     "Archer Queen",

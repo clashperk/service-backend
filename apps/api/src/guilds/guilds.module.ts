@@ -9,6 +9,7 @@ import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildManagersService } from './guild-managers.service';
+import { GuildReminderPingsService } from './guild-reminder-pings.service';
 import { GuildRemindersService } from './guild-reminders.service';
 import { GuildButtonsService } from './guild-buttons.service';
 import { GuildServerLogsService } from './guild-server-logs.service';
@@ -29,6 +30,7 @@ import { ReminderSchedulesService } from './reminder-schedules.service';
     GuildTicketsService,
     GuildServerLogsService,
     GuildButtonsService,
+    GuildReminderPingsService,
     GuildRemindersService,
     ReminderSchedulesService,
   ],
