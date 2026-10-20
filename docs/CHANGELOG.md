@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-20 (server access re-check)
+- Add `POST /auth/guild-access` (API key): whether a user can still manage a server (owner, Administrator, Manage Server or the bot manager role), checked with the bot's token. `false` when the bot is no longer in the server; other Discord errors fail the request
+
 ## 2026-10-20 (API tokens off dashboard routes)
 - Tokens from `/auth/login` (PortalUsers) and `/auth/turnstile` can no longer use routes that only allow the `user` role (every `/guilds/:guildId/*` route, roster writes, tickets, default links), even with the `admin` role. Routes that also name an API role, like `fetch:rosters` on the roster list, still work
 - API-key requests with `x-user-id` no longer change the shared service user, so one caller's ID can't carry into another request

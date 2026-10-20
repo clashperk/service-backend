@@ -134,6 +134,24 @@ export class ManagedGuildsInputDto extends BotGuildsInputDto {
   userId: string;
 }
 
+export class GuildAccessInputDto {
+  @Matches(/^\d{17,20}$/)
+  userId: string;
+
+  @Matches(/^\d{17,20}$/)
+  guildId: string;
+
+  /** The custom bot the session came from, if any. */
+  @IsOptional()
+  @Matches(/^\d{17,20}$/)
+  applicationId?: string | null;
+}
+
+export class GuildAccessDto {
+  /** Owner, Administrator, Manage Server or the bot manager role. */
+  canManage: boolean;
+}
+
 export class ManagedGuildsDto {
   /** Servers where the user holds one of the bot manager roles. */
   guildIds: string[];

@@ -3,6 +3,7 @@ import { DiscordOauthService } from '@app/discord-oauth';
 import { ErrorCodes } from '@app/dto';
 import { HttpService } from '@nestjs/axios';
 import {
+  HttpException,
   Inject,
   Injectable,
   Logger,
@@ -268,6 +269,25 @@ export class AuthService {
   }
 
   /** Owner, Administrator, Manage Server, or the bot manager role: what the dashboard requires. */
+  /** The dashboard asks this each time it renews a session, so lost access ends within the hour. */
+  async getGuildAccess(input: { userId: string; guildId: string; applicationId?: string | null }) {
+    try {
+      return {
+        canManage: await this.canManageGuild(
+          input.guildId,
+          input.userId,
+          input.applicationId ?? null,
+        ),
+      };
+    } catch (error) {
+      // The bot was removed or can't see the server: nothing there to manage.
+      if (error instanceof HttpException && [403, 404].includes(error.getStatus())) {
+        return { canManage: false };
+      }
+      throw error;
+    }
+  }
+
   async canManageGuild(guildId: string, userId: string, applicationId: string | null) {
     const bot = applicationId
       ? await this.db.collection(Collections.CUSTOM_BOTS).findOne({ serviceId: applicationId })
