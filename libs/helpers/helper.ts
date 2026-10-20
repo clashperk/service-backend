@@ -38,3 +38,7 @@ export function expandable(label: string, ...summary: string[]) {
 export function hyperlink(url: string) {
   return `[${url}](${url})`;
 }
+
+/** A player or clan tag as the game writes it: `#`, upper case, and O read as 0. */
+export const fixTag = (tag: string) =>
+  `#${tag.trim().toUpperCase().replace(/^#/, '').replace(/O/g, '0')}`;

@@ -1,3 +1,4 @@
+import { fixTag } from '@app/helpers';
 import { ClashClientService } from '@app/clash-client';
 import { DiscordRestService } from '@app/discord-rest';
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
@@ -9,7 +10,6 @@ import { FlagDto, FlagInput, FlagsDto, FlagType } from './dto';
 const FLAG_LIMIT = 1000;
 const DAY = 24 * 60 * 60 * 1000;
 
-const fixTag = (tag: string) => `#${tag.trim().toUpperCase().replace(/^#/, '').replace(/O/g, '0')}`;
 const active = () => ({ $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }] });
 
 // The bot escapes Discord markdown in reasons; the API stores them the same way and shows them plain.

@@ -27,6 +27,7 @@ import {
   LegendAttacksEntity,
   PatronsEntity,
   PlayerLinksEntity,
+  UsersEntity,
   PlayerSeasonsEntity,
   PlayersEntity,
   ReminderSchedulesEntity,
@@ -44,6 +45,7 @@ export enum Collections {
   BOT_GUILDS = 'BotGuilds',
 
   PORTAL_USERS = 'PortalUsers',
+  USERS = 'Users',
   PLAYER_LINKS = 'PlayerLinks',
   PLAYER_LINK_AUDIT_LOGS = 'PlayerLinkAuditLogs',
   CLAN_WARS = 'ClanWars',
@@ -89,6 +91,7 @@ interface CollectionRecords {
   [Collections.CUSTOM_BOTS]: CustomBotsEntity;
 
   [Collections.PORTAL_USERS]: ApiUsersEntity;
+  [Collections.USERS]: UsersEntity;
   [Collections.PLAYER_LINKS]: PlayerLinksEntity;
   [Collections.CLAN_WARS]: ClanWarsEntity;
   [Collections.PLAYERS]: PlayersEntity;
