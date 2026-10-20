@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20 (clan logs)
+- Add `GET /guilds/:guildId/clans/:clanTag/logs`, `PUT` and `DELETE /guilds/:guildId/clans/:clanTag/logs/:logType` for the log types `/setup clan-logs` offers. Records use the bot's format (clan record, deep link, 30-minute backfill); a log kept in the same channel keeps its webhook and self-updating message, and a moved one starts fresh. Channel and ping role must be in the server, and the clan must be added to it
+- Channel, role and webhook lookups are shared by reminders and clan logs
+
 ## 2026-10-20 (reminder writes)
 - Add `GET /guilds/:guildId/channels` (text and announcement channels, with `hasWebhook` when ClashPerk already posts there) and `GET /guilds/:guildId/roles` (no @everyone or bot roles)
 - Add `POST`, `PUT /:reminderId` and `DELETE /:reminderId` under `/guilds/:guildId/reminders/clan-wars`, `/capital-raids` and `/clan-games`. Records use the bot's format and limits (15 minutes up to 48 hours, 3 days or 6 days, in 15-minute steps; 5 per clan or 25 unless the server is a supporter), the channel and clans must belong to the server, and saving schedules the reminder for a war, raid weekend or Clan Games already running

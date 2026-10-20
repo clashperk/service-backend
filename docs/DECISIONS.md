@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-20 — The bot reloads clan logs on its own
+The bot caches clan logs in memory and only reloaded them from `/setup clan-logs`. It now watches `ClanLogs` for setting changes (channel, enabled, role, color) and reloads that clan, so the API just writes the record. Updates to `messageId` or `lastPostedAt`, which the bot makes after every post, don't trigger a reload.
+
 ## 2026-10-20 — The API schedules reminders itself
 The bot schedules a new reminder for whatever is already running, then picks up later wars on its own. The API does the same on create and edit (current war and the last two CWL rounds, the latest raid weekend, the Clan Games window on the 22nd at 08:00 UTC), and writes the schedule records the bot watches, so no bot change is needed. Edits replace a reminder's schedules, as the bot's `reSchedule` does.
 
