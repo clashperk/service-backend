@@ -12,10 +12,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   AddGuildClanInput,
+  FlagDto,
+  FlagInput,
+  FlagsDto,
+  FlagType,
   AutoRoleClanInput,
   AutoRolesDto,
   AutoRolesInput,
@@ -36,6 +40,7 @@ import {
 } from './dto';
 import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildClansService } from './guild-clans.service';
+import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildRemindersService } from './guild-reminders.service';
@@ -53,6 +58,7 @@ export class GuildsController {
     private guildLogsService: GuildLogsService,
     private guildClansService: GuildClansService,
     private guildAutoRolesService: GuildAutoRolesService,
+    private guildFlagsService: GuildFlagsService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -332,6 +338,33 @@ export class GuildsController {
       body,
       applicationId: user.applicationId || null,
     });
+  }
+
+  @Get('/:guildId/flags')
+  @ApiQuery({ name: 'flagType', enum: FlagType, enumName: 'FlagType', required: false })
+  listFlags(
+    @Param('guildId') guildId: string,
+    @Query('flagType', new ParseEnumPipe(FlagType, { optional: true })) flagType?: FlagType,
+  ): Promise<FlagsDto> {
+    return this.guildFlagsService.list(guildId, flagType);
+  }
+
+  @Post('/:guildId/flags')
+  createFlags(
+    @Param('guildId') guildId: string,
+    @Body() body: FlagInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<FlagDto[]> {
+    return this.guildFlagsService.create({ guildId, body, userId: user.userId });
+  }
+
+  @Delete('/:guildId/flags/:flagId')
+  @HttpCode(204)
+  async deleteFlag(
+    @Param('guildId') guildId: string,
+    @Param('flagId') flagId: string,
+  ): Promise<void> {
+    await this.guildFlagsService.delete({ guildId, flagId });
   }
 
   @Get('/:guildId/members/list')

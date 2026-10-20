@@ -17,3 +17,4 @@ export * from './reminders.entity';
 export * from './roster-groups.entity';
 export * from './rosters.entity';
 export * from './settings.entity';
+export * from './flags.entity';

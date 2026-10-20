@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20 (flags)
+- Add `GET /guilds/:guildId/flags?flagType=` (active bans and strikes, newest first, with the active total and the server's limit), `POST /guilds/:guildId/flags` (`{ flagType, playerTags, reason, expiresInDays?, flagImpact? }`, one flag per player found) and `DELETE /guilds/:guildId/flags/:flagId`
+- Flags use `/flag create`'s record and rules: 1,000 active flags unless the server is a supporter, reasons up to 256 characters, expiry of 1 to 36,500 days or never, strike points 1 to 100. Only active flags can be deleted
+
 ## 2026-10-20 (nicknames)
 - `GET` and `PATCH /guilds/:guildId/auto-roles` add nicknames: family and non-family formats, automatic nicknames, which account a nickname uses, and short labels for `{ROLE}`. Formats follow `/nickname config`: each needs a name placeholder, and the non-family one can't use clan placeholders; formats are up to 100 characters (nicknames are cut to 32)
 - Only role fields need a clan in the server; options and nicknames save without one, as in the bot
