@@ -48,6 +48,9 @@ import {
   MaintenanceLogInput,
   ServerLogChannelInput,
   ServerLogsDto,
+  ButtonMessageInput,
+  ButtonsDto,
+  ButtonType,
   WelcomeLogInput,
 } from './dto';
 import { BetaService } from '../beta/beta.service';
@@ -59,6 +62,7 @@ import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildManagersService } from './guild-managers.service';
 import { GuildRemindersService } from './guild-reminders.service';
+import { GuildButtonsService } from './guild-buttons.service';
 import { GuildServerLogsService } from './guild-server-logs.service';
 import { GuildsService } from './guilds.service';
 
@@ -76,6 +80,7 @@ export class GuildsController {
     private guildAutoRolesService: GuildAutoRolesService,
     private guildFlagsService: GuildFlagsService,
     private guildServerLogsService: GuildServerLogsService,
+    private guildButtonsService: GuildButtonsService,
     private guildManagersService: GuildManagersService,
     private betaService: BetaService,
   ) {}
@@ -551,6 +556,21 @@ export class GuildsController {
     @CurrentUser() user: JwtUser,
   ): Promise<ServerLogsDto> {
     return this.guildServerLogsService.delete(guildId, user.applicationId || null, 'welcomeLog');
+  }
+
+  @Get('/:guildId/buttons')
+  getButtons(@Param('guildId') guildId: string): Promise<ButtonsDto> {
+    return this.guildButtonsService.get(guildId);
+  }
+
+  /** Saves what `/setup buttons` posts; messages already posted keep their old look. */
+  @Put('/:guildId/buttons/:buttonType')
+  saveButton(
+    @Param('guildId') guildId: string,
+    @Param('buttonType', new ParseEnumPipe(ButtonType)) buttonType: ButtonType,
+    @Body() body: ButtonMessageInput,
+  ): Promise<ButtonsDto> {
+    return this.guildButtonsService.save(guildId, buttonType, body);
   }
 
   @Get('/:guildId/managers')
