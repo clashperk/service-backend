@@ -5,16 +5,20 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseEnumPipe,
   Patch,
   Post,
   Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   CapitalRaidReminderInput,
+  ClanLogDto,
+  ClanLogInput,
+  ClanLogType,
   ClanGamesReminderInput,
   ClanWarReminderInput,
   GuildChannelDto,
@@ -26,6 +30,7 @@ import {
   ReorderClanCategoriesInput,
 } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
+import { GuildLogsService } from './guild-logs.service';
 import { GuildRemindersService } from './guild-reminders.service';
 import { GuildsService } from './guilds.service';
 
@@ -38,6 +43,7 @@ export class GuildsController {
     private guildsService: GuildsService,
     private guildRemindersService: GuildRemindersService,
     private guildDiscordService: GuildDiscordService,
+    private guildLogsService: GuildLogsService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -195,6 +201,48 @@ export class GuildsController {
     @Param('reminderId') reminderId: string,
   ): Promise<void> {
     await this.guildRemindersService.delete('clanGames', { guildId, reminderId });
+  }
+
+  @Get('/:guildId/clans/:clanTag/logs')
+  listClanLogs(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ClanLogDto[]> {
+    return this.guildLogsService.list({
+      guildId,
+      clanTag,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Put('/:guildId/clans/:clanTag/logs/:logType')
+  @ApiParam({ name: 'logType', enum: ClanLogType, enumName: 'ClanLogType' })
+  saveClanLog(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+    @Param('logType', new ParseEnumPipe(ClanLogType)) logType: ClanLogType,
+    @Body() body: ClanLogInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ClanLogDto> {
+    return this.guildLogsService.save({
+      guildId,
+      clanTag,
+      logType,
+      body,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Delete('/:guildId/clans/:clanTag/logs/:logType')
+  @ApiParam({ name: 'logType', enum: ClanLogType, enumName: 'ClanLogType' })
+  @HttpCode(204)
+  async deleteClanLog(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+    @Param('logType', new ParseEnumPipe(ClanLogType)) logType: ClanLogType,
+  ): Promise<void> {
+    await this.guildLogsService.delete({ guildId, clanTag, logType });
   }
 
   @Get('/:guildId/members/list')
