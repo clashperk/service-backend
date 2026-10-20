@@ -5,7 +5,7 @@ import { ChannelStatus, ClanEmbedField, ClanLogInput, ClanLogType } from './dto'
 import { GuildLogsService } from './guild-logs.service';
 import { channelState } from '../../test/fakes';
 
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const CHANNEL = '222222222222222222';

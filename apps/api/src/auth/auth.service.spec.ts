@@ -3,7 +3,7 @@ import { Db } from 'mongodb';
 import { Collections } from '../db';
 import { AuthService } from './auth.service';
 
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const OTHER = '111111111111111112';

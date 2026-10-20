@@ -4,7 +4,7 @@ import { ChannelStatus } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
 import { memoryCache } from '../../test/fakes';
 
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const TEXT = { id: '1', name: 'clan-logs', type: ChannelType.GuildText, guild_id: GUILD };

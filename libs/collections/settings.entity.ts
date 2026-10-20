@@ -30,6 +30,10 @@ export class SettingsEntity {
   guildId: string;
   /** Clans that can have logs; unset means the free 2. */
   clanLimit?: number;
+  /** Embed colour as an RGB integer; null or unset uses the default. */
+  color?: number | null;
+  /** Webhooks per channel; the bot clamps it to 3 to 8. */
+  webhookLimit?: number;
   /** Role IDs; older records hold a single ID. */
   managerRole?: string[] | string;
   rosterManagerRole?: string[] | string;

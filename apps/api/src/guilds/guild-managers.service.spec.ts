@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { GuildManagersService } from './guild-managers.service';
 
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const ROLE = (n: number) => `22222222222222222${n}`;

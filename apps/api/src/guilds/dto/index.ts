@@ -11,3 +11,4 @@ export * from './server-logs.dto';
 export * from './manager-roles.dto';
 export * from './tickets.dto';
 export * from './buttons.dto';
+export * from './server-config.dto';

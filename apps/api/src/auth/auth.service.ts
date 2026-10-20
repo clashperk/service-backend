@@ -1,5 +1,5 @@
 import { RedisKeys } from '@app/constants';
-import { DiscordOauthService } from '@app/discord-oauth';
+import { DiscordRestService } from '@app/discord-rest';
 import { ErrorCodes } from '@app/dto';
 import { HttpService } from '@nestjs/axios';
 import {
@@ -42,7 +42,7 @@ export class AuthService {
     @Inject(REDIS_TOKEN) private redis: Redis,
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private jwtService: JwtService,
-    private discordOauthService: DiscordOauthService,
+    private discordRest: DiscordRestService,
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
   ) {}
@@ -119,7 +119,7 @@ export class AuthService {
   }
 
   async generateToken(input: GenerateTokenInputDto): Promise<GenerateTokenDto> {
-    const user = await this.discordOauthService.getUser(input.userId);
+    const user = await this.discordRest.getUser(input.userId);
 
     const dto = await this.users.findOneAndUpdate(
       { userId: input.userId },
@@ -193,13 +193,13 @@ export class AuthService {
       username: user.username,
       displayName: user.displayName,
       applicationId: user.applicationId,
-      avatarUrl: this.discordOauthService.toAvatarUrl(user.userId, user.avatar),
+      avatarUrl: this.discordRest.toAvatarUrl(user.userId, user.avatar),
     };
   }
 
   async createHandoffToken(payload: HandoffTokenInputDto) {
     const token = randomBytes(16).toString('hex');
-    const user = await this.discordOauthService.getUser(payload.userId);
+    const user = await this.discordRest.getUser(payload.userId);
 
     const guild = await this.guilds.findOne(
       { guild: payload.guildId },
@@ -294,8 +294,8 @@ export class AuthService {
       : null;
     const token = bot?.token ?? null;
     const [guild, member, settings] = await Promise.all([
-      this.discordOauthService.getGuild({ guildId, token }),
-      this.discordOauthService.getMember({ guildId, userId, token }),
+      this.discordRest.getGuild({ guildId, token }),
+      this.discordRest.getMember({ guildId, userId, token }),
       this.db
         .collection(Collections.SETTINGS)
         .findOne({ guildId }, { projection: { managerRole: 1 } }),
@@ -329,7 +329,7 @@ export class AuthService {
       settings.map(async ({ guildId, managerRole }) => {
         const roleIds = toRoleIds(managerRole);
         if (!roleIds.length) return null;
-        const member = await this.discordOauthService
+        const member = await this.discordRest
           .getMember({ guildId, userId, token: null })
           .catch(() => null);
         return member?.roles.some((id) => roleIds.includes(id)) ? guildId : null;

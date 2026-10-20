@@ -12,8 +12,8 @@ import {
 import { URLSearchParams } from 'url';
 
 @Injectable()
-export class DiscordOauthService {
-  private logger = new Logger(DiscordOauthService.name);
+export class DiscordRestService {
+  private logger = new Logger(DiscordRestService.name);
   // One client per bot token: discord.js only queues for Discord's rate limits within a client.
   private clients = new Map<string, REST>();
   private webhooks = new REST({ version: '10' });

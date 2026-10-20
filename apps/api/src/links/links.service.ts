@@ -1,6 +1,6 @@
 import { ClashClientService } from '@app/clash-client';
 import { DiscordLinkService } from '@app/clash-client/discord-link.service';
-import { DiscordOauthService } from '@app/discord-oauth';
+import { DiscordRestService } from '@app/discord-rest';
 import { ConflictException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { PlayerLinksEntity } from '@app/collections';
@@ -11,7 +11,7 @@ import { CreateLinkInputDto } from './dto';
 export class LinksService {
   constructor(
     private clashClientService: ClashClientService,
-    private discordOauthService: DiscordOauthService,
+    private discordRest: DiscordRestService,
     private discordLinkService: DiscordLinkService,
     @Inject(MONGODB_TOKEN) private db: Db,
   ) {}
@@ -41,7 +41,7 @@ export class LinksService {
     }
 
     const [user, player] = await Promise.all([
-      this.discordOauthService.getUser(targetUserId),
+      this.discordRest.getUser(targetUserId),
       this.clashClientService.getPlayerOrThrow(playerTag),
     ]);
 

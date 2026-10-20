@@ -1,4 +1,4 @@
-import { DiscordOauthService } from '@app/discord-oauth';
+import { DiscordRestService } from '@app/discord-rest';
 import { APIChannel, ChannelType } from 'discord-api-types/v10';
 import { ChannelStatus } from './dto';
 
@@ -20,7 +20,7 @@ export type ChannelState = {
   parentName: string | null;
   status: ChannelStatus;
 };
-export type ChannelLookup = Awaited<ReturnType<DiscordOauthService['findChannel']>>;
+export type ChannelLookup = Awaited<ReturnType<DiscordRestService['findChannel']>>;
 
 export const parentOf = (channel: APIChannel) =>
   'parent_id' in channel ? (channel.parent_id ?? null) : null;

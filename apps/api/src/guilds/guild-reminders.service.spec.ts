@@ -7,7 +7,7 @@ import { GuildRemindersService } from './guild-reminders.service';
 import { memoryCache } from '../../test/fakes';
 
 jest.mock('@app/clash-client', () => ({ ClashClient: class {} }));
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const CHANNEL = '222222222222222222';

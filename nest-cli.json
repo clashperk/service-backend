@@ -42,13 +42,13 @@
         "tsConfigPath": "libs/clash-client/tsconfig.lib.json"
       }
     },
-    "discord-oauth": {
+    "discord-rest": {
       "type": "library",
-      "root": "libs/discord-oauth",
+      "root": "libs/discord-rest",
       "entryFile": "index",
-      "sourceRoot": "libs/discord-oauth/src",
+      "sourceRoot": "libs/discord-rest/src",
       "compilerOptions": {
-        "tsConfigPath": "libs/discord-oauth/tsconfig.lib.json"
+        "tsConfigPath": "libs/discord-rest/tsconfig.lib.json"
       }
     },
     "google-sheet": {

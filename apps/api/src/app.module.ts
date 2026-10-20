@@ -7,7 +7,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { ClashClientModule } from '@app/clash-client';
-import { DiscordOauthModule } from '@app/discord-oauth';
+import { DiscordRestModule } from '@app/discord-rest';
 import {
   HttpLoggingMiddleware,
   HttpTimeoutInterceptor,
@@ -74,7 +74,7 @@ import { WebhookModule } from './webhook/webhook.module';
     BetaModule,
     WebhookModule,
     ClashClientModule,
-    DiscordOauthModule,
+    DiscordRestModule,
   ],
   controllers: [AppController],
   providers: [
