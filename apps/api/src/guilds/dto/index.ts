@@ -8,3 +8,4 @@ export * from './clan-input.dto';
 export * from './auto-roles.dto';
 export * from './flags.dto';
 export * from './server-logs.dto';
+export * from './manager-roles.dto';

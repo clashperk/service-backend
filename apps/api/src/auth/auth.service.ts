@@ -16,6 +16,7 @@ import Redis from 'ioredis';
 import { Db } from 'mongodb';
 import { firstValueFrom } from 'rxjs';
 import { Collections, MONGODB_TOKEN, REDIS_TOKEN } from '../db';
+import { toRoleIds } from '../guilds/manager-roles';
 import {
   AuthUserDto,
   GenerateTokenDto,
@@ -252,6 +253,31 @@ export class AuthService {
         clanCount: clansByGuild.get(guild.guild as string) ?? 0,
       })),
     };
+  }
+
+  /**
+   * Servers where the user holds the bot manager role, which the bot treats like Manage Server.
+   * Only servers that set the role are looked up on Discord.
+   */
+  async getManagedGuilds(userId: string, guildIds: string[]) {
+    const settings = await this.db
+      .collection(Collections.SETTINGS)
+      .find(
+        { guildId: { $in: guildIds }, managerRole: { $exists: true } },
+        { projection: { guildId: 1, managerRole: 1 } },
+      )
+      .toArray();
+    const managed = await Promise.all(
+      settings.map(async ({ guildId, managerRole }) => {
+        const roleIds = toRoleIds(managerRole);
+        if (!roleIds.length) return null;
+        const member = await this.discordOauthService
+          .getMember({ guildId, userId, token: null })
+          .catch(() => null);
+        return member?.roles.some((id) => roleIds.includes(id)) ? guildId : null;
+      }),
+    );
+    return { guildIds: managed.filter((id): id is string => id !== null) };
   }
 
   async revalidateJwtUser(payload: JwtUser) {

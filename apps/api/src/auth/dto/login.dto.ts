@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 import { UserRoles } from './user-roles.dto';
 
@@ -125,4 +126,14 @@ export class BotGuildDto extends HandoffGuildDto {
 
 export class BotGuildsDto {
   guilds: BotGuildDto[];
+}
+
+export class ManagedGuildsInputDto extends BotGuildsInputDto {
+  @Matches(/^\d{17,20}$/)
+  userId: string;
+}
+
+export class ManagedGuildsDto {
+  /** Servers where the user holds one of the bot manager roles. */
+  guildIds: string[];
 }

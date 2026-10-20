@@ -92,6 +92,19 @@ export class DiscordOauthService {
     return (await rest.get(Routes.guildMember(input.guildId, me.id))) as APIGuildMember;
   }
 
+  /** A member of a server; null when they aren't in it or the bot isn't. */
+  async getMember(input: { guildId: string; userId: string; token: string | null }) {
+    const token = input.token ?? this.configService.getOrThrow<string>('DISCORD_TOKEN');
+    try {
+      return (await new REST({ version: '10' })
+        .setToken(token)
+        .get(Routes.guildMember(input.guildId, input.userId))) as APIGuildMember;
+    } catch (error) {
+      if ([403, 404].includes(error.status)) return null;
+      throw new HttpException(error.message, error.status ?? 500);
+    }
+  }
+
   /** Active threads, forum posts included; Discord leaves archived ones out. */
   async listActiveThreads(input: { guildId: string; token: string | null }) {
     const token = input.token ?? this.configService.getOrThrow<string>('DISCORD_TOKEN');

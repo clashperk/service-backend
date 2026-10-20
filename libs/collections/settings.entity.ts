@@ -14,6 +14,11 @@ export class WelcomeLogConfig {
 
 export class SettingsEntity {
   guildId: string;
+  /** Role IDs; older records hold a single ID. */
+  managerRole?: string[] | string;
+  rosterManagerRole?: string[] | string;
+  flagsManagerRole?: string[] | string;
+  linksManagerRole?: string[] | string;
   hasFlagAlertLog?: boolean;
   rosterChangeLog?: { channelId: string; webhook: WebhookRef | null };
   /** Where the bot posts maintenance breaks; it sends as itself, not a webhook. */
