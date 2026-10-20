@@ -15,7 +15,9 @@ import {
 import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import {
+  AddGuildClanInput,
   CapitalRaidReminderInput,
+  ClanCategoryInput,
   ClanLogDto,
   ClanLogInput,
   ClanLogType,
@@ -29,6 +31,7 @@ import {
   ReminderIdDto,
   ReorderClanCategoriesInput,
 } from './dto';
+import { GuildClansService } from './guild-clans.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildRemindersService } from './guild-reminders.service';
@@ -44,6 +47,7 @@ export class GuildsController {
     private guildRemindersService: GuildRemindersService,
     private guildDiscordService: GuildDiscordService,
     private guildLogsService: GuildLogsService,
+    private guildClansService: GuildClansService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -57,6 +61,53 @@ export class GuildsController {
     @Body() body: ReorderClanCategoriesInput,
   ): Promise<GuildClansDto> {
     return this.guildsService.reorderGuildClans({ categories: body.categories, guildId });
+  }
+
+  @Post('/:guildId/clans')
+  addGuildClan(
+    @Param('guildId') guildId: string,
+    @Body() body: AddGuildClanInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<GuildClansDto> {
+    return this.guildClansService.add({
+      guildId,
+      body,
+      userId: user.userId,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Delete('/:guildId/clans/:clanTag')
+  removeGuildClan(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+  ): Promise<GuildClansDto> {
+    return this.guildClansService.remove({ guildId, clanTag });
+  }
+
+  @Post('/:guildId/categories')
+  createClanCategory(
+    @Param('guildId') guildId: string,
+    @Body() body: ClanCategoryInput,
+  ): Promise<GuildClansDto> {
+    return this.guildClansService.createCategory(guildId, body.name);
+  }
+
+  @Patch('/:guildId/categories/:categoryId')
+  renameClanCategory(
+    @Param('guildId') guildId: string,
+    @Param('categoryId') categoryId: string,
+    @Body() body: ClanCategoryInput,
+  ): Promise<GuildClansDto> {
+    return this.guildClansService.renameCategory(guildId, categoryId, body.name);
+  }
+
+  @Delete('/:guildId/categories/:categoryId')
+  deleteClanCategory(
+    @Param('guildId') guildId: string,
+    @Param('categoryId') categoryId: string,
+  ): Promise<GuildClansDto> {
+    return this.guildClansService.deleteCategory(guildId, categoryId);
   }
 
   @Get('/:guildId/reminders')

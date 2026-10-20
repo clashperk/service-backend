@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { GuildsController } from './guilds.controller';
+import { GuildClansService } from './guild-clans.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildRemindersService } from './guild-reminders.service';
@@ -10,6 +11,7 @@ import { ReminderSchedulesService } from './reminder-schedules.service';
   controllers: [GuildsController],
   providers: [
     GuildsService,
+    GuildClansService,
     GuildDiscordService,
     GuildLogsService,
     GuildRemindersService,

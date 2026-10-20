@@ -48,13 +48,18 @@ export class DiscordOauthService {
     return payload as APIGuildMember[];
   }
 
-  async getGuild(input: { guildId: string; token: string | null }): Promise<APIGuild> {
+  async getGuild(input: {
+    guildId: string;
+    token: string | null;
+    withCounts?: boolean;
+  }): Promise<APIGuild> {
     const rest = new REST({ version: '10' });
 
     input.token ??= this.configService.getOrThrow<string>('DISCORD_TOKEN');
     rest.setToken(input.token);
 
     const payload = await rest.get(Routes.guild(input.guildId), {
+      query: new URLSearchParams(input.withCounts ? { with_counts: 'true' } : {}),
       headers: {
         Authorization: `Bot ${input.token}`,
       },
