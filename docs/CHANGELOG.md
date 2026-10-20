@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 (reminder writes)
+- Add `GET /guilds/:guildId/channels` (text and announcement channels, with `hasWebhook` when ClashPerk already posts there) and `GET /guilds/:guildId/roles` (no @everyone or bot roles)
+- Add `POST`, `PUT /:reminderId` and `DELETE /:reminderId` under `/guilds/:guildId/reminders/clan-wars`, `/capital-raids` and `/clan-games`. Records use the bot's format and limits (15 minutes up to 48 hours, 3 days or 6 days, in 15-minute steps; 5 per clan or 25 unless the server is a supporter), the channel and clans must belong to the server, and saving schedules the reminder for a war, raid weekend or Clan Games already running
+- A reminder can carry a webhook from Discord's `webhook.incoming` sign-in, checked against the server and channel; without one, a webhook ClashPerk already has in that channel is reused, else the bot creates one when the reminder first fires
+
 ## 2026-10-19 (build fix)
 - Fix the 2.0.39 build: the standings endpoint passed the whole CWL group to the archive lookup, which now takes the season
 

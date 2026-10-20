@@ -1,7 +1,31 @@
-import { Body, Controller, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
-import { GuildClansDto, GuildRemindersDto, ListMemberDto, ReorderClanCategoriesInput } from './dto';
+import {
+  CapitalRaidReminderInput,
+  ClanGamesReminderInput,
+  ClanWarReminderInput,
+  GuildChannelDto,
+  GuildClansDto,
+  GuildRemindersDto,
+  GuildRoleDto,
+  ListMemberDto,
+  ReminderIdDto,
+  ReorderClanCategoriesInput,
+} from './dto';
+import { GuildRemindersService } from './guild-reminders.service';
 import { GuildsService } from './guilds.service';
 
 @Controller('/guilds')
@@ -9,7 +33,10 @@ import { GuildsService } from './guilds.service';
 @Roles([UserRoles.USER])
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class GuildsController {
-  constructor(private guildsService: GuildsService) {}
+  constructor(
+    private guildsService: GuildsService,
+    private guildRemindersService: GuildRemindersService,
+  ) {}
 
   @Get('/:guildId/clans')
   async getGuildClans(@Param('guildId') guildId: string): Promise<GuildClansDto> {
@@ -33,6 +60,139 @@ export class GuildsController {
       guildId,
       applicationId: user.applicationId || null,
     });
+  }
+
+  @Get('/:guildId/channels')
+  listChannels(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<GuildChannelDto[]> {
+    return this.guildRemindersService.listChannels({
+      guildId,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Get('/:guildId/roles')
+  listRoles(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<GuildRoleDto[]> {
+    return this.guildRemindersService.listRoles({
+      guildId,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Post('/:guildId/reminders/clan-wars')
+  createClanWarReminder(
+    @Param('guildId') guildId: string,
+    @Body() body: ClanWarReminderInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ReminderIdDto> {
+    return this.guildRemindersService.create('clanWars', {
+      guildId,
+      applicationId: user.applicationId || null,
+      body,
+    });
+  }
+
+  @Put('/:guildId/reminders/clan-wars/:reminderId')
+  updateClanWarReminder(
+    @Param('guildId') guildId: string,
+    @Param('reminderId') reminderId: string,
+    @Body() body: ClanWarReminderInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ReminderIdDto> {
+    return this.guildRemindersService.update('clanWars', {
+      guildId,
+      reminderId,
+      applicationId: user.applicationId || null,
+      body,
+    });
+  }
+
+  @Delete('/:guildId/reminders/clan-wars/:reminderId')
+  @HttpCode(204)
+  async deleteClanWarReminder(
+    @Param('guildId') guildId: string,
+    @Param('reminderId') reminderId: string,
+  ): Promise<void> {
+    await this.guildRemindersService.delete('clanWars', { guildId, reminderId });
+  }
+
+  @Post('/:guildId/reminders/capital-raids')
+  createCapitalRaidReminder(
+    @Param('guildId') guildId: string,
+    @Body() body: CapitalRaidReminderInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ReminderIdDto> {
+    return this.guildRemindersService.create('capitalRaids', {
+      guildId,
+      applicationId: user.applicationId || null,
+      body,
+    });
+  }
+
+  @Put('/:guildId/reminders/capital-raids/:reminderId')
+  updateCapitalRaidReminder(
+    @Param('guildId') guildId: string,
+    @Param('reminderId') reminderId: string,
+    @Body() body: CapitalRaidReminderInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ReminderIdDto> {
+    return this.guildRemindersService.update('capitalRaids', {
+      guildId,
+      reminderId,
+      applicationId: user.applicationId || null,
+      body,
+    });
+  }
+
+  @Delete('/:guildId/reminders/capital-raids/:reminderId')
+  @HttpCode(204)
+  async deleteCapitalRaidReminder(
+    @Param('guildId') guildId: string,
+    @Param('reminderId') reminderId: string,
+  ): Promise<void> {
+    await this.guildRemindersService.delete('capitalRaids', { guildId, reminderId });
+  }
+
+  @Post('/:guildId/reminders/clan-games')
+  createClanGamesReminder(
+    @Param('guildId') guildId: string,
+    @Body() body: ClanGamesReminderInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ReminderIdDto> {
+    return this.guildRemindersService.create('clanGames', {
+      guildId,
+      applicationId: user.applicationId || null,
+      body,
+    });
+  }
+
+  @Put('/:guildId/reminders/clan-games/:reminderId')
+  updateClanGamesReminder(
+    @Param('guildId') guildId: string,
+    @Param('reminderId') reminderId: string,
+    @Body() body: ClanGamesReminderInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ReminderIdDto> {
+    return this.guildRemindersService.update('clanGames', {
+      guildId,
+      reminderId,
+      applicationId: user.applicationId || null,
+      body,
+    });
+  }
+
+  @Delete('/:guildId/reminders/clan-games/:reminderId')
+  @HttpCode(204)
+  async deleteClanGamesReminder(
+    @Param('guildId') guildId: string,
+    @Param('reminderId') reminderId: string,
+  ): Promise<void> {
+    await this.guildRemindersService.delete('clanGames', { guildId, reminderId });
   }
 
   @Get('/:guildId/members/list')

@@ -9,6 +9,7 @@ import {
   ClanCategoriesEntity,
   ClanGamesPointsEntity,
   ClanGamesRemindersEntity,
+  ClanLogsEntity,
   ClanStoresEntity,
   ClanWarRemindersEntity,
   ClanWarsEntity,
@@ -18,6 +19,7 @@ import {
   GlobalClanHistoryEntity,
   GlobalPlayerEntity,
   LegendAttacksEntity,
+  PatronsEntity,
   PlayerLinksEntity,
   PlayerSeasonsEntity,
   PlayersEntity,
@@ -60,6 +62,8 @@ export enum Collections {
   CLAN_WAR_SCHEDULES = 'Schedulers',
   CAPITAL_RAID_SCHEDULES = 'RaidSchedulers',
   CLAN_GAMES_SCHEDULES = 'ClanGamesSchedulers',
+  CLAN_LOGS = 'ClanLogs',
+  PATRONS = 'Patrons',
 
   GLOBAL_CLANS = 'global_clans',
   GLOBAL_PLAYERS = 'global_players',
@@ -96,6 +100,8 @@ interface CollectionRecords {
   [Collections.CLAN_WAR_SCHEDULES]: ReminderSchedulesEntity;
   [Collections.CAPITAL_RAID_SCHEDULES]: ReminderSchedulesEntity;
   [Collections.CLAN_GAMES_SCHEDULES]: ReminderSchedulesEntity;
+  [Collections.CLAN_LOGS]: ClanLogsEntity;
+  [Collections.PATRONS]: PatronsEntity;
 }
 
 declare module 'mongodb' {

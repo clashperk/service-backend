@@ -3,6 +3,7 @@ export * from './capital-contributions.entity';
 export * from './capital-raid-seasons.entity';
 export * from './clan-categories.entity';
 export * from './clan-games-points.entity';
+export * from './clan-logs.entity';
 export * from './clan-stores.entity';
 export * from './clan-wars.entity';
 export * from './custom-bots.entity';
