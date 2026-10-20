@@ -15,6 +15,13 @@ export class GuildClanDto {
 
   @ApiProperty({ type: String })
   categoryId: ObjectId | string;
+
+  /** Finds the clan in commands; `{ALIAS}` in nicknames. */
+  alias: string | null;
+  /** Shown instead of the clan name in reminders and lists. */
+  nickname: string | null;
+  /** Commands run in these channels use this clan when no tag is given. */
+  channels: string[];
 }
 
 export class CategoryDto {

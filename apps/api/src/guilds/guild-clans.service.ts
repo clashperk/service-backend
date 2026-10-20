@@ -1,5 +1,6 @@
 import { ClashClientService } from '@app/clash-client';
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Inject,
@@ -9,7 +10,7 @@ import {
 import { APIClan } from 'clashofclans.js';
 import { Db, ObjectId } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
-import { AddGuildClanInput, GuildClansDto } from './dto';
+import { AddGuildClanInput, ClanSettingsInput, GuildClansDto } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildsService } from './guilds.service';
 import { SCHEDULE_COLLECTIONS } from './reminder-schedules.service';
@@ -110,6 +111,70 @@ export class GuildClansService {
     await this.db.collection(Collections.CLAN_LOGS).deleteMany({ clanId: clan._id });
     // Last, so the bot stops tracking the clan only once nothing points at it.
     await this.clans.deleteOne({ _id: clan._id });
+    return this.guilds.getGuildClans(guildId);
+  }
+
+  /** Alias, short name and clan channels, as `/alias create` and `/setup clan` set them. */
+  async updateSettings(input: {
+    guildId: string;
+    applicationId: string | null;
+    clanTag: string;
+    body: ClanSettingsInput;
+  }): Promise<GuildClansDto> {
+    const { guildId, body } = input;
+    const clan = await this.clans.findOne({ guild: guildId, tag: fixTag(input.clanTag) });
+    if (!clan) throw new NotFoundException('That clan is not added to this server.');
+
+    const set: Record<string, unknown> = {};
+    const unset: Record<string, ''> = {};
+    if (body.alias !== undefined) {
+      if (body.alias) {
+        // Lookups ignore case, so "War" and "war" would find the same clan.
+        const escaped = body.alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const taken = await this.clans.findOne({
+          guild: guildId,
+          _id: { $ne: clan._id },
+          alias: { $regex: `^${escaped}$`, $options: 'i' },
+        });
+        if (taken) throw new ConflictException(`${taken.name} already uses that alias.`);
+        set.alias = body.alias;
+      } else unset.alias = '';
+    }
+    if (body.nickname !== undefined) {
+      if (body.nickname) set.nickname = body.nickname;
+      else unset.nickname = '';
+    }
+    if (body.channels) {
+      const channels = [...new Set(body.channels)];
+      if (channels.length) {
+        const available = await this.discord.listChannels({
+          guildId,
+          applicationId: input.applicationId,
+        });
+        const ids = new Set(available.filter((c) => c.selectable).map((c) => c.id));
+        if (!channels.every((id) => ids.has(id))) {
+          throw new BadRequestException('Pick channels or threads in this server.');
+        }
+        const taken = await this.clans.findOne({
+          guild: guildId,
+          _id: { $ne: clan._id },
+          channels: { $in: channels },
+        });
+        if (taken)
+          throw new ConflictException(`A channel is already ${taken.name}'s clan channel.`);
+      }
+      set.channels = channels;
+    }
+
+    if (Object.keys(set).length || Object.keys(unset).length) {
+      await this.clans.updateOne(
+        { _id: clan._id },
+        {
+          ...(Object.keys(set).length ? { $set: set } : {}),
+          ...(Object.keys(unset).length ? { $unset: unset } : {}),
+        },
+      );
+    }
     return this.guilds.getGuildClans(guildId);
   }
 

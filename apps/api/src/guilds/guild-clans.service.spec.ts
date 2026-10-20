@@ -23,7 +23,14 @@ const matches = (doc: Doc, filter: Doc) =>
     if (cond && typeof cond === 'object' && !(cond instanceof ObjectId) && !Array.isArray(cond)) {
       const op = cond as Doc;
       if ('$ne' in op) return !same(value, op.$ne);
-      if ('$in' in op) return (op.$in as unknown[]).includes(value);
+      if ('$in' in op) {
+        const list = op.$in as unknown[];
+        return Array.isArray(value) ? value.some((v) => list.includes(v)) : list.includes(value);
+      }
+      if ('$regex' in op)
+        return new RegExp(op.$regex as string, op.$options as string).test(
+          typeof value === 'string' ? value : '',
+        );
     }
     if (Array.isArray(value) && !Array.isArray(cond)) return value.includes(cond);
     return same(value ?? null, cond);
@@ -38,6 +45,7 @@ const setup = (
     const docs = () => store[name];
     const update = (doc: Doc, change: Record<string, Doc>) => {
       Object.assign(doc, change.$set ?? {});
+      for (const key of Object.keys(change.$unset ?? {})) delete doc[key];
       for (const [key, value] of Object.entries(change.$pull ?? {})) {
         doc[key] = (doc[key] as unknown[]).filter((item) => item !== value);
       }
@@ -91,7 +99,13 @@ const setup = (
           : null,
       ),
   };
-  const discord = { memberCount: () => Promise.resolve(opts.members ?? 500) };
+  const discord = {
+    memberCount: () => Promise.resolve(opts.members ?? 500),
+    listChannels: () =>
+      Promise.resolve(
+        ['1', '2', '3'].map((n) => ({ id: `44444444444444444${n}`, selectable: true })),
+      ),
+  };
   const guilds = { getGuildClans: jest.fn().mockResolvedValue({ categories: [] }) };
   return new GuildClansService(
     { collection } as unknown as Db,
@@ -226,5 +240,37 @@ describe('GuildClansService', () => {
     );
     await service.deleteCategory(GUILD, categoryId.toHexString());
     expect(store[Collections.CLAN_STORES][0].categoryId).toBeNull();
+  });
+
+  it("saves an alias, short name and clan channels with the bot's rules", async () => {
+    const mine: Doc = { _id: new ObjectId(), guild: GUILD, tag: TAG, name: 'Pugs', alias: 'old' };
+    const other = {
+      _id: new ObjectId(),
+      guild: GUILD,
+      tag: '#OTHER',
+      name: 'Other',
+      alias: 'War',
+      channels: ['444444444444444443'],
+    };
+    const store: Store = { [Collections.CLAN_STORES]: [mine, other] };
+    const service = setup(store);
+    const save = (body: Doc) =>
+      service.updateSettings({ guildId: GUILD, applicationId: null, clanTag: TAG, body });
+
+    await expect(save({ alias: 'war' })).rejects.toThrow('Other already uses that alias.');
+    await expect(save({ channels: ['444444444444444443'] })).rejects.toThrow(
+      "already Other's clan channel",
+    );
+    await expect(save({ channels: ['999999999999999999'] })).rejects.toThrow(
+      'Pick channels or threads in this server.',
+    );
+
+    await save({ alias: 'BP', nickname: 'Pugs', channels: ['444444444444444441'] });
+    expect(mine).toMatchObject({ alias: 'BP', nickname: 'Pugs', channels: ['444444444444444441'] });
+
+    await save({ alias: null, nickname: null, channels: [] });
+    expect(mine).not.toHaveProperty('alias');
+    expect(mine).not.toHaveProperty('nickname');
+    expect(mine.channels).toEqual([]);
   });
 });
