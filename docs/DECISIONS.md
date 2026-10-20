@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-20 — Flags are written as `/flag create` writes them, minus the DM
+The bot reads flags from `Flags` whenever a flagged player joins, so no bot change is needed. The record keeps the bot's author fields (Discord ID, username, display name, discriminator), fetched from Discord for the caller. Reasons are stored with markdown escaped, as the bot does with `escapeMarkdown`, and returned unescaped; the API escapes only `\ ` * _ ~ | >`, a subset of discord.js. `/flag create`'s option to DM the flagged player is left out: it messages members, so it waits until the bot calls the API. Deleting removes one flag by ID; the bot's delete-all-for-a-player and delete-a-clan's-flags options aren't in the API yet.
+
 ## 2026-10-20 — Auto-roles are written where the bot reads them, with no bot change
 Server-wide roles and options go in `Settings` under `/autorole`'s keys, each map written whole with `$set`, and anything turned off is `$unset` as `/autorole disable` does. The bot reloads `Settings` through its change stream and reads clan roles from `ClanStores` on every update, so neither needs a bot change. As with the bot, saving doesn't refresh members' roles; they update on the bot's next check. Unlike the bot, the API can remove single entries (a map is replaced, not merged) and can clear trophy roles, which no bot command does. The bot's role-position check uses its gateway cache; the API asks Discord for the bot's member roles instead. The bot's after-save `updateClanLinks` is left out: it only refreshes links and doesn't affect roles.
 
