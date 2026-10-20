@@ -6,6 +6,7 @@ import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildRemindersService } from './guild-reminders.service';
+import { GuildServerLogsService } from './guild-server-logs.service';
 import { GuildsService } from './guilds.service';
 import { ReminderSchedulesService } from './reminder-schedules.service';
 
@@ -18,6 +19,7 @@ import { ReminderSchedulesService } from './reminder-schedules.service';
     GuildDiscordService,
     GuildFlagsService,
     GuildLogsService,
+    GuildServerLogsService,
     GuildRemindersService,
     ReminderSchedulesService,
   ],

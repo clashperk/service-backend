@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20 (server logs)
+- Add `GET /guilds/:guildId/server-logs` with the flag alert log, roster changelog, maintenance channel and welcome message, each null when not set up
+- Add `PUT` and `DELETE` for `/guilds/:guildId/server-logs/{flag-alert,roster-changelog,maintenance,welcome}`, in `/setup server-logs`'s format. Flag alerts go in `FlagAlertLogs` and set `hasFlagAlertLog`; turning the welcome message off keeps its text. Without a known webhook the record stores none and the bot creates one when it first posts
+
 ## 2026-10-20 (clan settings)
 - Add `PATCH /guilds/:guildId/clans/:clanTag` (`{ alias?, nickname?, channels? }`), as `/alias create` and `/setup clan` set them: alias up to 15 characters with no spaces or leading #, unique in the server ignoring case; short name (`nickname`) up to 15; clan channels must be channels or threads in the server and can belong to one clan. `null` or an empty list clears a field
 - `GET /guilds/:guildId/clans` returns each clan's `alias`, `nickname` and `channels`

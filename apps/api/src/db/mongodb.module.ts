@@ -11,6 +11,7 @@ import {
   ClanGamesRemindersEntity,
   ClanLogsEntity,
   FlagsEntity,
+  FlagAlertLogsEntity,
   ClanStoresEntity,
   ClanWarRemindersEntity,
   ClanWarsEntity,
@@ -66,6 +67,7 @@ export enum Collections {
   CLAN_LOGS = 'ClanLogs',
   PATRONS = 'Patrons',
   FLAGS = 'Flags',
+  FLAG_ALERT_LOGS = 'FlagAlertLogs',
 
   GLOBAL_CLANS = 'global_clans',
   GLOBAL_PLAYERS = 'global_players',
@@ -105,6 +107,7 @@ interface CollectionRecords {
   [Collections.CLAN_LOGS]: ClanLogsEntity;
   [Collections.PATRONS]: PatronsEntity;
   [Collections.FLAGS]: FlagsEntity;
+  [Collections.FLAG_ALERT_LOGS]: FlagAlertLogsEntity;
 }
 
 declare module 'mongodb' {
