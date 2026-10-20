@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 (beta servers)
+- Beta servers move into the `BetaGuilds` collection. Admins manage them with `GET`, `POST` (`{ guildIds, note? }`, existing ones are kept as they are) and `DELETE /admin/beta-guilds/:guildId`
+- `GET /beta-guilds/ids` (API key) lists the IDs for the bot's command-registration workflow
+- `GET /guilds/:guildId/beta` says whether a server is in beta, for the dashboard's beta pages
+
 ## 2026-10-20 (clan log limit)
 - Saving a clan's first log is refused (403) once the server has logs for `Settings.clanLimit` clans (2 when unset; Patreon raises it), as `/setup clan-logs` does. Any log, on or off, counts its clan; logs of removed clans don't. Clans that already have logs can get more
 - Add `GET /guilds/:guildId/clan-logs/limit` with the limit, the clans that count and whether the server is a patron

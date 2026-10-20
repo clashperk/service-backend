@@ -12,6 +12,10 @@ import {
   ClanLogsEntity,
   FlagsEntity,
   FlagAlertLogsEntity,
+  TicketPanelsEntity,
+  TicketSettingsEntity,
+  TicketsEntity,
+  BetaGuildsEntity,
   ClanStoresEntity,
   ClanWarRemindersEntity,
   ClanWarsEntity,
@@ -68,6 +72,10 @@ export enum Collections {
   PATRONS = 'Patrons',
   FLAGS = 'Flags',
   FLAG_ALERT_LOGS = 'FlagAlertLogs',
+  TICKET_PANELS = 'TicketPanels',
+  TICKET_SETTINGS = 'TicketSettings',
+  TICKETS = 'Tickets',
+  BETA_GUILDS = 'BetaGuilds',
 
   GLOBAL_CLANS = 'global_clans',
   GLOBAL_PLAYERS = 'global_players',
@@ -108,6 +116,10 @@ interface CollectionRecords {
   [Collections.PATRONS]: PatronsEntity;
   [Collections.FLAGS]: FlagsEntity;
   [Collections.FLAG_ALERT_LOGS]: FlagAlertLogsEntity;
+  [Collections.TICKET_PANELS]: TicketPanelsEntity;
+  [Collections.TICKET_SETTINGS]: TicketSettingsEntity;
+  [Collections.TICKETS]: TicketsEntity;
+  [Collections.BETA_GUILDS]: BetaGuildsEntity;
 }
 
 declare module 'mongodb' {

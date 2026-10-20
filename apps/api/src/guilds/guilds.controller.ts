@@ -47,6 +47,8 @@ import {
   ServerLogsDto,
   WelcomeLogInput,
 } from './dto';
+import { BetaService } from '../beta/beta.service';
+import { GuildBetaDto } from '../beta/dto/beta-guilds.dto';
 import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildClansService } from './guild-clans.service';
 import { GuildFlagsService } from './guild-flags.service';
@@ -72,6 +74,7 @@ export class GuildsController {
     private guildFlagsService: GuildFlagsService,
     private guildServerLogsService: GuildServerLogsService,
     private guildManagersService: GuildManagersService,
+    private betaService: BetaService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -526,5 +529,10 @@ export class GuildsController {
       body,
       applicationId: user.applicationId || null,
     });
+  }
+
+  @Get('/:guildId/beta')
+  async getGuildBeta(@Param('guildId') guildId: string): Promise<GuildBetaDto> {
+    return { beta: await this.betaService.isBeta(guildId) };
   }
 }
