@@ -122,7 +122,7 @@
       "^@app/clash-client(|/.*)$": "<rootDir>/libs/clash-client/src/$1",
       "^@app/constants(|/.*)$": "<rootDir>/libs/constants/$1",
       "^@app/decorators(|/.*)$": "<rootDir>/libs/decorators/$1",
-      "^@app/discord-oauth(|/.*)$": "<rootDir>/libs/discord-oauth/src/$1",
+      "^@app/discord-rest(|/.*)$": "<rootDir>/libs/discord-rest/src/$1",
       "^@app/dto(|/.*)$": "<rootDir>/libs/dto/$1",
       "^@app/auth(|/.*)$": "<rootDir>/libs/auth/$1",
       "^@app/collections(|/.*)$": "<rootDir>/libs/collections/$1",

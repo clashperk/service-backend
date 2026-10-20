@@ -1,4 +1,4 @@
-import { DiscordOauthService } from '@app/discord-oauth';
+import { DiscordRestService } from '@app/discord-rest';
 import { Inject, Injectable } from '@nestjs/common';
 import { AnyBulkWriteOperation, Db, ObjectId } from 'mongodb';
 import { ClanCategoriesEntity, ClanStoresEntity, Collections, MONGODB_TOKEN } from '../db';
@@ -36,7 +36,7 @@ const uncategorizedId = 'uncategorized';
 export class GuildsService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
-    private readonly discordOauthService: DiscordOauthService,
+    private readonly discordRest: DiscordRestService,
     private readonly guildDiscordService: GuildDiscordService,
   ) {}
 
@@ -45,7 +45,7 @@ export class GuildsService {
       ? await this.bots.findOne({ serviceId: input.applicationId })
       : null;
 
-    const members = await this.discordOauthService.listMembers({
+    const members = await this.discordRest.listMembers({
       guildId: input.guildId,
       query: input.query,
       token: bot ? bot.token : null,
@@ -55,7 +55,7 @@ export class GuildsService {
       id: member.user.id,
       username: member.user.username,
       displayName: member.user.global_name || member.user.username,
-      avatarUrl: this.discordOauthService.toAvatarUrl(member.user.id, member.user.avatar),
+      avatarUrl: this.discordRest.toAvatarUrl(member.user.id, member.user.avatar),
     }));
   }
 

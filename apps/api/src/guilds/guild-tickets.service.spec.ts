@@ -4,7 +4,7 @@ import { Collections } from '../db';
 import { TicketExtraButtonKind } from './dto';
 import { GuildTicketsService } from './guild-tickets.service';
 
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const ROLE = '222222222222222222';

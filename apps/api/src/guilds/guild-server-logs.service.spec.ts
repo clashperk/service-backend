@@ -4,7 +4,7 @@ import { Collections } from '../db';
 import { GuildServerLogsService } from './guild-server-logs.service';
 import { channelState } from '../../test/fakes';
 
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const CHANNEL = (n: number) => `33333333333333333${n}`;

@@ -1,4 +1,4 @@
-import { DiscordOauthService } from '@app/discord-oauth';
+import { DiscordRestService } from '@app/discord-rest';
 import { cached, mapLimit } from '@app/helpers';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
@@ -40,7 +40,7 @@ type ServerChannels = { channels: APIChannel[]; threads: APIChannel[] };
 export class GuildDiscordService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
-    private readonly discordOauthService: DiscordOauthService,
+    private readonly discordRest: DiscordRestService,
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
@@ -50,8 +50,8 @@ export class GuildDiscordService {
     return cached<ServerChannels>(this.cache, key, SERVER_CHANNELS_TTL, async () => {
       const token = await this.botToken(applicationId);
       const [channels, threads] = await Promise.all([
-        this.discordOauthService.listChannels({ guildId, token }),
-        this.discordOauthService.listActiveThreads({ guildId, token }),
+        this.discordRest.listChannels({ guildId, token }),
+        this.discordRest.listActiveThreads({ guildId, token }),
       ]);
       return { channels, threads };
     });
@@ -108,7 +108,7 @@ export class GuildDiscordService {
     guildId: string;
     applicationId: string | null;
   }): Promise<GuildRoleDto[]> {
-    const guild = await this.discordOauthService.getGuild({
+    const guild = await this.discordRest.getGuild({
       guildId: input.guildId,
       token: await this.botToken(input.applicationId),
     });
@@ -120,7 +120,7 @@ export class GuildDiscordService {
   }
 
   async memberCount(guildId: string, applicationId: string | null) {
-    const guild = await this.discordOauthService.getGuild({
+    const guild = await this.discordRest.getGuild({
       guildId,
       token: await this.botToken(applicationId),
       withCounts: true,
@@ -143,8 +143,8 @@ export class GuildDiscordService {
     if (!roleIds.length) return;
     const token = await this.botToken(applicationId);
     const [guild, me] = await Promise.all([
-      this.discordOauthService.getGuild({ guildId, token }),
-      this.discordOauthService.getBotMember({ guildId, token }),
+      this.discordRest.getGuild({ guildId, token }),
+      this.discordRest.getBotMember({ guildId, token }),
     ]);
     const roles = new Map(guild.roles.map((role) => [role.id, role]));
     const highest = Math.max(0, ...me.roles.map((id) => roles.get(id)?.position ?? 0));
@@ -181,13 +181,13 @@ export class GuildDiscordService {
     channelId: string,
     provided: Webhook | undefined,
   ): Promise<Webhook | null> {
-    const channel = await this.discordOauthService.getChannel({
+    const channel = await this.discordRest.getChannel({
       channelId,
       token: await this.botToken(applicationId),
     });
     const homeId = (channel && THREADS.includes(channel.type) && parentOf(channel)) || channelId;
     if (provided) {
-      const webhook = await this.discordOauthService.getWebhook(provided);
+      const webhook = await this.discordRest.getWebhook(provided);
       if (!webhook || webhook.guild_id !== guildId || webhook.channel_id !== homeId) {
         throw new BadRequestException("That webhook isn't in the chosen channel.");
       }
@@ -243,7 +243,7 @@ export class GuildDiscordService {
     const token = await this.botToken(applicationId);
     const results = await mapLimit(ids.slice(0, MAX_LOOKUPS), LOOKUP_CONCURRENCY, (channelId) =>
       cached(this.cache, `discord:channel:${channelId}`, LOOKUP_TTL, () =>
-        this.discordOauthService.findChannel({ channelId, token }),
+        this.discordRest.findChannel({ channelId, token }),
       ).catch((): ChannelLookup | null => null),
     );
     return new Map(results.map((result, index) => [ids[index], result]));

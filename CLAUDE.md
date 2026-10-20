@@ -37,7 +37,7 @@ This is a **NestJS monorepo** (`nest-cli.json`, `"monorepo": true`) backing the 
 
 - `apps/api` — the main HTTP application (default project, entry `apps/api/src/main.ts`).
 - `apps/worker` — the **tracking worker** (the former standalone "tracking-service"). A clustered, Redis-pub/sub-driven poller that tracks Clash of Clans clans/players/wars/capital/rankings and writes to MongoDB/ClickHouse/Elasticsearch. See "Tracking worker" below.
-- `libs/clash-client`, `libs/discord-oauth`, `libs/google-sheet` — Nest library projects.
+- `libs/clash-client`, `libs/discord-rest`, `libs/google-sheet` — Nest library projects.
 - `libs/constants`, `libs/decorators`, `libs/dto`, `libs/helpers`, `libs/interceptors` — plain shared TS, imported via `@app/*` aliases.
 
 Import shared code with the `@app/*` aliases (e.g. `import { Cache } from '@app/decorators'`), never via relative paths into `libs/`.

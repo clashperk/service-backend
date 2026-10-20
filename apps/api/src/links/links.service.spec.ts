@@ -5,7 +5,7 @@ import { LinksService } from './links.service';
 // The service's clients are faked below; these modules pull in JSON the test setup can't load.
 jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 jest.mock('@app/clash-client/discord-link.service', () => ({ DiscordLinkService: class {} }));
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 type Link = { tag: string; userId: string; order?: number; verified?: boolean };
 
@@ -59,10 +59,10 @@ const createService = (links: Link[], clanMembers: Member[] = []) => {
       Promise.resolve({ tag, name: 'Player', clan: { tag: '#CLAN' } }),
     getClanOrThrow: (tag: string) => Promise.resolve({ tag, memberList: clanMembers }),
   };
-  const discordOauth = {
+  const discordRest = {
     getUser: () => Promise.resolve({ username: 'user', discriminator: '0', global_name: null }),
   };
-  const service = new LinksService(clashClient as never, discordOauth as never, null as never, db);
+  const service = new LinksService(clashClient as never, discordRest as never, null as never, db);
   return { service, updates };
 };
 

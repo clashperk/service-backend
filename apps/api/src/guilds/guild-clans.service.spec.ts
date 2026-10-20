@@ -4,7 +4,7 @@ import { Collections } from '../db';
 import { GuildClansService } from './guild-clans.service';
 
 jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
-jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
+jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111142';
 const OTHER_GUILD = '999999999999999999';

@@ -1,5 +1,5 @@
 import { ClashClientService } from '@app/clash-client';
-import { DiscordOauthService } from '@app/discord-oauth';
+import { DiscordRestService } from '@app/discord-rest';
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Db, ObjectId, WithId } from 'mongodb';
 import { Collections, FlagsEntity, MONGODB_TOKEN } from '../db';
@@ -22,7 +22,7 @@ export class GuildFlagsService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private readonly clashClientService: ClashClientService,
-    private readonly discordOauthService: DiscordOauthService,
+    private readonly discordRest: DiscordRestService,
   ) {}
 
   async list(guildId: string, flagType?: FlagType): Promise<FlagsDto> {
@@ -53,7 +53,7 @@ export class GuildFlagsService {
     const players = await this.clashClientService.getPlayers(tags);
     if (!players.length) throw new NotFoundException('No players have those tags.');
 
-    const author = await this.discordOauthService.getUser(input.userId);
+    const author = await this.discordRest.getUser(input.userId);
     const now = new Date();
     const flags: WithId<FlagsEntity>[] = players.map((player) => ({
       _id: new ObjectId(),
