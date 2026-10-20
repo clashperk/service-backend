@@ -16,6 +16,7 @@ import {
 import { SentryModule } from '@sentry/nestjs/setup';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
+import { BetaModule } from './beta/beta.module';
 import { ClansModule } from './clans/clans.module';
 import { ClickhouseModule, MongoDbModule, RedisClientModule } from './db';
 import { ExportsModule } from './exports/exports.module';
@@ -70,6 +71,7 @@ import { WebhookModule } from './webhook/webhook.module';
     TasksModule,
     ExportsModule,
     MetricsModule,
+    BetaModule,
     WebhookModule,
     ClashClientModule,
     DiscordOauthModule,

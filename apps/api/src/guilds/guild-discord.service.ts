@@ -178,6 +178,18 @@ export class GuildDiscordService {
     return (await this.knownWebhooks(guildId, threads)).get(homeId) ?? null;
   }
 
+  /** Category channels, where the bot opens and moves ticket channels. */
+  async listCategories(input: { guildId: string; applicationId: string | null }) {
+    const channels = await this.discordOauthService.listChannels({
+      guildId: input.guildId,
+      token: await this.botToken(input.applicationId),
+    });
+    return channels
+      .filter((channel) => channel.type === ChannelType.GuildCategory)
+      .sort((a, b) => ('position' in a ? a.position : 0) - ('position' in b ? b.position : 0))
+      .map((channel) => ({ id: channel.id, name: channel.name ?? channel.id }));
+  }
+
   /** Names for saved channels; archived threads aren't listed, so they're looked up one by one. */
   async channelNames(guildId: string, applicationId: string | null, channelIds: string[]) {
     const names = new Map<string, string>();

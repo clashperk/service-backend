@@ -19,3 +19,5 @@ export * from './rosters.entity';
 export * from './settings.entity';
 export * from './flags.entity';
 export * from './flag-alert-logs.entity';
+export * from './tickets.entity';
+export * from './beta-guilds.entity';
