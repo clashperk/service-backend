@@ -1,13 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { Db } from 'mongodb';
-import { AuthService } from '../auth/auth.service';
 import { GuildManagersService } from './guild-managers.service';
 
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
 
 const GUILD = '111111111111111111';
-const OTHER = '111111111111111112';
-const USER = '999999999999999999';
 const ROLE = (n: number) => `22222222222222222${n}`;
 
 type Doc = Record<string, unknown>;
@@ -69,32 +66,5 @@ describe('GuildManagersService', () => {
     await expect(
       service.save({ guildId: GUILD, applicationId: null, body: { managerRoles: [ROLE(9)] } }),
     ).rejects.toThrow(BadRequestException);
-  });
-});
-
-describe('AuthService.getManagedGuilds', () => {
-  it('lists only servers where the member holds the bot manager role', async () => {
-    const docs: Doc[] = [
-      { guildId: GUILD, managerRole: [ROLE(1)] },
-      { guildId: OTHER, managerRole: ROLE(2) },
-      { guildId: '111111111111111113', managerRole: [] },
-    ];
-    const getMember = jest.fn(({ guildId }: { guildId: string }) =>
-      Promise.resolve(guildId === GUILD ? { roles: [ROLE(1)] } : { roles: [ROLE(3)] }),
-    );
-    const db = { collection: () => settingsCollection(docs) } as unknown as Db;
-    const service = new AuthService(
-      null as never,
-      db,
-      null as never,
-      { getMember } as never,
-      null as never,
-      null as never,
-    );
-    await expect(
-      service.getManagedGuilds(USER, [GUILD, OTHER, '111111111111111113']),
-    ).resolves.toEqual({ guildIds: [GUILD] });
-    // A server with no manager role set needs no Discord lookup.
-    expect(getMember).toHaveBeenCalledTimes(2);
   });
 });

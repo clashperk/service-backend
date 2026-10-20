@@ -105,7 +105,8 @@ export class HandoffUserDto {
 
   isBot: boolean;
 
-  guild: HandoffGuildDto;
+  /** Null when the user can't manage the server, so the dashboard opens without one. */
+  guild: HandoffGuildDto | null;
 
   applicationId: string | null;
 
