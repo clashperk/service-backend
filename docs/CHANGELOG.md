@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-20 (roster writes)
+- Rosters can be created, edited (including opening and closing sign-ups), cloned and deleted: `POST /rosters/:guildId/create`, `PATCH`, `DELETE /rosters/:guildId/:rosterId`, `POST .../clone`. Records use `/roster create`'s format, start from the server's last-used settings and save them back, and seed the Confirmed and Substitute groups the first time
+- Add `POST /rosters/:guildId/:rosterId/members/check`: runs the sign-up checks on up to 100 tags without saving and says why each player can or can't join
+- `PUT /rosters/:guildId/:rosterId/members` adds the players who pass, with an optional group; `POST .../members/refresh` re-reads members from the game and their links
+- Add `POST /rosters/:guildId/groups`, `PATCH` and `DELETE /rosters/:guildId/groups/:groupId`
+- Fix: moving players to another roster now runs every sign-up check (one roster per player, accounts per member) and writes the bot's member record; an unset roster size is 65, as in the bot; rosters with no clan no longer fail; groups list in their order
+
 ## 2026-10-20 (flags)
 - Add `GET /guilds/:guildId/flags?flagType=` (active bans and strikes, newest first, with the active total and the server's limit), `POST /guilds/:guildId/flags` (`{ flagType, playerTags, reason, expiresInDays?, flagImpact? }`, one flag per player found) and `DELETE /guilds/:guildId/flags/:flagId`
 - Flags use `/flag create`'s record and rules: 1,000 active flags unless the server is a supporter, reasons up to 256 characters, expiry of 1 to 36,500 days or never, strike points 1 to 100. Only active flags can be deleted

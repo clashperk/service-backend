@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-20 — Roster writes follow the bot; roles wait for its refresh
+The bot reads rosters fresh, so the API writes them directly in `/roster`'s format and checks. Sign-up checks live in one place (`evaluate`), used by the check endpoint, adding and moving; it counts players earlier in the same request toward the size and accounts-per-member limits, which the bot's bulk import doesn't. The bot gives and removes roster and group roles and posts change logs through its own Discord client, so players added, moved or removed here get their roles when the bot next reconciles them (its Refresh button or the next sign-up). Times are ISO strings; the bot's timezone lookup is for typed times and isn't needed. Deleting a group leaves members pointing at it, as the bot does.
+
 ## 2026-10-20 — Flags are written as `/flag create` writes them, minus the DM
 The bot reads flags from `Flags` whenever a flagged player joins, so no bot change is needed. The record keeps the bot's author fields (Discord ID, username, display name, discriminator), fetched from Discord for the caller. Reasons are stored with markdown escaped, as the bot does with `escapeMarkdown`, and returned unescaped; the API escapes only `\ ` * _ ~ | >`, a subset of discord.js. `/flag create`'s option to DM the flagged player is left out: it messages members, so it waits until the bot calls the API. Deleting removes one flag by ID; the bot's delete-all-for-a-player and delete-a-clan's-flags options aren't in the API yet.
 
