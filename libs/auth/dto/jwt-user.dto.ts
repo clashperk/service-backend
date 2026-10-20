@@ -26,6 +26,8 @@ export class JwtUser implements JwtUserInput {
   guildIds: string[];
   applicationId?: string;
   cacheMultiplier?: number;
+  /** Set by the API, not the token: issued by `/auth/login` or `/auth/turnstile` rather than the dashboard. */
+  portal?: boolean;
 
   static isAdmin(user: JwtUser) {
     return user.roles.includes(UserRoles.ADMIN);
