@@ -1,5 +1,6 @@
 import { UserRoles } from '@app/dto';
 
+/** An API portal account: it trades its passkey for a token with these roles. */
 export class ApiUsersEntity {
   userId: string;
   roles: UserRoles[];
@@ -11,4 +12,5 @@ export class ApiUsersEntity {
   updatedAt: Date;
   guildIds: string[];
   deletedAt: Date | null;
+  lastLoginAt?: Date;
 }
