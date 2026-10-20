@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-20 (nicknames)
+- `GET` and `PATCH /guilds/:guildId/auto-roles` add nicknames: family and non-family formats, automatic nicknames, which account a nickname uses, and short labels for `{ROLE}`. Formats follow `/nickname config`: each needs a name placeholder, and the non-family one can't use clan placeholders; formats are up to 100 characters (nicknames are cut to 32)
+- Only role fields need a clan in the server; options and nicknames save without one, as in the bot
+
 ## 2026-10-20 (auto-roles)
 - Add `GET` and `PATCH /guilds/:guildId/auto-roles`: Town Hall, Builder Hall, league, builder league and trophy roles; family, exclusive family, family leaders, guest, verified and linked roles; the end-of-season push role and clans; and the options (non-family accounts, verified-only clan roles, auto update, force refresh, members with no links, role delays and delay exclusions). Only the fields sent are saved, under the keys `/autorole` uses; an empty map or `null` turns it off
 - Add `PUT /guilds/:guildId/auto-roles/clans/:clanTag`: a clan's Leader, Co-Leader, Elder, Member and Everyone roles and its in-war role, which can't be shared with another clan

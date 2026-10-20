@@ -147,9 +147,40 @@ describe('GuildAutoRolesService', () => {
     );
 
     const empty = setup({ clans: [] });
-    await expect(save(empty.service, { autoUpdate: true })).rejects.toThrow(
+    await expect(save(empty.service, { guestRole: ROLE(1) })).rejects.toThrow(
       'Add a clan to this server first.',
     );
+    await expect(save(empty.service, { autoUpdate: true })).resolves.toBeDefined();
+  });
+
+  it('saves nicknames with the bot rules for placeholders', async () => {
+    const { service, settings } = setup();
+    expect(await service.get(GUILD)).toMatchObject({
+      familyNicknameFormat: '',
+      autoNickname: false,
+      nicknameAccount: 'default-or-best-account',
+      nicknameRoleLabels: { leader: '', coLeader: '', elder: '', member: '' },
+    });
+
+    await expect(save(service, { familyNicknameFormat: '{TH} {CLAN}' })).rejects.toThrow(
+      'The family nickname needs',
+    );
+    await expect(save(service, { nonFamilyNicknameFormat: '{NAME} | {clan}' })).rejects.toThrow(
+      "can't use clan placeholders",
+    );
+
+    await save(service, {
+      familyNicknameFormat: '{name} | {ROLE}',
+      nonFamilyNicknameFormat: '',
+      autoNickname: true,
+      nicknameRoleLabels: { leader: 'L', coLeader: '', elder: 'E', member: '' },
+    });
+    expect(settings[0]).toMatchObject({
+      familyNicknameFormat: '{name} | {ROLE}',
+      nonFamilyNicknameFormat: '',
+      autoNickname: true,
+      roleReplacementLabels: { leader: 'L', coLeader: '', admin: 'E', member: '' },
+    });
   });
 
   it("saves a clan's roles and keeps in-war roles to one clan", async () => {

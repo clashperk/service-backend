@@ -1,7 +1,13 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
-import { AutoRoleClanInput, AutoRolesDto, AutoRolesInput, DelayExclusion } from './dto';
+import {
+  AutoRoleClanInput,
+  AutoRolesDto,
+  AutoRolesInput,
+  DelayExclusion,
+  NicknameAccount,
+} from './dto';
 import { GuildDiscordService } from './guild-discord.service';
 
 const range = (from: number, to: number) =>
@@ -68,6 +74,12 @@ const FLAGS = {
   allowNotLinked: 'autoRoleAllowNotLinked',
 } as const;
 
+// A nickname needs a name in it; a non-family one can't mention clans or clan roles.
+const NAME_PLACEHOLDER =
+  /{NAME}|{PLAYER_NAME}|{DISCORD_NAME}|{DISCORD_USERNAME}|{USERNAME}|{DISCORD}/i;
+const CLAN_PLACEHOLDER =
+  /{CLAN}|{CLAN_NAME}|{ALIAS}|{CLAN_ALIAS}|{ALIASES}|{CLAN_ALIASES}|{ROLE}|{CLAN_ROLE}/i;
+
 type TrophyRole = { key: string; min: number; max: number; roleId: string };
 type ClanRoles = Partial<Record<'leader' | 'coLeader' | 'admin' | 'member' | 'everyone', string>>;
 
@@ -98,6 +110,7 @@ export class GuildAutoRolesService {
     const s = (settings ?? {}) as Record<string, unknown>;
     const trophies = (s.trophyRoles ?? {}) as Record<string, TrophyRole>;
     const exclusions = (s.delayExclusionList ?? {}) as Record<string, boolean>;
+    const labels = (s.roleReplacementLabels ?? {}) as Partial<Record<string, string>>;
 
     return {
       townHall: (s.townHallRoles ?? {}) as Record<string, string>,
@@ -128,6 +141,17 @@ export class GuildAutoRolesService {
       removalDelay: (s.roleRemovalDelays as number) ?? 0,
       additionDelay: (s.roleAdditionDelays as number) ?? 0,
       delayExclusions: Object.values(DelayExclusion).filter((key) => exclusions[key]),
+      familyNicknameFormat: (s.familyNicknameFormat as string) ?? '',
+      nonFamilyNicknameFormat: (s.nonFamilyNicknameFormat as string) ?? '',
+      autoNickname: s.autoNickname === true,
+      nicknameAccount:
+        (s.nicknamingAccountPreference as NicknameAccount) ?? NicknameAccount.DEFAULT_OR_BEST,
+      nicknameRoleLabels: {
+        leader: labels.leader ?? '',
+        coLeader: labels.coLeader ?? '',
+        elder: labels.admin ?? '',
+        member: labels.member ?? '',
+      },
       clans: clans.map((clan) => {
         const roles = (clan.roles ?? {}) as ClanRoles;
         return {
@@ -150,7 +174,14 @@ export class GuildAutoRolesService {
     body: AutoRolesInput;
   }): Promise<AutoRolesDto> {
     const { guildId, body } = input;
-    await this.requireClans(guildId);
+    const setsRoles = [
+      ...Object.keys(MAPS),
+      ...Object.keys(SINGLE_ROLES),
+      'familyLeadersRoles',
+      'allowNonFamilyTownHall',
+      'allowNonFamilyLeagues',
+    ].some((field) => body[field as keyof AutoRolesInput] !== undefined);
+    if (setsRoles) await this.requireClans(guildId);
 
     const set: Record<string, unknown> = {};
     const unset: Record<string, ''> = {};
@@ -220,6 +251,37 @@ export class GuildAutoRolesService {
       set.delayExclusionList = Object.fromEntries(body.delayExclusions.map((key) => [key, true]));
     }
 
+    const family = body.familyNicknameFormat;
+    if (family !== undefined) {
+      if (family && !NAME_PLACEHOLDER.test(family)) {
+        throw new BadRequestException(
+          'The family nickname needs {PLAYER_NAME}, {DISCORD_NAME} or {DISCORD_USERNAME}.',
+        );
+      }
+      set.familyNicknameFormat = family;
+    }
+    const nonFamily = body.nonFamilyNicknameFormat;
+    if (nonFamily !== undefined) {
+      if (nonFamily && CLAN_PLACEHOLDER.test(nonFamily)) {
+        throw new BadRequestException(
+          "The non-family nickname can't use clan placeholders: {CLAN}, {ALIAS}, {ALIASES} or {ROLE}.",
+        );
+      }
+      if (nonFamily && !NAME_PLACEHOLDER.test(nonFamily)) {
+        throw new BadRequestException(
+          'The non-family nickname needs {PLAYER_NAME}, {DISCORD_NAME} or {DISCORD_USERNAME}.',
+        );
+      }
+      set.nonFamilyNicknameFormat = nonFamily;
+    }
+    if (body.autoNickname !== undefined) set.autoNickname = body.autoNickname;
+    if (body.nicknameAccount) set.nicknamingAccountPreference = body.nicknameAccount;
+    if (body.nicknameRoleLabels) {
+      const { leader, coLeader, elder, member } = body.nicknameRoleLabels;
+      // The bot always writes all four, blank ones as "".
+      set.roleReplacementLabels = { leader, coLeader, admin: elder, member };
+    }
+
     await this.discord.checkAssignableRoles(guildId, input.applicationId, roleIds);
     if (Object.keys(set).length || Object.keys(unset).length) {
       await this.settings.updateOne(
@@ -285,7 +347,7 @@ export class GuildAutoRolesService {
     return this.get(guildId);
   }
 
-  /** The bot sets up auto-roles only once a server has a clan. */
+  /** The bot's role commands need a clan first; its options and nicknames don't. */
   private async requireClans(guildId: string) {
     if (!(await this.clans.findOne({ guild: guildId }, { projection: { _id: 1 } }))) {
       throw new BadRequestException('Add a clan to this server first.');
