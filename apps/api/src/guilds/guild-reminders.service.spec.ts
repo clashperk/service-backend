@@ -4,8 +4,7 @@ import { Collections } from '../db';
 import { ClanWarReminderInput } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildRemindersService } from './guild-reminders.service';
-
-const noCache = { get: () => Promise.resolve(undefined), set: () => Promise.resolve() };
+import { memoryCache } from '../../test/fakes';
 
 jest.mock('@app/clash-client', () => ({ ClashClient: class {} }));
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
@@ -80,7 +79,7 @@ const setup = (store: Store, webhook: { guild_id: string; channel_id: string } |
   return {
     service: new GuildRemindersService(
       db,
-      new GuildDiscordService(db, discord as never, noCache as never),
+      new GuildDiscordService(db, discord as never, memoryCache()),
       schedules as never,
     ),
     schedules,

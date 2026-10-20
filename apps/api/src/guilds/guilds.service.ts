@@ -193,7 +193,7 @@ export class GuildsService {
         this.getSchedules(Collections.CLAN_GAMES_SCHEDULES, guildId),
         this.clans.find({ guild: guildId }, { projection: { name: 1, tag: 1 } }).toArray(),
       ]);
-    const channelNames = await this.guildDiscordService.channelNames(
+    const channels = await this.guildDiscordService.channelStatuses(
       guildId,
       input.applicationId,
       [...clanWars, ...capitalRaids, ...clanGames].map((reminder) => reminder.channel),
@@ -220,7 +220,7 @@ export class GuildsService {
       id: reminder._id.toHexString(),
       shortId: reminder._id.toHexString().slice(-5).toUpperCase(),
       channelId: reminder.channel,
-      channelName: channelNames.get(reminder.channel) ?? null,
+      channelName: channels.get(reminder.channel)?.name ?? null,
       threadId: reminder.threadId ?? null,
       message: reminder.message,
       duration: reminder.duration,

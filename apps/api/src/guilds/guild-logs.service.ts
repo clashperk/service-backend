@@ -12,7 +12,8 @@ import {
   ClanLogType,
   GuildClanLogDto,
 } from './dto';
-import { ChannelInfo, GuildDiscordService } from './guild-discord.service';
+import { ChannelState } from './discord-channels';
+import { GuildDiscordService } from './guild-discord.service';
 
 const LOG_TYPES = Object.values(ClanLogType) as string[];
 // Links in posts open the game, as `/setup clan-logs` sets them.
@@ -43,7 +44,7 @@ export class GuildLogsService {
     const logs = await this.logs
       .find({ guildId: input.guildId, clanTag: input.clanTag, logType: { $in: LOG_TYPES } })
       .toArray();
-    const channels = await this.discord.channelInfo(
+    const channels = await this.discord.channelStatuses(
       input.guildId,
       input.applicationId,
       logs.map((log) => log.channelId),
@@ -68,9 +69,11 @@ export class GuildLogsService {
         logType: { $in: LOG_TYPES },
       })
       .toArray();
-    const channels = await this.discord.channelInfo(input.guildId, input.applicationId, [
-      ...new Set(logs.map((log) => log.channelId)),
-    ]);
+    const channels = await this.discord.channelStatuses(
+      input.guildId,
+      input.applicationId,
+      logs.map((log) => log.channelId),
+    );
     return logs.map((log) => ({
       ...this.toDto(log, channels.get(log.channelId)),
       clanTag: log.clanTag,
@@ -126,7 +129,9 @@ export class GuildLogsService {
       },
       { upsert: true, returnDocument: 'after' },
     );
-    const channels = await this.discord.channelInfo(guildId, input.applicationId, [body.channelId]);
+    const channels = await this.discord.channelStatuses(guildId, input.applicationId, [
+      body.channelId,
+    ]);
     return this.toDto(log!, channels.get(body.channelId));
   }
 
@@ -147,10 +152,10 @@ export class GuildLogsService {
       logType: CLAN_EMBED_LOG,
     });
     if (!log) return { embed: null };
-    const names = await this.discord.channelNames(input.guildId, input.applicationId, [
+    const channels = await this.discord.channelStatuses(input.guildId, input.applicationId, [
       log.channelId,
     ]);
-    return { embed: this.toEmbedDto(log, names.get(log.channelId) ?? null) };
+    return { embed: this.toEmbedDto(log, channels.get(log.channelId)?.name ?? null) };
   }
 
   /** Saved as `/setup clan-embed` does; the bot posts or edits the message on its next refresh. */
@@ -206,8 +211,10 @@ export class GuildLogsService {
       },
       { upsert: true, returnDocument: 'after' },
     );
-    const names = await this.discord.channelNames(guildId, input.applicationId, [body.channelId]);
-    return this.toEmbedDto(log!, names.get(body.channelId) ?? null);
+    const channels = await this.discord.channelStatuses(guildId, input.applicationId, [
+      body.channelId,
+    ]);
+    return this.toEmbedDto(log!, channels.get(body.channelId)?.name ?? null);
   }
 
   /** The posted message stays as it is; the bot stops updating it. */
@@ -261,7 +268,7 @@ export class GuildLogsService {
     return clan;
   }
 
-  private toDto(log: WithId<ClanLogsEntity>, channel: ChannelInfo | undefined): ClanLogDto {
+  private toDto(log: WithId<ClanLogsEntity>, channel: ChannelState | undefined): ClanLogDto {
     return {
       id: log._id.toHexString(),
       logType: log.logType as ClanLogType,

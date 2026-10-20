@@ -123,3 +123,9 @@ Every write is meant to go through this API: the dashboard uses it now, and the 
 ## Versioning
 
 Every PR bumps the `package.json` version (patch unless told otherwise).
+
+## Code style
+
+- Write clear code: one job per function, shared helpers instead of repeating logic inline, no leftover wrappers or duplicate entry points. When a change builds on recent code, reshape it so it reads as if designed that way, rather than patching on top.
+- Comments only for a non-obvious why, at most 3 lines. Don't restate what the code does or describe its history.
+- Specs share fakes from `apps/api/test/` instead of building their own stand-ins.

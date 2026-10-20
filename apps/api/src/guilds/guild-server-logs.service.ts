@@ -30,7 +30,7 @@ export class GuildServerLogsService {
     ]);
     const roster = settings?.rosterChangeLog;
     const welcome = settings?.welcomeLog;
-    const names = await this.discord.channelNames(
+    const channels = await this.discord.channelStatuses(
       guildId,
       applicationId,
       [flagAlert?.channelId, roster?.channelId, settings?.eventsChannel, welcome?.channelId].filter(
@@ -39,7 +39,7 @@ export class GuildServerLogsService {
     );
     const channel = (channelId: string) => ({
       channelId,
-      channelName: names.get(channelId) ?? null,
+      channelName: channels.get(channelId)?.name ?? null,
     });
 
     return {

@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { Collections } from '../db';
 import { GuildServerLogsService } from './guild-server-logs.service';
+import { channelState } from '../../test/fakes';
 
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
 
@@ -47,8 +48,8 @@ const setup = (opts: { settings?: Doc; flagAlert?: Doc } = {}) => {
     checkChannel: jest.fn(),
     checkRole: jest.fn(),
     resolveWebhook: jest.fn().mockResolvedValue(null),
-    channelNames: jest.fn((_g: string, _a: string | null, ids: string[]) =>
-      Promise.resolve(new Map(ids.map((id) => [id, `channel-${id.slice(-1)}`]))),
+    channelStatuses: jest.fn((_g: string, _a: string | null, ids: string[]) =>
+      Promise.resolve(new Map(ids.map((id) => [id, channelState(`channel-${id.slice(-1)}`)]))),
     ),
   };
   const service = new GuildServerLogsService({ collection } as unknown as Db, discord as never);

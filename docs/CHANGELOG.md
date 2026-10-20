@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-20 (Discord channel code cleanup)
+- No API changes. Channel lookups go through one `channelStatuses` (server logs, the clan embed and reminders included), status rules live in `guilds/discord-channels.ts`, caching and limited concurrency use the shared `cached` and `mapLimit` helpers, and specs share fakes from `apps/api/test/`
+
 ## 2026-10-20 (all clan logs)
 - Add `GET /guilds/:guildId/clan-logs`: every clan's logs in the server with the clan tag and channel name, for viewing logs by type or by channel. Clans removed from the server and the clan embed are left out
 - Clan logs now say whether ClashPerk can post in their channel: `channelStatus` is `ok`, `archived` (a thread Discord reopens on the next post), `locked`, `deleted`, `noAccess` or `unknown` (Discord didn't answer), and `parentChannelName` names a thread's channel. One failed channel lookup no longer blanks every other channel's name
