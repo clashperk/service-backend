@@ -14,6 +14,8 @@ export class WelcomeLogConfig {
 
 export class SettingsEntity {
   guildId: string;
+  /** Clans that can have logs; unset means the free 2. */
+  clanLimit?: number;
   /** Role IDs; older records hold a single ID. */
   managerRole?: string[] | string;
   rosterManagerRole?: string[] | string;

@@ -51,3 +51,6 @@ Standings are a separate per-group endpoint because they need every war in the g
 
 ## 2026-10-20 — Only the bot manager role opens the dashboard
 Decided by: Suvajit. The bot treats `managerRole` like Manage Server, so its holders get the same dashboard access; the roster, flags and links manager roles stay Discord-only until the API can scope a session to some pages. `POST /auth/managed-guilds` looks members up with the main bot's token and only in servers that set the role, so sign-in costs one Discord call per such server. Handoffs from the bot's links follow the same rule: `createHandoffToken` checks owner, Administrator or Manage Server (from the member's roles and @everyone) or the bot manager role, using the custom bot's token when the link came from one, and leaves the server out otherwise or when Discord can't be reached.
+
+## 2026-10-20 — The API applies the bot's clan log limit
+Decided by: Suvajit. `/setup clan-logs` only allows logs for `clanLimit` clans (2 free; the bot's Patreon sync writes a higher number), and the dashboard could bypass it. `GuildLogsService.save` now checks it before a clan's first log, with the bot's messages. The bot lets its owners past the limit; the API doesn't know them, so it doesn't.

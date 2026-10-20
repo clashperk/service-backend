@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Db, ObjectId } from 'mongodb';
 import { Collections } from '../db';
 import { ClanLogInput, ClanLogType } from './dto';
@@ -14,14 +14,37 @@ const clanId = new ObjectId();
 
 type Doc = Record<string, unknown>;
 
-const setup = (logs: Doc[] = []) => {
+const setup = (
+  logs: Doc[] = [],
+  opts: { clans?: Doc[]; clanLimit?: number; patron?: boolean } = {},
+) => {
+  const clans: Doc[] = opts.clans ?? [{ _id: clanId, guild: GUILD, tag: TAG }];
   const updates: Doc[] = [];
   const matches = (doc: Doc, filter: Doc) =>
     Object.entries(filter).every(([key, value]) => doc[key] === value);
   const collections: Record<string, unknown> = {
     [Collections.CLAN_STORES]: {
       findOne: (filter: Doc) =>
-        Promise.resolve(filter.guild === GUILD && filter.tag === TAG ? { _id: clanId } : null),
+        Promise.resolve(
+          clans.find((c) => c.guild === filter.guild && c.tag === filter.tag) ?? null,
+        ),
+      find: (filter: { _id: { $in: ObjectId[] }; guild: string }) => ({
+        toArray: () =>
+          Promise.resolve(
+            clans.filter(
+              (c) =>
+                c.guild === filter.guild &&
+                filter._id.$in.some((id) => id.equals(c._id as ObjectId)),
+            ),
+          ),
+      }),
+    },
+    [Collections.SETTINGS]: {
+      findOne: () =>
+        Promise.resolve(opts.clanLimit === undefined ? null : { clanLimit: opts.clanLimit }),
+    },
+    [Collections.PATRONS]: {
+      findOne: () => Promise.resolve(opts.patron ? { _id: new ObjectId() } : null),
     },
     [Collections.CLAN_LOGS]: {
       findOne: (filter: Doc) => Promise.resolve(logs.find((log) => matches(log, filter)) ?? null),
@@ -31,6 +54,8 @@ const setup = (logs: Doc[] = []) => {
         const doc = { _id: new ObjectId(), ...filter, ...set, updatedAt: new Date() };
         return Promise.resolve(doc);
       },
+      distinct: (_key: string, filter: Doc) =>
+        Promise.resolve(logs.filter((log) => matches(log, filter)).map((log) => log.clanId)),
       deleteOne: (filter: Doc) =>
         Promise.resolve({ deletedCount: logs.some((log) => matches(log, filter)) ? 1 : 0 }),
     },
@@ -119,5 +144,59 @@ describe('GuildLogsService', () => {
     await expect(
       service.delete({ guildId: GUILD, clanTag: TAG, logType: ClanLogType.WAR_ATTACK_LOG }),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  describe('clan limit', () => {
+    const clan = (n: number) => ({ _id: new ObjectId(), guild: GUILD, tag: `#CLAN${n}` });
+    const logFor = (c: Doc, logType = ClanLogType.DAILY_DONATION_LOG) => ({
+      guildId: GUILD,
+      clanTag: c.tag,
+      clanId: c._id,
+      logType,
+    });
+
+    it('allows logs for 2 clans for free and refuses a third with the Patreon link', async () => {
+      const [a, b] = [clan(1), clan(2)];
+      const { service } = setup([logFor(a), logFor(b)], {
+        clans: [a, b, { _id: clanId, guild: GUILD, tag: TAG }],
+      });
+      await expect(save(service, body())).rejects.toThrow(
+        new ForbiddenException(
+          'Free servers can have logs for 2 clans. Support ClashPerk on Patreon (https://www.patreon.com/clashperk) for more, or use /redeem in Discord if you already do.',
+        ),
+      );
+    });
+
+    it('still adds logs to a clan that already has one, even when full', async () => {
+      const other = clan(1);
+      const { service } = setup([logFor(other), logFor({ _id: clanId, tag: TAG })], {
+        clans: [other, { _id: clanId, guild: GUILD, tag: TAG }],
+      });
+      await expect(save(service, body())).resolves.toMatchObject({ channelId: CHANNEL });
+    });
+
+    it("uses the server's Patreon limit, and ignores logs of removed clans", async () => {
+      const [a, b, gone] = [clan(1), clan(2), clan(3)];
+      const { service } = setup([logFor(a), logFor(b), logFor(gone)], {
+        clans: [a, b, { _id: clanId, guild: GUILD, tag: TAG }],
+        clanLimit: 3,
+        patron: true,
+      });
+      await expect(service.limit(GUILD)).resolves.toEqual({
+        limit: 3,
+        clanTags: ['#CLAN1', '#CLAN2'],
+        patron: true,
+      });
+      await expect(save(service, body())).resolves.toMatchObject({ channelId: CHANNEL });
+    });
+
+    it('tells patrons at their limit to contact us', async () => {
+      const [a, b] = [clan(1), clan(2)];
+      const { service } = setup([logFor(a), logFor(b)], {
+        clans: [a, b, { _id: clanId, guild: GUILD, tag: TAG }],
+        patron: true,
+      });
+      await expect(save(service, body())).rejects.toThrow(/Contact us on Discord/);
+    });
   });
 });

@@ -27,6 +27,7 @@ import {
   CapitalRaidReminderInput,
   ClanCategoryInput,
   ClanLogDto,
+  ClanLogLimitDto,
   ClanLogInput,
   ClanLogType,
   ClanGamesReminderInput,
@@ -290,6 +291,11 @@ export class GuildsController {
     @Param('reminderId') reminderId: string,
   ): Promise<void> {
     await this.guildRemindersService.delete('clanGames', { guildId, reminderId });
+  }
+
+  @Get('/:guildId/clan-logs/limit')
+  getClanLogLimit(@Param('guildId') guildId: string): Promise<ClanLogLimitDto> {
+    return this.guildLogsService.limit(guildId);
   }
 
   @Get('/:guildId/clans/:clanTag/logs')
