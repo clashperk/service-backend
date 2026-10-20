@@ -1,6 +1,22 @@
 import { EnumString } from '@app/decorators';
-import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, Matches, Max, Min, ValidateNested } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Transform, Type } from 'class-transformer';
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsUrl,
+  Length,
+  Matches,
+  Max,
+  MaxLength,
+  Min,
+  ValidateIf,
+  ValidateNested,
+} from 'class-validator';
 import { ReminderWebhookInput } from './reminder-input.dto';
 
 /** The log types `/setup clan-logs` offers; the clan embed has its own setup. */
@@ -79,4 +95,82 @@ export class ClanLogLimitDto {
   /** Clans that already have logs; adding logs to these never hits the limit. */
   clanTags: string[];
   patron: boolean;
+}
+
+/** The fields `/setup clan-embed` can show, in the bot's order. */
+export enum ClanEmbedField {
+  CLAN_LEADER = 'clanLeader',
+  REQUIREMENTS = 'requirements',
+  TROPHIES_REQUIRED = 'trophiesRequired',
+  LOCATION = 'location',
+  WAR_PERFORMANCE = 'warPerformance',
+  WAR_FREQUENCY = 'warFrequency',
+  CLAN_WAR_LEAGUE = 'clanWarLeague',
+  CLAN_CAPITAL_LEAGUE = 'clanCapitalLeague',
+  TOWN_HALLS = 'townHalls',
+}
+
+export class ClanEmbedInput {
+  @Matches(/^\d{17,20}$/)
+  channelId: string;
+
+  /** From Discord's `webhook.incoming` sign-in; without one, a known webhook in the channel is reused. */
+  @ValidateNested()
+  @Type(() => ReminderWebhookInput)
+  @IsOptional()
+  webhook?: ReminderWebhookInput;
+
+  /** Embed color as an RGB integer; null uses the server's default. */
+  @IsInt()
+  @Min(0)
+  @Max(0xffffff)
+  @IsOptional()
+  color?: number | null;
+
+  /** Null shows the in-game clan description. */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
+  @Length(1, 1200)
+  description?: string | null;
+
+  /** Null shows the in-game Town Hall requirement. */
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @Transform(({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value))
+  @Length(1, 600)
+  requirements?: string | null;
+
+  @IsOptional()
+  @ValidateIf((_, value) => value !== null)
+  @IsUrl({ protocols: ['http', 'https'], require_protocol: true })
+  @MaxLength(256)
+  bannerImage?: string | null;
+
+  @IsArray()
+  @ArrayMaxSize(9)
+  @IsEnum(ClanEmbedField, { each: true })
+  @ApiProperty({ enum: ClanEmbedField, enumName: 'ClanEmbedField', isArray: true })
+  fields: ClanEmbedField[];
+}
+
+export class ClanEmbedDto {
+  channelId: string;
+  channelName: string | null;
+  color: number | null;
+  /** Null when it shows the in-game clan description. */
+  description: string | null;
+  /** Null when it shows the in-game Town Hall requirement. */
+  requirements: string | null;
+  bannerImage: string | null;
+  @ApiProperty({ enum: ClanEmbedField, enumName: 'ClanEmbedField', isArray: true })
+  fields: ClanEmbedField[];
+  /** The posted message, once the bot has sent it. */
+  messageId: string | null;
+  updatedAt: Date;
+}
+
+export class ClanEmbedStateDto {
+  /** Null when the clan has no embed. */
+  embed: ClanEmbedDto | null;
 }

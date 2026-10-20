@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Db, ObjectId } from 'mongodb';
 import { Collections } from '../db';
-import { ClanLogInput, ClanLogType } from './dto';
+import { ClanEmbedField, ClanLogInput, ClanLogType } from './dto';
 import { GuildLogsService } from './guild-logs.service';
 
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
@@ -58,6 +58,8 @@ const setup = (
         Promise.resolve(logs.filter((log) => matches(log, filter)).map((log) => log.clanId)),
       deleteOne: (filter: Doc) =>
         Promise.resolve({ deletedCount: logs.some((log) => matches(log, filter)) ? 1 : 0 }),
+      deleteMany: (filter: Doc) =>
+        Promise.resolve({ deletedCount: logs.filter((log) => matches(log, filter)).length }),
     },
   };
   const db = { collection: (name: string) => collections[name] } as unknown as Db;
@@ -197,6 +199,108 @@ describe('GuildLogsService', () => {
         patron: true,
       });
       await expect(save(service, body())).rejects.toThrow(/Contact us on Discord/);
+    });
+  });
+
+  describe('clan embed', () => {
+    const embed = { guildId: GUILD, applicationId: null, clanTag: TAG };
+
+    it("saves the bot's metadata, with 'auto' for in-game text and '*' for every field", async () => {
+      const { service, updates } = setup();
+      const result = await service.saveEmbed({
+        ...embed,
+        body: {
+          channelId: CHANNEL,
+          color: 0xff0000,
+          description: null,
+          requirements: 'TH 14+, war active',
+          bannerImage: null,
+          fields: Object.values(ClanEmbedField),
+        },
+      });
+      const set = updates[0].$set as Doc;
+      expect(set).toMatchObject({
+        clanId,
+        isEnabled: true,
+        channelId: CHANNEL,
+        color: 0xff0000,
+        messageId: null,
+        metadata: {
+          description: 'auto',
+          accepts: 'TH 14+, war active',
+          bannerImage: null,
+          fields: ['*'],
+        },
+      });
+      // Due right away, so the bot posts on its next refresh.
+      expect((set.lastPostedAt as Date).getTime()).toBeLessThan(Date.now() - 29 * 60 * 1000);
+      expect(result).toMatchObject({
+        channelName: 'war-feed',
+        description: null,
+        requirements: 'TH 14+, war active',
+        fields: Object.values(ClanEmbedField),
+      });
+    });
+
+    it('keeps the posted message and rules text in the same channel, and orders fields', async () => {
+      const { service, updates } = setup([
+        {
+          guildId: GUILD,
+          clanTag: TAG,
+          clanId,
+          logType: 'clan_embed_log',
+          channelId: CHANNEL,
+          messageId: '444444444444444444',
+          webhook: { id: '1', token: 't' },
+          metadata: { rulesText: 'Be nice' },
+        },
+      ]);
+      await service.saveEmbed({
+        ...embed,
+        body: {
+          channelId: CHANNEL,
+          fields: [ClanEmbedField.TOWN_HALLS, ClanEmbedField.CLAN_LEADER],
+        },
+      });
+      expect(updates[0].$set).toMatchObject({
+        messageId: '444444444444444444',
+        webhook: { id: '1', token: 't' },
+        metadata: { fields: ['clanLeader', 'townHalls'], rulesText: 'Be nice' },
+      });
+    });
+
+    it('reads an old embed with every field and removes it', async () => {
+      const { service } = setup([
+        {
+          guildId: GUILD,
+          clanTag: TAG,
+          logType: 'clan_embed_log',
+          channelId: CHANNEL,
+          metadata: { description: 'auto', accepts: 'AUTO', fields: ['*'] },
+        },
+      ]);
+      const { embed: read } = await service.getEmbed(embed);
+      expect(read).toMatchObject({
+        description: null,
+        requirements: null,
+        fields: Object.values(ClanEmbedField),
+      });
+      await expect(service.deleteEmbed(embed)).resolves.toBeUndefined();
+      await expect(setup().service.deleteEmbed(embed)).rejects.toThrow(NotFoundException);
+    });
+
+    it('applies the clan log limit to a new embed', async () => {
+      const other = new ObjectId();
+      const { service } = setup([{ guildId: GUILD, clanId: other, logType: 'war_attack_log' }], {
+        clans: [
+          { _id: clanId, guild: GUILD, tag: TAG },
+          { _id: other, guild: GUILD, tag: '#OTHER' },
+        ],
+        clanLimit: 1,
+      });
+      await expect(
+        service.saveEmbed({ ...embed, body: { channelId: CHANNEL, fields: [] } }),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });

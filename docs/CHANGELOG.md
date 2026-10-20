@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-20 (clan embed)
+- Add `GET`, `PUT` and `DELETE /guilds/:guildId/clans/:clanTag/embed` for the self-updating clan embed, as `/setup clan-embed` stores it (`clan_embed_log` in `ClanLogs`): channel, color, description and requirement text (null for the in-game ones), banner image and which fields to show. Saving makes it due at once so the bot posts or edits it on its next refresh; a new clan counts toward the clan log limit
+
 ## 2026-10-20 (tickets)
 - Ticket panels in `/ticket setup`'s format, for beta servers only (403 elsewhere): `GET /guilds/:guildId/tickets` (panels with open and total ticket counts, and saved replies); `POST`, `PATCH` and `DELETE /guilds/:guildId/tickets/panels/:panelId`; `POST`, `PATCH` and `DELETE .../types/:typeId` and `PUT .../types/order`; `PUT /guilds/:guildId/tickets/saved-replies`
 - Limits match the bot (25 types, 5 questions, 10 roles per list, 10 extra buttons, 25 saved replies), plus stricter checks: whole numbers above zero, real links, and question labels of at most 45 characters, which is what Discord shows
