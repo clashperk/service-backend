@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 (tickets)
+- Ticket panels in `/ticket setup`'s format, for beta servers only (403 elsewhere): `GET /guilds/:guildId/tickets` (panels with open and total ticket counts, and saved replies); `POST`, `PATCH` and `DELETE /guilds/:guildId/tickets/panels/:panelId`; `POST`, `PATCH` and `DELETE .../types/:typeId` and `PUT .../types/order`; `PUT /guilds/:guildId/tickets/saved-replies`
+- Limits match the bot (25 types, 5 questions, 10 roles per list, 10 extra buttons, 25 saved replies), plus stricter checks: whole numbers above zero, real links, and question labels of at most 45 characters, which is what Discord shows
+- `GET /guilds/:guildId/categories` lists category channels for where tickets open and sleep
+
 ## 2026-10-20 (beta servers)
 - Beta servers move into the `BetaGuilds` collection. Admins manage them with `GET`, `POST` (`{ guildIds, note? }`, existing ones are kept as they are) and `DELETE /admin/beta-guilds/:guildId`
 - `GET /beta-guilds/ids` (API key) lists the IDs for the bot's command-registration workflow

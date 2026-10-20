@@ -54,3 +54,9 @@ Decided by: Suvajit. The bot treats `managerRole` like Manage Server, so its hol
 
 ## 2026-10-20 — The API applies the bot's clan log limit
 Decided by: Suvajit. `/setup clan-logs` only allows logs for `clanLimit` clans (2 free; the bot's Patreon sync writes a higher number), and the dashboard could bypass it. `GuildLogsService.save` now checks it before a clan's first log, with the bot's messages. The bot lets its owners past the limit; the API doesn't know them, so it doesn't.
+
+## 2026-10-20 — Beta servers live in the database
+Decided by: Suvajit. `BetaGuilds` replaces the bot's `BETA_TESTERS` GitHub variable as the one list of beta servers. Admins edit it in the dashboard; the bot's command-registration workflow reads `GET /beta-guilds/ids` with the API key. Beta is one flag per server, not per feature: beta servers get every beta feature, Tickets first.
+
+## 2026-10-20 — Tickets from the dashboard
+Decided by: Suvajit. The API writes `TicketPanels` and `TicketSettings` as `/ticket setup` does; the bot reads them fresh on every click, so it needs no reload. Posting stays with `/ticket post`, because the bot doesn't record where panels are posted and buttons-mode IDs live in its Redis. Type IDs are kept on every edit since posted buttons and opened tickets point at them. Fields the bot never uses (closed category, hero requirements, max accounts) are left out.

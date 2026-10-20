@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { GuildsController } from './guilds.controller';
+import { GuildTicketsController } from './guild-tickets.controller';
+import { GuildTicketsService } from './guild-tickets.service';
 import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildClansService } from './guild-clans.service';
 import { GuildFlagsService } from './guild-flags.service';
@@ -12,7 +14,7 @@ import { GuildsService } from './guilds.service';
 import { ReminderSchedulesService } from './reminder-schedules.service';
 
 @Module({
-  controllers: [GuildsController],
+  controllers: [GuildsController, GuildTicketsController],
   providers: [
     GuildsService,
     GuildAutoRolesService,
@@ -21,6 +23,7 @@ import { ReminderSchedulesService } from './reminder-schedules.service';
     GuildFlagsService,
     GuildLogsService,
     GuildManagersService,
+    GuildTicketsService,
     GuildServerLogsService,
     GuildRemindersService,
     ReminderSchedulesService,
