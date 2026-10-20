@@ -21,3 +21,4 @@ export * from './flags.entity';
 export * from './flag-alert-logs.entity';
 export * from './tickets.entity';
 export * from './beta-guilds.entity';
+export * from './users.entity';

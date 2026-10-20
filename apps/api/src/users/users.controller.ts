@@ -1,19 +1,55 @@
-import { ApiExcludeRoute } from '@app/decorators';
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards';
+import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
+import { ClanTagInput, TimezoneInput, UserSettingsDto } from './dto/user-settings.dto';
 import { UsersService } from './users.service';
-import { MessageOkDto } from '../links/dto';
 
-@Controller('/users')
+/** The signed-in user's bot settings; the bot can call these for the member who ran a command. */
+@Controller('/users/me')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@ApiExcludeRoute()
+@Roles([UserRoles.USER])
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('/:userId')
-  async getUser(): Promise<MessageOkDto> {
-    return Promise.resolve({ version: 'v1' });
+  @Get()
+  getUserSettings(@CurrentUser() user: JwtUser): Promise<UserSettingsDto> {
+    return this.usersService.getSettings(user.userId);
+  }
+
+  @Put('/clan')
+  setDefaultClan(
+    @CurrentUser() user: JwtUser,
+    @Body() body: ClanTagInput,
+  ): Promise<UserSettingsDto> {
+    return this.usersService.setDefaultClan(user.userId, body.clanTag);
+  }
+
+  @Delete('/clan')
+  clearDefaultClan(@CurrentUser() user: JwtUser): Promise<UserSettingsDto> {
+    return this.usersService.clearDefaultClan(user.userId);
+  }
+
+  @Post('/saved-clans')
+  saveClan(@CurrentUser() user: JwtUser, @Body() body: ClanTagInput): Promise<UserSettingsDto> {
+    return this.usersService.saveClan(user.userId, body.clanTag);
+  }
+
+  @Delete('/saved-clans/:clanTag')
+  unsaveClan(
+    @CurrentUser() user: JwtUser,
+    @Param('clanTag') clanTag: string,
+  ): Promise<UserSettingsDto> {
+    return this.usersService.unsaveClan(user.userId, clanTag);
+  }
+
+  @Put('/timezone')
+  setTimezone(@CurrentUser() user: JwtUser, @Body() body: TimezoneInput): Promise<UserSettingsDto> {
+    return this.usersService.setTimezone(user.userId, body.id);
+  }
+
+  @Delete('/timezone')
+  clearTimezone(@CurrentUser() user: JwtUser): Promise<UserSettingsDto> {
+    return this.usersService.clearTimezone(user.userId);
   }
 }
