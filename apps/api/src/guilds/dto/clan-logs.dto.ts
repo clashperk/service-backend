@@ -77,16 +77,38 @@ export class ClanLogInput {
   color: number | null;
 }
 
+/** Whether ClashPerk can post in a log's channel. */
+export enum ChannelStatus {
+  OK = 'ok',
+  /** A thread Discord reopens on the next post. */
+  ARCHIVED = 'archived',
+  /** A thread only moderators can reopen; posts fail until then. */
+  LOCKED = 'locked',
+  DELETED = 'deleted',
+  NO_ACCESS = 'noAccess',
+  /** Discord didn't answer, so the channel couldn't be checked. */
+  UNKNOWN = 'unknown',
+}
+
 export class ClanLogDto {
   id: string;
   @EnumString(ClanLogType, 'ClanLogType')
   logType: ClanLogType;
   channelId: string;
   channelName: string | null;
+  @EnumString(ChannelStatus, 'ChannelStatus')
+  channelStatus: ChannelStatus;
+  /** The channel a thread is in; null for channels. */
+  parentChannelName: string | null;
   isEnabled: boolean;
   roleId: string | null;
   color: number | null;
   updatedAt: Date;
+}
+
+/** A clan log with its clan, for listing every log in a server. */
+export class GuildClanLogDto extends ClanLogDto {
+  clanTag: string;
 }
 
 export class ClanLogLimitDto {

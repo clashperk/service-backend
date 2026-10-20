@@ -1,7 +1,7 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Db, ObjectId } from 'mongodb';
 import { Collections } from '../db';
-import { ClanEmbedField, ClanLogInput, ClanLogType } from './dto';
+import { ChannelStatus, ClanEmbedField, ClanLogInput, ClanLogType } from './dto';
 import { GuildLogsService } from './guild-logs.service';
 
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
@@ -28,13 +28,13 @@ const setup = (
         Promise.resolve(
           clans.find((c) => c.guild === filter.guild && c.tag === filter.tag) ?? null,
         ),
-      find: (filter: { _id: { $in: ObjectId[] }; guild: string }) => ({
+      find: (filter: { _id?: { $in: ObjectId[] }; guild: string }) => ({
         toArray: () =>
           Promise.resolve(
             clans.filter(
               (c) =>
                 c.guild === filter.guild &&
-                filter._id.$in.some((id) => id.equals(c._id as ObjectId)),
+                (!filter._id || filter._id.$in.some((id) => id.equals(c._id as ObjectId))),
             ),
           ),
       }),
@@ -48,6 +48,21 @@ const setup = (
     },
     [Collections.CLAN_LOGS]: {
       findOne: (filter: Doc) => Promise.resolve(logs.find((log) => matches(log, filter)) ?? null),
+      find: (filter: {
+        guildId: string;
+        clanTag: { $in: string[] };
+        logType: { $in: string[] };
+      }) => ({
+        toArray: () =>
+          Promise.resolve(
+            logs.filter(
+              (log) =>
+                log.guildId === filter.guildId &&
+                filter.clanTag.$in.includes(log.clanTag as string) &&
+                filter.logType.$in.includes(log.logType as string),
+            ),
+          ),
+      }),
       findOneAndUpdate: (filter: Doc, update: Doc) => {
         updates.push(update);
         const set = update.$set as Doc;
@@ -68,6 +83,12 @@ const setup = (
     checkRole: jest.fn(),
     resolveWebhook: jest.fn().mockResolvedValue(null),
     channelNames: jest.fn().mockResolvedValue(new Map([[CHANNEL, 'war-feed']])),
+    channelInfo: jest.fn().mockResolvedValue(
+      new Map([
+        [CHANNEL, { name: 'war-feed', status: ChannelStatus.OK, parentName: null }],
+        [OTHER_CHANNEL, { name: null, status: ChannelStatus.DELETED, parentName: null }],
+      ]),
+    ),
   };
   return { service: new GuildLogsService(db, discord as never), updates, discord };
 };
@@ -146,6 +167,38 @@ describe('GuildLogsService', () => {
     await expect(
       service.delete({ guildId: GUILD, clanTag: TAG, logType: ClanLogType.WAR_ATTACK_LOG }),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  it("lists every clan's logs in the server, skipping removed clans and the clan embed", async () => {
+    const log = (clanTag: string, logType: string, channelId = CHANNEL) => ({
+      _id: new ObjectId(),
+      guildId: GUILD,
+      clanTag,
+      logType,
+      channelId,
+      isEnabled: true,
+      updatedAt: new Date(),
+    });
+    const { service, discord } = setup(
+      [
+        log(TAG, ClanLogType.WAR_ATTACK_LOG),
+        log('#OTHER', ClanLogType.WAR_ATTACK_LOG, OTHER_CHANNEL),
+        log('#GONE', ClanLogType.WAR_ATTACK_LOG),
+        log(TAG, 'clan_embed_log'),
+      ],
+      {
+        clans: [
+          { _id: clanId, guild: GUILD, tag: TAG },
+          { _id: new ObjectId(), guild: GUILD, tag: '#OTHER' },
+        ],
+      },
+    );
+    const logs = await service.listAll({ guildId: GUILD, applicationId: null });
+    expect(logs.map((l) => [l.clanTag, l.channelName, l.channelStatus])).toEqual([
+      [TAG, 'war-feed', ChannelStatus.OK],
+      ['#OTHER', null, ChannelStatus.DELETED],
+    ]);
+    expect(discord.channelInfo).toHaveBeenCalledWith(GUILD, null, [CHANNEL, OTHER_CHANNEL]);
   });
 
   describe('clan limit', () => {
