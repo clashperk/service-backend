@@ -78,7 +78,7 @@ const setup = (store: Store, webhook: { guild_id: string; channel_id: string } |
   return {
     service: new GuildRemindersService(
       db,
-      new GuildDiscordService(db, discord as never),
+      new GuildDiscordService(db, discord as never, {} as never),
       schedules as never,
     ),
     schedules,

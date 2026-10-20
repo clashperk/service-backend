@@ -3,6 +3,7 @@
 ## 2026-10-20 (all clan logs)
 - Add `GET /guilds/:guildId/clan-logs`: every clan's logs in the server with the clan tag and channel name, for viewing logs by type or by channel. Clans removed from the server and the clan embed are left out
 - Clan logs now say whether ClashPerk can post in their channel: `channelStatus` is `ok`, `archived` (a thread Discord reopens on the next post), `locked`, `deleted`, `noAccess` or `unknown` (Discord didn't answer), and `parentChannelName` names a thread's channel. One failed channel lookup no longer blanks every other channel's name
+- Discord calls share one client per bot token, so discord.js queues them for Discord's rate limits instead of each call going out on its own. Channel lookups for clan logs run 3 at a time, stop at 25 per request (the rest show as `unknown`), and are cached for 5 minutes, so deleted channels aren't re-requested on every page view
 
 ## 2026-10-20 (server access re-check)
 - Add `POST /auth/guild-access` (API key): whether a user can still manage a server (owner, Administrator, Manage Server or the bot manager role), checked with the bot's token. `false` when the bot is no longer in the server; other Discord errors fail the request

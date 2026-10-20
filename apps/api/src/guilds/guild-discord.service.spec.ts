@@ -30,7 +30,12 @@ const setup = (lookups: Record<string, unknown>) => {
   const db = {
     collection: () => ({ findOne: () => Promise.resolve(null) }),
   } as unknown as Db;
-  return { service: new GuildDiscordService(db, oauth as never), oauth };
+  const store = new Map<string, unknown>();
+  const cache = {
+    get: (key: string) => Promise.resolve(store.get(key)),
+    set: (key: string, value: unknown) => Promise.resolve(store.set(key, value)),
+  };
+  return { service: new GuildDiscordService(db, oauth as never, cache as never), oauth };
 };
 
 describe('GuildDiscordService.channelInfo', () => {
@@ -54,6 +59,31 @@ describe('GuildDiscordService.channelInfo', () => {
     });
     // Only channels missing from the server's lists are looked up one by one.
     expect(oauth.findChannel).toHaveBeenCalledTimes(5);
+  });
+
+  it('caches lookups, skips failed ones, and looks up at most 3 at a time and 25 in all', async () => {
+    const ids = Array.from({ length: 30 }, (_, i) => `x${i}`);
+    const { service, oauth } = setup(
+      Object.fromEntries(ids.map((id) => [id, { missing: 'deleted' }])),
+    );
+    let inFlight = 0;
+    let peak = 0;
+    const find = oauth.findChannel.getMockImplementation()!;
+    oauth.findChannel.mockImplementation(async (input: { channelId: string }) => {
+      peak = Math.max(peak, ++inFlight);
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      inFlight--;
+      return find(input);
+    });
+
+    const first = await service.channelInfo(GUILD, null, ids);
+    expect(peak).toBeLessThanOrEqual(3);
+    expect(oauth.findChannel).toHaveBeenCalledTimes(25);
+    expect(first.get('x0')?.status).toBe(ChannelStatus.DELETED);
+    expect(first.get('x29')?.status).toBe(ChannelStatus.UNKNOWN);
+
+    await service.channelInfo(GUILD, null, ids.slice(0, 25));
+    expect(oauth.findChannel).toHaveBeenCalledTimes(25);
   });
 
   it("treats another server's channel as deleted", async () => {

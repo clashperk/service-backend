@@ -255,6 +255,7 @@ describe('GuildDiscordService.checkAssignableRoles', () => {
       getGuild: () => Promise.resolve({ roles }),
       getBotMember: () => Promise.resolve({ roles: [ROLE(2)] }),
     } as never,
+    {} as never,
   );
   const check = (roleId: string) => service.checkAssignableRoles(GUILD, null, [roleId]);
 

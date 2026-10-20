@@ -1,5 +1,7 @@
 import { DiscordOauthService } from '@app/discord-oauth';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Cache } from 'cache-manager';
 import { APIChannel, ChannelType } from 'discord-api-types/v10';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
@@ -21,6 +23,26 @@ const REMINDER_COLLECTIONS = [
 ] as const;
 
 export type Webhook = { id: string; token: string };
+type ChannelLookup = Awaited<ReturnType<DiscordOauthService['findChannel']>>;
+
+// Unlisted channels looked up per request; more show as unknown rather than flooding Discord.
+const MAX_LOOKUPS = 25;
+const CHANNEL_LOOKUP_TTL = 5 * 60 * 1000;
+
+/** Runs `fn` over `items` with at most `limit` calls in flight, keeping their order. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>) {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const index = next++;
+      results[index] = await fn(items[index]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
 export type ChannelInfo = { name: string | null; status: ChannelStatus; parentName: string | null };
 
 const parentOf = (channel: APIChannel) =>
@@ -32,6 +54,7 @@ export class GuildDiscordService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private readonly discordOauthService: DiscordOauthService,
+    @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
   /** Channels in Discord's order, each followed by its active threads or forum posts. */
@@ -216,21 +239,16 @@ export class GuildDiscordService {
         info.set(id, { name: null, status: ChannelStatus.UNKNOWN, parentName: null });
       return info;
     }
-    // Archived threads aren't in either list, so each one is looked up on its own.
-    const lookups = await Promise.all(
-      ids
-        .filter((id) => !byId.has(id))
-        .map(async (channelId) => {
-          try {
-            return {
-              channelId,
-              result: await this.discordOauthService.findChannel({ channelId, token }),
-            };
-          } catch {
-            return { channelId, result: null };
-          }
-        }),
-    );
+    // Archived threads aren't in either list, so each one is looked up on its own: a few at a
+    // time, and cached, since lookups of deleted channels count toward Discord's invalid-request ban.
+    const unlisted = ids.filter((id) => !byId.has(id));
+    const lookups = await mapLimit(unlisted.slice(0, MAX_LOOKUPS), 3, async (channelId) => ({
+      channelId,
+      result: await this.lookUpChannel(channelId, token),
+    }));
+    for (const channelId of unlisted.slice(MAX_LOOKUPS)) {
+      info.set(channelId, { name: null, status: ChannelStatus.UNKNOWN, parentName: null });
+    }
     for (const { channelId, result } of lookups) {
       if (
         result &&
@@ -267,6 +285,20 @@ export class GuildDiscordService {
       });
     }
     return info;
+  }
+
+  /** One channel by ID, cached a few minutes; null when Discord didn't answer. */
+  private async lookUpChannel(channelId: string, token: string | null) {
+    const key = `discord:channel:${channelId}`;
+    const cached = await this.cache.get<ChannelLookup>(key);
+    if (cached) return cached;
+    try {
+      const result = await this.discordOauthService.findChannel({ channelId, token });
+      await this.cache.set(key, result, CHANNEL_LOOKUP_TTL);
+      return result;
+    } catch {
+      return null;
+    }
   }
 
   async channelNames(guildId: string, applicationId: string | null, channelIds: string[]) {
