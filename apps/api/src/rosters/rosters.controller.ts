@@ -3,20 +3,27 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
   Put,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { Request } from 'express';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import { RostersEntity } from '../db';
-import { MessageOkDto } from '../links/dto';
 import {
+  AddRosterMembersDto,
+  AddRosterMembersInput,
+  CloneRosterInput,
   RemoveMembersBulkInput,
+  RosterGroupInput,
+  RosterGroupUpdateInput,
+  RosterInput,
+  RosterPlayerCheckDto,
+  RosterTagsInput,
+  RosterUpdateInput,
   TransferRosterMembersDto,
   TransferRosterMembersInput,
 } from './dto';
@@ -37,8 +44,37 @@ export class RostersController {
   }
 
   @Post('/:guildId/create')
-  createRoster(@Param('guildId') guildId: string): Promise<MessageOkDto> {
-    return Promise.resolve({ guildId });
+  createRoster(
+    @Param('guildId') guildId: string,
+    @Body() body: RosterInput,
+  ): Promise<RostersEntity> {
+    return this.rostersService.createRoster(guildId, body);
+  }
+
+  // Group routes come before the `/:rosterId` ones so "groups" is never read as a roster ID.
+  @Post('/:guildId/groups')
+  createRosterGroup(
+    @Param('guildId') guildId: string,
+    @Body() body: RosterGroupInput,
+  ): Promise<GetRostersDto> {
+    return this.rostersService.createGroup(guildId, body);
+  }
+
+  @Patch('/:guildId/groups/:groupId')
+  updateRosterGroup(
+    @Param('guildId') guildId: string,
+    @Param('groupId') groupId: string,
+    @Body() body: RosterGroupUpdateInput,
+  ): Promise<GetRostersDto> {
+    return this.rostersService.updateGroup(guildId, groupId, body);
+  }
+
+  @Delete('/:guildId/groups/:groupId')
+  deleteRosterGroup(
+    @Param('guildId') guildId: string,
+    @Param('groupId') groupId: string,
+  ): Promise<GetRostersDto> {
+    return this.rostersService.deleteGroup(guildId, groupId);
   }
 
   @Get('/:guildId/:rosterId')
@@ -50,24 +86,49 @@ export class RostersController {
   }
 
   @Patch('/:guildId/:rosterId')
-  updateRoster(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
-    return Promise.resolve({ rosterId });
+  updateRoster(
+    @Param('guildId') guildId: string,
+    @Param('rosterId') rosterId: string,
+    @Body() body: RosterUpdateInput,
+  ): Promise<RostersEntity> {
+    return this.rostersService.updateRoster(guildId, rosterId, body);
   }
 
   @Delete('/:guildId/:rosterId')
-  deleteRoster(@Param('rosterId') rosterId: string, @Req() req: Request): Promise<MessageOkDto> {
-    console.log(req.headers);
-    return Promise.resolve({ rosterId });
+  @HttpCode(204)
+  async deleteRoster(
+    @Param('guildId') guildId: string,
+    @Param('rosterId') rosterId: string,
+  ): Promise<void> {
+    await this.rostersService.deleteRoster(guildId, rosterId);
   }
 
   @Post('/:guildId/:rosterId/clone')
-  cloneRoster(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
-    return Promise.resolve({ rosterId });
+  cloneRoster(
+    @Param('guildId') guildId: string,
+    @Param('rosterId') rosterId: string,
+    @Body() body: CloneRosterInput,
+  ): Promise<RostersEntity> {
+    return this.rostersService.cloneRoster(guildId, rosterId, body.name);
+  }
+
+  @Post('/:guildId/:rosterId/members/check')
+  @HttpCode(200)
+  checkRosterMembers(
+    @Param('guildId') guildId: string,
+    @Param('rosterId') rosterId: string,
+    @Body() body: RosterTagsInput,
+  ): Promise<RosterPlayerCheckDto[]> {
+    return this.rostersService.checkMembers({ guildId, rosterId, playerTags: body.playerTags });
   }
 
   @Put('/:guildId/:rosterId/members')
-  addRosterMembers(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
-    return Promise.resolve({ rosterId });
+  addRosterMembers(
+    @Param('guildId') guildId: string,
+    @Param('rosterId') rosterId: string,
+    @Body() body: AddRosterMembersInput,
+  ): Promise<AddRosterMembersDto> {
+    return this.rostersService.addMembers({ guildId, rosterId, ...body });
   }
 
   @Delete('/:guildId/:rosterId/members')
@@ -75,7 +136,7 @@ export class RostersController {
     @Param('rosterId') rosterId: string,
     @Param('guildId') guildId: string,
     @Body() body: RemoveMembersBulkInput,
-  ): Promise<MessageOkDto> {
+  ): Promise<RostersEntity> {
     return this.rostersService.deleteRosterMembers({
       rosterId,
       guildId,
@@ -84,8 +145,11 @@ export class RostersController {
   }
 
   @Post('/:guildId/:rosterId/members/refresh')
-  refreshRosterMembers(@Param('rosterId') rosterId: string): Promise<MessageOkDto> {
-    return Promise.resolve({ rosterId });
+  refreshRosterMembers(
+    @Param('guildId') guildId: string,
+    @Param('rosterId') rosterId: string,
+  ): Promise<RostersEntity> {
+    return this.rostersService.refreshMembers(guildId, rosterId);
   }
 
   @Put('/:guildId/:rosterId/members/transfer')

@@ -8,6 +8,7 @@ export class RosterGroupsEntity {
   displayName: string;
   name: string;
   guildId: string;
+  order: number;
   selectable: boolean;
   roleId?: string | null;
   createdAt: Date;
