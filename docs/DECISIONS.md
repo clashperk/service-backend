@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-20 — Auto-roles are written where the bot reads them, with no bot change
+Server-wide roles and options go in `Settings` under `/autorole`'s keys, each map written whole with `$set`, and anything turned off is `$unset` as `/autorole disable` does. The bot reloads `Settings` through its change stream and reads clan roles from `ClanStores` on every update, so neither needs a bot change. As with the bot, saving doesn't refresh members' roles; they update on the bot's next check. Unlike the bot, the API can remove single entries (a map is replaced, not merged) and can clear trophy roles, which no bot command does. The bot's role-position check uses its gateway cache; the API asks Discord for the bot's member roles instead. The bot's after-save `updateClanLinks` is left out: it only refreshes links and doesn't affect roles.
+
 ## 2026-10-20 — Adding a clan follows `/setup clan`, minus the bot-only parts
 The record matches `storage.register`: `verified`, `active`, `paused: false`, `patron`, and a `uniqueId` shared with other servers that have the clan (else the highest plus one), which the tracker keys on. The bot notices the new record through a `ClanStores` watcher, so the API doesn't call it. Verification matches `enforceSecurity`, using the caller's own links (`x-user-id` when the bot calls); the bot-owner bypass stays in the bot. A clan's channel links, color and alias aren't set here yet. Categories differ in two ways: the API doesn't create the bot's default categories when a server has none, and deleting one moves its clans to Uncategorized instead of leaving them pointing at a deleted category.
 

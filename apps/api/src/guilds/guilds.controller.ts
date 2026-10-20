@@ -16,6 +16,9 @@ import { ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   AddGuildClanInput,
+  AutoRoleClanInput,
+  AutoRolesDto,
+  AutoRolesInput,
   CapitalRaidReminderInput,
   ClanCategoryInput,
   ClanLogDto,
@@ -31,6 +34,7 @@ import {
   ReminderIdDto,
   ReorderClanCategoriesInput,
 } from './dto';
+import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildClansService } from './guild-clans.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
@@ -48,6 +52,7 @@ export class GuildsController {
     private guildDiscordService: GuildDiscordService,
     private guildLogsService: GuildLogsService,
     private guildClansService: GuildClansService,
+    private guildAutoRolesService: GuildAutoRolesService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -294,6 +299,39 @@ export class GuildsController {
     @Param('logType', new ParseEnumPipe(ClanLogType)) logType: ClanLogType,
   ): Promise<void> {
     await this.guildLogsService.delete({ guildId, clanTag, logType });
+  }
+
+  @Get('/:guildId/auto-roles')
+  getAutoRoles(@Param('guildId') guildId: string): Promise<AutoRolesDto> {
+    return this.guildAutoRolesService.get(guildId);
+  }
+
+  @Patch('/:guildId/auto-roles')
+  saveAutoRoles(
+    @Param('guildId') guildId: string,
+    @Body() body: AutoRolesInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<AutoRolesDto> {
+    return this.guildAutoRolesService.save({
+      guildId,
+      body,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Put('/:guildId/auto-roles/clans/:clanTag')
+  saveClanAutoRoles(
+    @Param('guildId') guildId: string,
+    @Param('clanTag') clanTag: string,
+    @Body() body: AutoRoleClanInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<AutoRolesDto> {
+    return this.guildAutoRolesService.saveClan({
+      guildId,
+      clanTag,
+      body,
+      applicationId: user.applicationId || null,
+    });
   }
 
   @Get('/:guildId/members/list')

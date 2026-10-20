@@ -118,6 +118,32 @@ export class GuildDiscordService {
     }
   }
 
+  /** Roles the bot can give out: in the server, not @everyone or managed, and not above its highest role. */
+  async checkAssignableRoles(guildId: string, applicationId: string | null, roleIds: string[]) {
+    if (!roleIds.length) return;
+    const token = await this.botToken(applicationId);
+    const [guild, me] = await Promise.all([
+      this.discordOauthService.getGuild({ guildId, token }),
+      this.discordOauthService.getBotMember({ guildId, token }),
+    ]);
+    const roles = new Map(guild.roles.map((role) => [role.id, role]));
+    const highest = Math.max(0, ...me.roles.map((id) => roles.get(id)?.position ?? 0));
+    for (const roleId of new Set(roleIds)) {
+      const role = roles.get(roleId);
+      if (!role) throw new BadRequestException('Pick roles in this server.');
+      if (role.id === guildId || role.managed) {
+        throw new BadRequestException(
+          `${role.name} can't be given out: it's @everyone or managed by a bot or integration.`,
+        );
+      }
+      if (role.position > highest) {
+        throw new BadRequestException(
+          `ClashPerk can't give out ${role.name}: move ClashPerk's role above it in Server Settings › Roles.`,
+        );
+      }
+    }
+  }
+
   async checkRole(guildId: string, applicationId: string | null, roleId: string) {
     const roles = await this.listRoles({ guildId, applicationId });
     if (!roles.some((role) => role.id === roleId)) {
