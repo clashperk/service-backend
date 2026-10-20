@@ -18,3 +18,4 @@ export * from './roster-groups.entity';
 export * from './rosters.entity';
 export * from './settings.entity';
 export * from './flags.entity';
+export * from './flag-alert-logs.entity';

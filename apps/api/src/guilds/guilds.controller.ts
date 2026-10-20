@@ -38,6 +38,11 @@ import {
   ListMemberDto,
   ReminderIdDto,
   ReorderClanCategoriesInput,
+  FlagAlertLogInput,
+  MaintenanceLogInput,
+  ServerLogChannelInput,
+  ServerLogsDto,
+  WelcomeLogInput,
 } from './dto';
 import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildClansService } from './guild-clans.service';
@@ -45,6 +50,7 @@ import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
 import { GuildRemindersService } from './guild-reminders.service';
+import { GuildServerLogsService } from './guild-server-logs.service';
 import { GuildsService } from './guilds.service';
 
 @Controller('/guilds')
@@ -60,6 +66,7 @@ export class GuildsController {
     private guildClansService: GuildClansService,
     private guildAutoRolesService: GuildAutoRolesService,
     private guildFlagsService: GuildFlagsService,
+    private guildServerLogsService: GuildServerLogsService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -394,5 +401,102 @@ export class GuildsController {
       query,
       applicationId: user.applicationId || null,
     });
+  }
+
+  @Get('/:guildId/server-logs')
+  getServerLogs(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.get(guildId, user.applicationId || null);
+  }
+
+  @Put('/:guildId/server-logs/flag-alert')
+  saveFlagAlertLog(
+    @Param('guildId') guildId: string,
+    @Body() body: FlagAlertLogInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.saveFlagAlert({
+      guildId,
+      body,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Delete('/:guildId/server-logs/flag-alert')
+  deleteFlagAlertLog(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.deleteFlagAlert(guildId, user.applicationId || null);
+  }
+
+  @Put('/:guildId/server-logs/roster-changelog')
+  saveRosterChangelog(
+    @Param('guildId') guildId: string,
+    @Body() body: ServerLogChannelInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.saveRosterChangelog({
+      guildId,
+      body,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Delete('/:guildId/server-logs/roster-changelog')
+  deleteRosterChangelog(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.delete(
+      guildId,
+      user.applicationId || null,
+      'rosterChangeLog',
+    );
+  }
+
+  @Put('/:guildId/server-logs/maintenance')
+  saveMaintenanceLog(
+    @Param('guildId') guildId: string,
+    @Body() body: MaintenanceLogInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.saveMaintenance({
+      guildId,
+      body,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  @Delete('/:guildId/server-logs/maintenance')
+  deleteMaintenanceLog(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.delete(guildId, user.applicationId || null, 'eventsChannel');
+  }
+
+  @Put('/:guildId/server-logs/welcome')
+  saveWelcomeLog(
+    @Param('guildId') guildId: string,
+    @Body() body: WelcomeLogInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.saveWelcome({
+      guildId,
+      body,
+      applicationId: user.applicationId || null,
+    });
+  }
+
+  /** Turns the welcome message off but keeps it, as `/setup server-logs disable` does. */
+  @Delete('/:guildId/server-logs/welcome')
+  deleteWelcomeLog(
+    @Param('guildId') guildId: string,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ServerLogsDto> {
+    return this.guildServerLogsService.delete(guildId, user.applicationId || null, 'welcomeLog');
   }
 }

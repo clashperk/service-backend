@@ -7,3 +7,4 @@ export * from './clan-logs.dto';
 export * from './clan-input.dto';
 export * from './auto-roles.dto';
 export * from './flags.dto';
+export * from './server-logs.dto';
