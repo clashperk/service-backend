@@ -1,5 +1,10 @@
 import { UserRoles } from '@app/dto';
-import { ConflictException, ValidationPipe } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+  ValidationPipe,
+} from '@nestjs/common';
 import { Db } from 'mongodb';
 import { AddPortalUserInput } from './dto/portal-users.dto';
 import { PortalUsersService } from './portal-users.service';
@@ -19,10 +24,19 @@ const setup = (existing: Doc[] = []) => {
         docs.find((d) => d.userId === filter.userId && d.deletedAt === filter.deletedAt) ?? null,
       ),
     findOneAndUpdate: (filter: Doc, update: Record<string, Doc>) => {
-      let doc = docs.find((d) => d.userId === filter.userId);
+      let doc = docs.find(
+        (d) =>
+          d.userId === filter.userId &&
+          (!('deletedAt' in filter) || d.deletedAt === filter.deletedAt),
+      );
       if (!doc) docs.push((doc = { ...update.$setOnInsert }));
       Object.assign(doc, update.$set);
       return Promise.resolve(doc);
+    },
+    updateOne: (filter: Doc, update: Record<string, Doc>) => {
+      const doc = docs.find((d) => d.userId === filter.userId && d.deletedAt === filter.deletedAt);
+      if (doc) Object.assign(doc, update.$set);
+      return Promise.resolve();
     },
   };
   const discord = {
@@ -78,5 +92,26 @@ describe('PortalUsersService', () => {
     await expect(validate({ userId: USER, roles: ['fetch:links'] })).resolves.toBeDefined();
     await expect(validate({ userId: USER, roles: ['admin'] })).rejects.toThrow();
     await expect(validate({ userId: USER, roles: [] })).rejects.toThrow();
+  });
+
+  it('edits roles, and revokes by retiring the passkey', async () => {
+    const { service, docs } = setup([
+      { userId: USER, roles: [UserRoles.VIEWER], passKey: 'old', deletedAt: null },
+    ]);
+    const edited = await service.edit(USER, [UserRoles.FETCH_WARS]);
+    expect(edited.roles).toEqual([UserRoles.FETCH_WARS]);
+
+    await service.revoke(USER);
+    expect(docs[0].deletedAt).toBeInstanceOf(Date);
+    expect(docs[0].passKey).not.toBe('old');
+    await expect(service.edit(USER, [UserRoles.VIEWER])).rejects.toThrow(NotFoundException);
+  });
+
+  it('leaves admin accounts alone', async () => {
+    const { service } = setup([
+      { userId: USER, roles: [UserRoles.ADMIN], passKey: 'old', deletedAt: null },
+    ]);
+    await expect(service.revoke(USER)).rejects.toThrow(BadRequestException);
+    await expect(service.edit(USER, [UserRoles.VIEWER])).rejects.toThrow(BadRequestException);
   });
 });

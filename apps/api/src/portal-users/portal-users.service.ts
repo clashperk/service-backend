@@ -1,5 +1,11 @@
 import { DiscordRestService } from '@app/discord-rest';
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { Db, WithId } from 'mongodb';
 import { ApiUsersEntity } from '@app/collections';
@@ -57,6 +63,35 @@ export class PortalUsersService {
       { upsert: true, returnDocument: 'after' },
     );
     return { user: toDto(user!), passKey: user!.passKey };
+  }
+
+  /** New roles apply the next time the account signs in. */
+  async edit(userId: string, roles: UserRoles[]): Promise<PortalUserDto> {
+    await this.findEditable(userId);
+    const user = await this.users.findOneAndUpdate(
+      { userId, deletedAt: null },
+      { $set: { roles: [...new Set(roles)], updatedAt: new Date() } },
+      { projection: { passKey: 0 }, returnDocument: 'after' },
+    );
+    return toDto(user!);
+  }
+
+  /** The passkey stops working at once; a token it already got lasts until it expires. */
+  async revoke(userId: string) {
+    await this.findEditable(userId);
+    await this.users.updateOne(
+      { userId, deletedAt: null },
+      { $set: { deletedAt: new Date(), passKey: randomBytes(16).toString('hex') } },
+    );
+    return this.list();
+  }
+
+  private async findEditable(userId: string) {
+    const user = await this.users.findOne({ userId, deletedAt: null });
+    if (!user) throw new NotFoundException('No portal account for that user.');
+    if (user.roles.includes(UserRoles.ADMIN)) {
+      throw new BadRequestException("Admin accounts can't be changed from the dashboard.");
+    }
   }
 
   private get users() {

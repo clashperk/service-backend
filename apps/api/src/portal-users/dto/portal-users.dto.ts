@@ -6,10 +6,7 @@ import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, Matches } from 'class-valida
 /** Roles an admin can grant here; admin itself stays out of reach of the dashboard. */
 export const GRANTABLE_ROLES = Object.values(UserRoles).filter((role) => role !== UserRoles.ADMIN);
 
-export class AddPortalUserInput {
-  @Matches(/^\d{17,20}$/, { message: 'Enter a Discord user ID (17 to 20 digits).' })
-  userId: string;
-
+export class EditPortalUserInput {
   @ApiProperty({ enum: UserRoles, enumName: 'UserRoles', isArray: true })
   @IsArray()
   @ArrayMinSize(1, { message: 'Pick at least one role.' })
@@ -19,6 +16,11 @@ export class AddPortalUserInput {
     message: 'One of those roles can only be granted by an admin.',
   })
   roles: UserRoles[];
+}
+
+export class AddPortalUserInput extends EditPortalUserInput {
+  @Matches(/^\d{17,20}$/, { message: 'Enter a Discord user ID (17 to 20 digits).' })
+  userId: string;
 }
 
 /** A portal account without its passkey. */
