@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 (auto-roles)
+- Add `GET` and `PATCH /guilds/:guildId/auto-roles`: Town Hall, Builder Hall, league, builder league and trophy roles; family, exclusive family, family leaders, guest, verified and linked roles; the end-of-season push role and clans; and the options (non-family accounts, verified-only clan roles, auto update, force refresh, members with no links, role delays and delay exclusions). Only the fields sent are saved, under the keys `/autorole` uses; an empty map or `null` turns it off
+- Add `PUT /guilds/:guildId/auto-roles/clans/:clanTag`: a clan's Leader, Co-Leader, Elder, Member and Everyone roles and its in-war role, which can't be shared with another clan
+- Roles must be in the server, not @everyone or managed by a bot or integration, and not above ClashPerk's highest role, as the bot checks
+
 ## 2026-10-20 (manage clans)
 - Add `POST /guilds/:guildId/clans` (`{ tag, categoryId? }`) and `DELETE /guilds/:guildId/clans/:clanTag`. Adding uses the bot's record and its verification rule: past 5, 20 or 100 clans (by server size), or for a clan already in more than 10 other servers, it needs `CP` plus the server ID's last two digits in the clan description or a verified Leader or Co-Leader account of the caller; supporters skip it. Removing also deletes the clan's logs, takes it off reminders (deleting reminders left with no clans) and clears their schedules
 - Add `POST /guilds/:guildId/categories`, `PATCH` and `DELETE /guilds/:guildId/categories/:categoryId` (names 1 to 36 characters, unique per server). Deleting a category moves its clans to Uncategorized

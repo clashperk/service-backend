@@ -5,3 +5,4 @@ export * from './reorder-clan-categories.dto';
 export * from './reminder-input.dto';
 export * from './clan-logs.dto';
 export * from './clan-input.dto';
+export * from './auto-roles.dto';

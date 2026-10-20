@@ -83,6 +83,15 @@ export class DiscordOauthService {
     return payload as APIChannel[];
   }
 
+  /** The bot's own member record in a server, for its roles. */
+  async getBotMember(input: { guildId: string; token: string | null }) {
+    const rest = new REST({ version: '10' }).setToken(
+      input.token ?? this.configService.getOrThrow<string>('DISCORD_TOKEN'),
+    );
+    const me = (await rest.get(Routes.user('@me'))) as APIUser;
+    return (await rest.get(Routes.guildMember(input.guildId, me.id))) as APIGuildMember;
+  }
+
   /** Active threads, forum posts included; Discord leaves archived ones out. */
   async listActiveThreads(input: { guildId: string; token: string | null }) {
     const token = input.token ?? this.configService.getOrThrow<string>('DISCORD_TOKEN');
