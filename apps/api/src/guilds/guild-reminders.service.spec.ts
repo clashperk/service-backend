@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import { Db, ObjectId } from 'mongodb';
 import { Collections } from '../db';
 import { ClanWarReminderInput } from './dto';
+import { GuildDiscordService } from './guild-discord.service';
 import { GuildRemindersService } from './guild-reminders.service';
 
 jest.mock('@app/clash-client', () => ({ ClashClient: class {} }));
@@ -58,7 +59,11 @@ const setup = (store: Store, webhook: { guild_id: string; channel_id: string } |
   };
   const schedules = { reschedule: jest.fn(), clear: jest.fn() };
   return {
-    service: new GuildRemindersService(db, discord as never, schedules as never),
+    service: new GuildRemindersService(
+      db,
+      new GuildDiscordService(db, discord as never),
+      schedules as never,
+    ),
     schedules,
   };
 };

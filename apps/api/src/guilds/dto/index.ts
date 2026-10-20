@@ -3,3 +3,4 @@ export * from './guild-reminders.dto';
 export * from './list-member.dto';
 export * from './reorder-clan-categories.dto';
 export * from './reminder-input.dto';
+export * from './clan-logs.dto';
