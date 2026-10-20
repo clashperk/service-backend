@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { EnumArray } from '@app/decorators';
 import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
@@ -6,7 +6,6 @@ import {
   ArrayUnique,
   IsArray,
   IsBoolean,
-  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -21,8 +20,15 @@ import {
 const MINUTE = 60 * 1000;
 const HOUR = 60 * MINUTE;
 
-export const CLAN_ROLES = ['leader', 'coLeader', 'admin', 'member'] as const;
-export const WAR_TYPES = ['normal', 'friendly', 'cwl'] as const;
+export const ReminderClanRole = {
+  leader: 'leader',
+  coLeader: 'coLeader',
+  admin: 'admin',
+  member: 'member',
+} as const;
+export const ReminderWarType = { normal: 'normal', friendly: 'friendly', cwl: 'cwl' } as const;
+const WarAttacksLeft = { one: 1, two: 2 } as const;
+const RaidAttacksLeft = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6 } as const;
 
 /** The bot's limits per type: at least 15 minutes, in 15-minute steps. */
 export const DURATION_LIMITS = {
@@ -63,8 +69,7 @@ class ReminderBaseInput {
 
   @IsArray()
   @ArrayUnique()
-  @IsIn(CLAN_ROLES, { each: true })
-  @ApiProperty({ enum: CLAN_ROLES, isArray: true })
+  @EnumArray(ReminderClanRole, 'ReminderClanRole')
   roles: string[];
 
   @IsBoolean()
@@ -92,14 +97,13 @@ export class ClanWarReminderInput extends ReminderBaseInput {
   /** Ping members with this many attacks left; empty pings nobody. */
   @IsArray()
   @ArrayUnique()
-  @IsIn([1, 2], { each: true })
+  @EnumArray(WarAttacksLeft, 'WarAttacksLeft')
   remaining: number[];
 
   @IsArray()
   @ArrayMinSize(1)
   @ArrayUnique()
-  @IsIn(WAR_TYPES, { each: true })
-  @ApiProperty({ enum: WAR_TYPES, isArray: true })
+  @EnumArray(ReminderWarType, 'ReminderWarType')
   warTypes: string[];
 
   /** Skip once the clan reaches 100% destruction. */
@@ -122,7 +126,7 @@ export class CapitalRaidReminderInput extends ReminderBaseInput {
 
   @IsArray()
   @ArrayUnique()
-  @IsIn([1, 2, 3, 4, 5, 6], { each: true })
+  @EnumArray(RaidAttacksLeft, 'RaidAttacksLeft')
   remaining: number[];
 }
 
