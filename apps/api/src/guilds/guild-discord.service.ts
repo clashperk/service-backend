@@ -23,11 +23,14 @@ const REMINDER_COLLECTIONS = [
 ] as const;
 
 export type Webhook = { id: string; token: string };
+type ServerChannels = { channels: APIChannel[]; threads: APIChannel[] };
 type ChannelLookup = Awaited<ReturnType<DiscordOauthService['findChannel']>>;
 
 // Unlisted channels looked up per request; more show as unknown rather than flooding Discord.
 const MAX_LOOKUPS = 25;
 const CHANNEL_LOOKUP_TTL = 5 * 60 * 1000;
+// A page load asks for the channel list several times; pickers refresh with `fresh`.
+const SERVER_CHANNELS_TTL = 30 * 1000;
 
 /** Runs `fn` over `items` with at most `limit` calls in flight, keeping their order. */
 async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>) {
@@ -57,16 +60,34 @@ export class GuildDiscordService {
     @Inject(CACHE_MANAGER) private readonly cache: Cache,
   ) {}
 
+  /** The server's channels and active threads from Discord, cached briefly unless `fresh`. */
+  private async serverChannels(guildId: string, applicationId: string | null, fresh = false) {
+    const key = `discord:server-channels:${guildId}:${applicationId ?? 'clashperk'}`;
+    if (!fresh) {
+      const cached = await this.cache.get<ServerChannels>(key);
+      if (cached) return cached;
+    }
+    const token = await this.botToken(applicationId);
+    const [channels, threads] = await Promise.all([
+      this.discordOauthService.listChannels({ guildId, token }),
+      this.discordOauthService.listActiveThreads({ guildId, token }),
+    ]);
+    const result: ServerChannels = { channels, threads };
+    await this.cache.set(key, result, SERVER_CHANNELS_TTL);
+    return result;
+  }
+
   /** Channels in Discord's order, each followed by its active threads or forum posts. */
   async listChannels(input: {
     guildId: string;
     applicationId: string | null;
+    fresh?: boolean;
   }): Promise<GuildChannelDto[]> {
-    const token = await this.botToken(input.applicationId);
-    const [channels, threads] = await Promise.all([
-      this.discordOauthService.listChannels({ guildId: input.guildId, token }),
-      this.discordOauthService.listActiveThreads({ guildId: input.guildId, token }),
-    ]);
+    const { channels, threads } = await this.serverChannels(
+      input.guildId,
+      input.applicationId,
+      input.fresh,
+    );
     const webhooks = await this.knownWebhooks(input.guildId, threads);
 
     const threadsByParent = new Map<string, APIChannel[]>();
@@ -134,8 +155,13 @@ export class GuildDiscordService {
 
   /** The bot posts wherever the record says, so the channel must be one of this server's. */
   async checkChannel(guildId: string, applicationId: string | null, channelId: string) {
-    const channels = await this.listChannels({ guildId, applicationId });
-    if (!channels.some((channel) => channel.id === channelId && channel.selectable)) {
+    const valid = (channels: GuildChannelDto[]) =>
+      channels.some((channel) => channel.id === channelId && channel.selectable);
+    // A channel made since the list was cached isn't in it yet, so a miss checks again fresh.
+    if (
+      !valid(await this.listChannels({ guildId, applicationId })) &&
+      !valid(await this.listChannels({ guildId, applicationId, fresh: true }))
+    ) {
       throw new BadRequestException(
         'Pick a text or announcement channel, or a thread, in this server.',
       );
@@ -204,10 +230,7 @@ export class GuildDiscordService {
 
   /** Category channels, where the bot opens and moves ticket channels. */
   async listCategories(input: { guildId: string; applicationId: string | null }) {
-    const channels = await this.discordOauthService.listChannels({
-      guildId: input.guildId,
-      token: await this.botToken(input.applicationId),
-    });
+    const { channels } = await this.serverChannels(input.guildId, input.applicationId);
     return channels
       .filter((channel) => channel.type === ChannelType.GuildCategory)
       .sort((a, b) => ('position' in a ? a.position : 0) - ('position' in b ? b.position : 0))
@@ -228,10 +251,7 @@ export class GuildDiscordService {
     let byId: Map<string, APIChannel>;
     try {
       token = await this.botToken(applicationId);
-      const [channels, threads] = await Promise.all([
-        this.discordOauthService.listChannels({ guildId, token }),
-        this.discordOauthService.listActiveThreads({ guildId, token }),
-      ]);
+      const { channels, threads } = await this.serverChannels(guildId, applicationId);
       byId = new Map([...channels, ...threads].map((channel) => [channel.id, channel]));
     } catch {
       // Without access to the server's channel list, nothing can be checked.

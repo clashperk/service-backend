@@ -5,6 +5,8 @@ import { AutoRolesInput, DelayExclusion } from './dto';
 import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildDiscordService } from './guild-discord.service';
 
+const noCache = { get: () => Promise.resolve(undefined), set: () => Promise.resolve() };
+
 jest.mock('@app/discord-oauth', () => ({ DiscordOauthService: class {} }));
 
 const GUILD = '111111111111111111';
@@ -255,7 +257,7 @@ describe('GuildDiscordService.checkAssignableRoles', () => {
       getGuild: () => Promise.resolve({ roles }),
       getBotMember: () => Promise.resolve({ roles: [ROLE(2)] }),
     } as never,
-    {} as never,
+    noCache as never,
   );
   const check = (roleId: string) => service.checkAssignableRoles(GUILD, null, [roleId]);
 
