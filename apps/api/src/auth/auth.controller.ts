@@ -8,6 +8,8 @@ import {
   AuthUserDto,
   BotGuildsDto,
   BotGuildsInputDto,
+  GuildAccessDto,
+  GuildAccessInputDto,
   ManagedGuildsDto,
   ManagedGuildsInputDto,
   GenerateTokenDto,
@@ -110,5 +112,14 @@ export class AuthController {
   @HttpCode(200)
   async getManagedGuilds(@Body() body: ManagedGuildsInputDto): Promise<ManagedGuildsDto> {
     return this.authService.getManagedGuilds(body.userId, body.guildIds);
+  }
+
+  @Post('/guild-access')
+  @ApiExcludeRoute()
+  @UseGuards(ApiKeyGuard)
+  @ApiKeyAuth()
+  @HttpCode(200)
+  async getGuildAccess(@Body() body: GuildAccessInputDto): Promise<GuildAccessDto> {
+    return this.authService.getGuildAccess(body);
   }
 }

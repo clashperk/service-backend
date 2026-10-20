@@ -60,3 +60,6 @@ Decided by: Suvajit. `BetaGuilds` replaces the bot's `BETA_TESTERS` GitHub varia
 
 ## 2026-10-20 — Tickets from the dashboard
 Decided by: Suvajit. The API writes `TicketPanels` and `TicketSettings` as `/ticket setup` does; the bot reads them fresh on every click, so it needs no reload. Posting stays with `/ticket post`, because the bot doesn't record where panels are posted and buttons-mode IDs live in its Redis. Type IDs are kept on every edit since posted buttons and opened tickets point at them. Fields the bot never uses (closed category, hero requirements, max accounts) are left out.
+
+## 2026-10-20 — Dashboard sessions re-check server access hourly
+Decided by: Suvajit. The dashboard checked access only when switching servers, so someone who lost Manage Server or the bot manager role kept the server while signed in. It now asks `POST /auth/guild-access` each time it renews the API token (hourly) and drops the server on `false`. A failed check keeps the server until the next renewal, so a Discord or API outage doesn't sign everyone out of their server.

@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-20 (server access re-check)
+- Add `POST /auth/guild-access` (API key): whether a user can still manage a server (owner, Administrator, Manage Server or the bot manager role), checked with the bot's token. `false` when the bot is no longer in the server; other Discord errors fail the request
+
 ## 2026-10-20 (buttons)
 - Add `GET /guilds/:guildId/buttons` and `PUT /guilds/:guildId/buttons/:buttonType` (`link`, `refresh`, `myRosters`) for the messages `/setup buttons` posts: title, description, image, thumbnail, color, button style, and for the link button whether the player token is required, optional or hidden. Stored in `Settings` (`linkEmbeds`, `refreshEmbeds`, `myRostersEmbeds`) in the bot's shape; the link settings also drive the button on welcome messages. Messages already posted keep their old look
 

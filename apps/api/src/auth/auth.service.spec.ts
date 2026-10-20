@@ -1,3 +1,4 @@
+import { HttpException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { Collections } from '../db';
 import { AuthService } from './auth.service';
@@ -152,5 +153,29 @@ describe('AuthService.getManagedGuilds', () => {
     ).resolves.toEqual({ guildIds: [GUILD] });
     // A server with no manager role set needs no Discord lookup.
     expect(discord.getMember).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('AuthService.getGuildAccess', () => {
+  const access = (service: AuthService) => service.getGuildAccess({ userId: USER, guildId: GUILD });
+
+  it('says yes for a manager and no once they lose it', async () => {
+    const manager = setup({ guild: { owner_id: USER } });
+    await expect(access(manager.service)).resolves.toEqual({ canManage: true });
+
+    const member = setup({ member: { roles: [ROLE(3)] } });
+    await expect(access(member.service)).resolves.toEqual({ canManage: false });
+  });
+
+  it('says no when the bot is gone from the server', async () => {
+    const { service, discord } = setup();
+    discord.getGuild.mockRejectedValueOnce(new HttpException('Missing Access', 403));
+    await expect(access(service)).resolves.toEqual({ canManage: false });
+  });
+
+  it('fails on other Discord errors, so the dashboard can keep the server for now', async () => {
+    const { service, discord } = setup();
+    discord.getGuild.mockRejectedValueOnce(new HttpException('Bad gateway', 502));
+    await expect(access(service)).rejects.toThrow(HttpException);
   });
 });
