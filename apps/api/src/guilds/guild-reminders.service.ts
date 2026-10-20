@@ -1,4 +1,3 @@
-import { DiscordOauthService } from '@app/discord-oauth';
 import {
   BadRequestException,
   ForbiddenException,
@@ -6,7 +5,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ChannelType } from 'discord-api-types/v10';
 import { Collection, Db, ObjectId } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
 import {
@@ -15,9 +13,8 @@ import {
   ClanWarReminderInput,
   DURATION_LIMITS,
   DURATION_STEP,
-  GuildChannelDto,
-  GuildRoleDto,
 } from './dto';
+import { GuildDiscordService, Webhook } from './guild-discord.service';
 import { ReminderSchedulesService } from './reminder-schedules.service';
 
 export type ReminderKind = 'clanWars' | 'capitalRaids' | 'clanGames';
@@ -34,10 +31,6 @@ const REMINDER_COLLECTIONS = {
   clanGames: Collections.CLAN_GAMES_REMINDERS,
 } as const;
 
-const POSTABLE_CHANNELS = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
-
-type Webhook = { id: string; token: string };
-
 type ReminderRecord = {
   _id: ObjectId;
   guild: string;
@@ -52,48 +45,9 @@ type ReminderRecord = {
 export class GuildRemindersService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
-    private readonly discordOauthService: DiscordOauthService,
+    private readonly discord: GuildDiscordService,
     private readonly schedules: ReminderSchedulesService,
   ) {}
-
-  async listChannels(input: {
-    guildId: string;
-    applicationId: string | null;
-  }): Promise<GuildChannelDto[]> {
-    const [channels, webhooks] = await Promise.all([
-      this.discordOauthService.listChannels({
-        guildId: input.guildId,
-        token: await this.botToken(input.applicationId),
-      }),
-      this.knownWebhooks(input.guildId),
-    ]);
-    return channels
-      .filter((channel) => POSTABLE_CHANNELS.includes(channel.type))
-      .map((channel) => ({
-        id: channel.id,
-        name: channel.name ?? channel.id,
-        type: channel.type,
-        parentId: 'parent_id' in channel ? (channel.parent_id ?? null) : null,
-        position: 'position' in channel ? channel.position : 0,
-        hasWebhook: webhooks.has(channel.id),
-      }))
-      .sort((a, b) => a.position - b.position);
-  }
-
-  async listRoles(input: {
-    guildId: string;
-    applicationId: string | null;
-  }): Promise<GuildRoleDto[]> {
-    const guild = await this.discordOauthService.getGuild({
-      guildId: input.guildId,
-      token: await this.botToken(input.applicationId),
-    });
-    // @everyone shares the server's ID; managed roles belong to bots and integrations.
-    return guild.roles
-      .filter((role) => role.id !== input.guildId && !role.managed)
-      .map((role) => ({ id: role.id, name: role.name, color: role.color, position: role.position }))
-      .sort((a, b) => b.position - a.position);
-  }
 
   async create<K extends ReminderKind>(
     kind: K,
@@ -101,7 +55,7 @@ export class GuildRemindersService {
   ) {
     const { guildId, body } = input;
     await this.validate(kind, guildId, body);
-    await this.checkChannel(guildId, input.applicationId, body.channelId);
+    await this.discord.checkChannel(guildId, input.applicationId, body.channelId);
     await this.checkLimit(kind, guildId);
 
     const { webhook: _, channelId, ...fields } = body;
@@ -111,7 +65,7 @@ export class GuildRemindersService {
       guild: guildId,
       channel: channelId,
       message: body.message.trim(),
-      webhook: await this.resolveWebhook(guildId, channelId, body.webhook),
+      webhook: await this.discord.resolveWebhook(guildId, channelId, body.webhook),
       createdAt: new Date(),
     };
     await this.reminders(kind).insertOne(reminder);
@@ -132,14 +86,14 @@ export class GuildRemindersService {
     const existing = await this.findOrThrow(kind, guildId, input.reminderId);
     await this.validate(kind, guildId, body);
     if (existing.channel !== body.channelId) {
-      await this.checkChannel(guildId, input.applicationId, body.channelId);
+      await this.discord.checkChannel(guildId, input.applicationId, body.channelId);
     }
 
     const { webhook: _, channelId, ...fields } = body;
     const keepWebhook = existing.channel === channelId && !body.webhook;
     const webhook = keepWebhook
       ? (existing.webhook ?? null)
-      : await this.resolveWebhook(guildId, channelId, body.webhook);
+      : await this.discord.resolveWebhook(guildId, channelId, body.webhook);
 
     const update = { ...fields, channel: channelId, message: body.message.trim(), webhook };
     // A thread belongs to the old channel, so moving the reminder drops it.
@@ -186,14 +140,6 @@ export class GuildRemindersService {
     }
   }
 
-  /** The bot posts wherever the record says, so the channel must be one of this server's. */
-  private async checkChannel(guildId: string, applicationId: string | null, channelId: string) {
-    const channels = await this.listChannels({ guildId, applicationId });
-    if (!channels.some((channel) => channel.id === channelId)) {
-      throw new BadRequestException('Pick a text or announcement channel in this server.');
-    }
-  }
-
   /** The bot's cap: 5 per clan or 25, whichever is more; supporters have none. */
   private async checkLimit(kind: ReminderKind, guildId: string) {
     const [count, clans, patron] = await Promise.all([
@@ -207,61 +153,8 @@ export class GuildRemindersService {
     }
   }
 
-  /** A webhook from Discord's sign-in must belong to this channel; otherwise reuse one ClashPerk already has there. */
-  private async resolveWebhook(
-    guildId: string,
-    channelId: string,
-    provided: Webhook | undefined,
-  ): Promise<Webhook | null> {
-    if (provided) {
-      const webhook = await this.discordOauthService.getWebhook(provided);
-      if (!webhook || webhook.guild_id !== guildId || webhook.channel_id !== channelId) {
-        throw new BadRequestException("That webhook isn't in the chosen channel.");
-      }
-      return { id: provided.id, token: provided.token };
-    }
-    // Without a webhook the bot creates one in the channel when the reminder first fires.
-    return (await this.knownWebhooks(guildId)).get(channelId) ?? null;
-  }
-
-  /** Webhooks ClashPerk already posts through in this server, by channel. */
-  private async knownWebhooks(guildId: string) {
-    const [reminders, logs] = await Promise.all([
-      Promise.all(
-        (Object.keys(REMINDER_COLLECTIONS) as ReminderKind[]).map((kind) =>
-          this.reminders(kind)
-            .find(
-              { guild: guildId, webhook: { $ne: null }, threadId: { $exists: false } },
-              { projection: { channel: 1, webhook: 1 } },
-            )
-            .toArray(),
-        ),
-      ),
-      this.db
-        .collection(Collections.CLAN_LOGS)
-        .find({ guildId, webhook: { $ne: null } }, { projection: { channelId: 1, webhook: 1 } })
-        .toArray(),
-    ]);
-    const byChannel = new Map<string, Webhook>();
-    for (const { channel, webhook } of reminders.flat()) {
-      if (webhook) byChannel.set(channel, { id: webhook.id, token: webhook.token });
-    }
-    for (const { channelId, webhook } of logs) {
-      if (webhook) byChannel.set(channelId, { id: webhook.id, token: webhook.token });
-    }
-    return byChannel;
-  }
-
   // The three reminder collections share these fields; typing them as one keeps writes generic.
   private reminders(kind: ReminderKind) {
     return this.db.collection(REMINDER_COLLECTIONS[kind]) as unknown as Collection<ReminderRecord>;
-  }
-
-  private async botToken(applicationId: string | null) {
-    if (!applicationId) return null;
-    const bot = await this.db
-      .collection(Collections.CUSTOM_BOTS)
-      .findOne({ serviceId: applicationId });
-    return bot?.token ?? null;
   }
 }

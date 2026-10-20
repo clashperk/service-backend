@@ -25,6 +25,7 @@ import {
   ReminderIdDto,
   ReorderClanCategoriesInput,
 } from './dto';
+import { GuildDiscordService } from './guild-discord.service';
 import { GuildRemindersService } from './guild-reminders.service';
 import { GuildsService } from './guilds.service';
 
@@ -36,6 +37,7 @@ export class GuildsController {
   constructor(
     private guildsService: GuildsService,
     private guildRemindersService: GuildRemindersService,
+    private guildDiscordService: GuildDiscordService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -67,7 +69,7 @@ export class GuildsController {
     @Param('guildId') guildId: string,
     @CurrentUser() user: JwtUser,
   ): Promise<GuildChannelDto[]> {
-    return this.guildRemindersService.listChannels({
+    return this.guildDiscordService.listChannels({
       guildId,
       applicationId: user.applicationId || null,
     });
@@ -78,7 +80,7 @@ export class GuildsController {
     @Param('guildId') guildId: string,
     @CurrentUser() user: JwtUser,
   ): Promise<GuildRoleDto[]> {
-    return this.guildRemindersService.listRoles({
+    return this.guildDiscordService.listRoles({
       guildId,
       applicationId: user.applicationId || null,
     });
