@@ -6,6 +6,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 import { UserRoles } from './user-roles.dto';
 
@@ -104,7 +105,8 @@ export class HandoffUserDto {
 
   isBot: boolean;
 
-  guild: HandoffGuildDto;
+  /** Null when the user can't manage the server, so the dashboard opens without one. */
+  guild: HandoffGuildDto | null;
 
   applicationId: string | null;
 
@@ -125,4 +127,14 @@ export class BotGuildDto extends HandoffGuildDto {
 
 export class BotGuildsDto {
   guilds: BotGuildDto[];
+}
+
+export class ManagedGuildsInputDto extends BotGuildsInputDto {
+  @Matches(/^\d{17,20}$/)
+  userId: string;
+}
+
+export class ManagedGuildsDto {
+  /** Servers where the user holds one of the bot manager roles. */
+  guildIds: string[];
 }

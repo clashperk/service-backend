@@ -16,6 +16,10 @@ import Redis from 'ioredis';
 import { Db } from 'mongodb';
 import { firstValueFrom } from 'rxjs';
 import { Collections, MONGODB_TOKEN, REDIS_TOKEN } from '../db';
+import { toRoleIds } from '../guilds/manager-roles';
+
+const ADMINISTRATOR = BigInt(1 << 3);
+const MANAGE_GUILD = BigInt(1 << 5);
 import {
   AuthUserDto,
   GenerateTokenDto,
@@ -177,7 +181,7 @@ export class AuthService {
       username: string;
       displayName: string;
       applicationId: string | null;
-      guild: HandoffGuildDto;
+      guild: HandoffGuildDto | null;
     };
 
     return {
@@ -201,17 +205,26 @@ export class AuthService {
       { projection: { _id: 0, name: 1, iconUrl: 1 } },
     );
 
+    // The bot links roster and links managers too; only full managers get the server.
+    const canManage = await this.canManageGuild(
+      payload.guildId,
+      user.id,
+      payload.applicationId || null,
+    ).catch(() => false);
+
     const redisKey = `${RedisKeys.HANDOFF_TOKEN}:${token}`;
     await this.redis.set(
       redisKey,
       JSON.stringify({
         userId: user.id,
-        guildId: payload.guildId,
-        guild: {
-          id: payload.guildId,
-          name: guild?.name || 'Unknown',
-          iconUrl: guild?.iconUrl || null,
-        },
+        guildId: canManage ? payload.guildId : null,
+        guild: canManage
+          ? {
+              id: payload.guildId,
+              name: guild?.name || 'Unknown',
+              iconUrl: guild?.iconUrl || null,
+            }
+          : null,
         username: user.username,
         avatar: user.avatar || null,
         applicationId: payload.applicationId || null,
@@ -252,6 +265,57 @@ export class AuthService {
         clanCount: clansByGuild.get(guild.guild as string) ?? 0,
       })),
     };
+  }
+
+  /** Owner, Administrator, Manage Server, or the bot manager role: what the dashboard requires. */
+  async canManageGuild(guildId: string, userId: string, applicationId: string | null) {
+    const bot = applicationId
+      ? await this.db.collection(Collections.CUSTOM_BOTS).findOne({ serviceId: applicationId })
+      : null;
+    const token = bot?.token ?? null;
+    const [guild, member, settings] = await Promise.all([
+      this.discordOauthService.getGuild({ guildId, token }),
+      this.discordOauthService.getMember({ guildId, userId, token }),
+      this.db
+        .collection(Collections.SETTINGS)
+        .findOne({ guildId }, { projection: { managerRole: 1 } }),
+    ]);
+    if (!member) return false;
+    if (guild.owner_id === userId) return true;
+
+    // @everyone shares the server's ID and applies to every member.
+    const roleIds = new Set([guildId, ...member.roles]);
+    const permissions = guild.roles
+      .filter((role) => roleIds.has(role.id))
+      .reduce((bits, role) => bits | BigInt(role.permissions), BigInt(0));
+    if ((permissions & (ADMINISTRATOR | MANAGE_GUILD)) !== BigInt(0)) return true;
+
+    return toRoleIds(settings?.managerRole).some((id) => member.roles.includes(id));
+  }
+
+  /**
+   * Servers where the user holds the bot manager role, which the bot treats like Manage Server.
+   * Only servers that set the role are looked up on Discord.
+   */
+  async getManagedGuilds(userId: string, guildIds: string[]) {
+    const settings = await this.db
+      .collection(Collections.SETTINGS)
+      .find(
+        { guildId: { $in: guildIds }, managerRole: { $exists: true } },
+        { projection: { guildId: 1, managerRole: 1 } },
+      )
+      .toArray();
+    const managed = await Promise.all(
+      settings.map(async ({ guildId, managerRole }) => {
+        const roleIds = toRoleIds(managerRole);
+        if (!roleIds.length) return null;
+        const member = await this.discordOauthService
+          .getMember({ guildId, userId, token: null })
+          .catch(() => null);
+        return member?.roles.some((id) => roleIds.includes(id)) ? guildId : null;
+      }),
+    );
+    return { guildIds: managed.filter((id): id is string => id !== null) };
   }
 
   async revalidateJwtUser(payload: JwtUser) {

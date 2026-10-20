@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-20 (manager roles)
+- Add `GET` and `PATCH /guilds/:guildId/managers` for the bot manager, roster manager, flags manager and links manager roles, as `/config` stores them (lists of role IDs; older single IDs read as a list; an empty list removes the role)
+- Add `POST /auth/managed-guilds` (API key): the servers, out of those given, where a user holds the bot manager role. The dashboard lets them in like Manage Server
+- `POST /auth/handoff` only puts the server in the token when the user owns it, has Administrator or Manage Server, or holds the bot manager role; otherwise the dashboard opens without a server. The bot's links reach roster and links managers too, who shouldn't get the whole server
+
 ## 2026-10-20 (server logs)
 - Add `GET /guilds/:guildId/server-logs` with the flag alert log, roster changelog, maintenance channel and welcome message, each null when not set up
 - Add `PUT` and `DELETE` for `/guilds/:guildId/server-logs/{flag-alert,roster-changelog,maintenance,welcome}`, in `/setup server-logs`'s format. Flag alerts go in `FlagAlertLogs` and set `hasFlagAlertLog`; turning the welcome message off keeps its text. Without a known webhook the record stores none and the bot creates one when it first posts

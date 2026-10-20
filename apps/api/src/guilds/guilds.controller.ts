@@ -38,6 +38,8 @@ import {
   ListMemberDto,
   ReminderIdDto,
   ReorderClanCategoriesInput,
+  ManagerRolesDto,
+  ManagerRolesInput,
   FlagAlertLogInput,
   MaintenanceLogInput,
   ServerLogChannelInput,
@@ -49,6 +51,7 @@ import { GuildClansService } from './guild-clans.service';
 import { GuildFlagsService } from './guild-flags.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildLogsService } from './guild-logs.service';
+import { GuildManagersService } from './guild-managers.service';
 import { GuildRemindersService } from './guild-reminders.service';
 import { GuildServerLogsService } from './guild-server-logs.service';
 import { GuildsService } from './guilds.service';
@@ -67,6 +70,7 @@ export class GuildsController {
     private guildAutoRolesService: GuildAutoRolesService,
     private guildFlagsService: GuildFlagsService,
     private guildServerLogsService: GuildServerLogsService,
+    private guildManagersService: GuildManagersService,
   ) {}
 
   @Get('/:guildId/clans')
@@ -498,5 +502,23 @@ export class GuildsController {
     @CurrentUser() user: JwtUser,
   ): Promise<ServerLogsDto> {
     return this.guildServerLogsService.delete(guildId, user.applicationId || null, 'welcomeLog');
+  }
+
+  @Get('/:guildId/managers')
+  getManagerRoles(@Param('guildId') guildId: string): Promise<ManagerRolesDto> {
+    return this.guildManagersService.get(guildId);
+  }
+
+  @Patch('/:guildId/managers')
+  saveManagerRoles(
+    @Param('guildId') guildId: string,
+    @Body() body: ManagerRolesInput,
+    @CurrentUser() user: JwtUser,
+  ): Promise<ManagerRolesDto> {
+    return this.guildManagersService.save({
+      guildId,
+      body,
+      applicationId: user.applicationId || null,
+    });
   }
 }

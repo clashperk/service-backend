@@ -8,6 +8,8 @@ import {
   AuthUserDto,
   BotGuildsDto,
   BotGuildsInputDto,
+  ManagedGuildsDto,
+  ManagedGuildsInputDto,
   GenerateTokenDto,
   GenerateTokenInputDto,
   HandoffTokenDto,
@@ -99,5 +101,14 @@ export class AuthController {
   @HttpCode(200)
   async getBotGuilds(@Body() body: BotGuildsInputDto): Promise<BotGuildsDto> {
     return this.authService.getBotGuilds(body.guildIds);
+  }
+
+  @Post('/managed-guilds')
+  @ApiExcludeRoute()
+  @UseGuards(ApiKeyGuard)
+  @ApiKeyAuth()
+  @HttpCode(200)
+  async getManagedGuilds(@Body() body: ManagedGuildsInputDto): Promise<ManagedGuildsDto> {
+    return this.authService.getManagedGuilds(body.userId, body.guildIds);
   }
 }
