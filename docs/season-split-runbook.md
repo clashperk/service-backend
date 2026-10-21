@@ -1,83 +1,57 @@
-# Season split runbook (2026-10-31)
+# Season split runbook
 
-Renames the stored 28-day `YYYY-MM` season ids to start dates (`2026-11` → `2026-10-05`), so that from 2026-11-01 `YYYY-MM` means a calendar month again. The full plan is `docs/season-split-plan.md` in the bot repo.
+Renames the stored 28-day `YYYY-MM` season ids to the season's start date (`2026-11` → `2026-10-05`). The `YYYY-MM` label advanced a month per 28-day season, so it no longer matched the dates it covered. The full plan is `docs/season-split-plan.md` in the bot repo.
 
-Script: `npm run season-split -- <step> [--apply]`, using `MONGODB_URL`, `MONGODB_DATABASE` and `CLICKHOUSE_*` from `.env`.
+## Ids after the split
 
-- Without `--apply`, a write step only prints what it would do. ClickHouse also runs read-only then.
-- `plan` and `verify` never write.
-- Every step goes newest to oldest.
+| Kind | Format | Stores |
+|---|---|---|
+| 28-day league season | `YYYY-MM-DD` (start date) | Mongo `PlayerSeasons.season`, `LegendAttacks.seasonId`, `PlayerRanks` / `ClanRanks` / `CapitalRanks` `.season`; CH `battle_logs.battle_season`, `legend_players.seasonId`, `legend_players_projected` / `legend_players_ranked` / `legend_players_ranked_projected` `.battle_season` |
+| Calendar month | `YYYY-MM` (unchanged) | `Players.seasons.<key>` (activity), `ClanWars`, `ClanGames`, `ClanGamesPoints`, `CapitalContributions`, `CWLGroups` |
 
-## What changes
+- Ids from before the 28-day seasons keep their labels: `PlayerSeasons` before `2025-09`, ranks before `2025-11`.
+- Every service reads `SEASON_SPLIT`. Off means today's ids; `SEASON_SPLIT=1` means the ids above.
 
-| Store | Change |
+## Script
+
+`npm run season-split -- <step> [--apply] [--ids=2026-11,2026-10]`, using `MONGODB_URL`, `MONGODB_DATABASE` and `CLICKHOUSE_*` from `.env`.
+
+| Step | What it does |
 |---|---|
-| `LegendAttacks.seasonId`, `PlayerSeasons.season` | ids `2025-09` … current → start dates |
-| `PlayerRanks`, `ClanRanks`, `CapitalRanks` `.season` | ids `2025-11` … current → start dates. Older snapshots were taken on the old last-Monday resets and keep their labels |
-| `Players.seasons.<key>` | same keys renamed (`$rename`) |
-| `PlayerLeagueSeasons` (new) | unique `{tag, seasonId}` and `{seasonId}` indexes, plus trophies backfilled from every `PlayerSeasons` doc (legacy ids mapped too) |
-| `SeasonIdMap` (new) | the mapping, plus a `rename-complete` marker that stops a second rename |
-| CH `battle_logs` | default → start date. Existing ids rewritten one season and month partition at a time |
-| CH `legend_players`, `legend_players_projected` | rebuilt `PARTITION BY` season (so duplicates finally merge), latest row per player kept, rows dated 2070 dropped. The MV is dropped and recreated around the swap |
-| CH `legend_players_ranked(_projected)` | rebuilt with start-date partitions |
+| `plan` | Read-only counts per id, and checks that no new id exists yet. |
+| `backup` | Mongo: copies `_id` plus the id field to `<collection>_bak_season_split`. CH: hard-links `battle_logs` partitions into `battle_logs_bak_season_split`. The first backup is kept. |
+| `mongo` | Renames ids newest first (`PlayerSeasons` in 50k batches). It records each renamed id in `SeasonIdMap` and never renames it twice. |
+| `clickhouse` | Sets the `battle_logs.battle_season` default to the start date, and rewrites the selected ids one month-partition at a time. Rebuilds the legend tables partitioned by season (latest row per player, 2070 rows dropped), swaps them in with `EXCHANGE`, keeps the old ones as `*_bak_season_split`, and recreates the MV. |
+| `verify` | Read-only. Counts against the backups, no old ids left in the selection, 20 sampled docs per collection. |
+| `rollback` | Reverses every renamed id from `SeasonIdMap`, swaps the ClickHouse tables back, and restores the old default. |
 
-**Backups:**
-- Mongo: `<collection>_bak_season_split`, holding only `_id` plus the id field.
-- ClickHouse: `battle_logs_bak_season_split`, made from hard-linked partitions, so it's cheap.
-- The rebuilt ClickHouse tables keep their old copy under the same suffix.
+Without `--apply`, write steps only print what they would do, and ClickHouse runs read-only. `--ids` limits a step to those legacy ids.
 
-Drop the backups after a week of clean reads.
+## Rollout
 
-## Before the window
+1. Deploy the worker, API, Go legend tracker and bot (plus custom bots) with `SEASON_SPLIT` **unset**.
+2. `plan`. It must end with `plan: ok`.
+3. **Pause** the backend worker and the Go `legend` / `battle-logs` trackers. The API and bot stay up.
+4. Current and previous season only:
+   1. `backup --apply --ids=2026-11,2026-10`
+   2. `mongo --apply --ids=2026-11,2026-10`
+   3. `clickhouse --apply --ids=2026-11,2026-10`
+   4. `verify --ids=2026-11,2026-10`. It must end with `verify: ok`.
+5. Set `SEASON_SPLIT=1`:
+   - worker and API: `.env`;
+   - Go legend tracker: `.env`;
+   - bot: `.env`;
+   - custom bots: `SHARED_ENV_SEASON_SPLIT=1` in `docker-service/.env.services.env`, then recreate `docker-service` and call `POST /services/migrate`.
 
-1. Deploy these, so that each one writes start dates once switched on:
-   - backend worker (#52) with `SEASON_SPLIT` **off**;
-   - the backend API;
-   - the Go legend and battle-log trackers;
-   - the bot.
+   Restart the services, then run the bot's `npm run deploy`.
+6. **Resume** the writers.
+7. Online, older seasons: `mongo --apply`, then `clickhouse --apply`, then `verify`.
 
-   PRs:
-   - Go legend tracker: clashperk/metrics-backend#51 (`util.LeagueSeasonID`).
-   - This API: `Season.leagueId` for legend tasks and attacks; battle-log leaderboard accepts start dates.
-   - The bot's readers: separate PR in clashperk/clashperk.
-
-   All four read `SEASON_SPLIT`, so they deploy with it off and switch together.
-2. `npm run season-split -- plan`. It must end `plan: ok`; any "already has <start date>" is a collision to resolve first.
-
-## Window (Oct 31, before 2026-11-01 00:00 UTC)
-
-1. Pause every writer:
-   - backend worker trackers;
-   - the API cron (`CRONJOB_ENABLED=0`; the `*/15` legend ranking job writes `legend_players_ranked`);
-   - Go legend and battle-log trackers.
-2. Run the steps:
-   1. `npm run season-split -- plan`
-   2. `npm run season-split -- backup --apply`
-   3. `npm run season-split -- mongo --apply`. A duplicate-key error stops it: inspect, never retry with upsert.
-   4. `npm run season-split -- league --apply`
-   5. `npm run season-split -- clickhouse --apply`
-   6. `npm run season-split -- verify`. It must end `verify: ok`.
-3. Set `SEASON_SPLIT=1` on the worker, the API, the Go legend tracker and the bot, restart them, then resume all writers.
-
-Each write step is safe to run again: finished renames and rebuilt tables are skipped. The exception is `mongo` after it has completed, which refuses.
-
-## Rollback
-
-Only while the writers are still paused:
-
-```bash
-npm run season-split -- rollback --apply
-```
-
-What it does:
-- **Mongo:** restores the ids from the backups and clears the marker.
-- **ClickHouse:** swaps the rebuilt tables back. The split versions are kept as `<table>_split_rolled_back`.
-- **`battle_logs`:** turns its ids back into `YYYY-MM` and restores the old default.
-
-`PlayerLeagueSeasons` is left in place; drop it by hand if needed.
+**If `verify` fails in step 4,** run `rollback --apply` while the writers are still paused and the flag is off.
 
 ## Known gaps carried over
 
-These were already wrong before the migration; it neither fixes nor worsens them:
+These were already wrong before the migration:
 - `legend_players` 2025-10 rows start 2025-09-29, and 2025-10 / 2025-11 overlap between 10-27 and 11-03.
-- `PlayerSeasons` docs written under the previous season's id on 2026-06-27 → 07-07 and 2026-08-01/02.
+- `PlayerSeasons` docs were written under the previous season's id on 2026-06-27 → 07-07 and 2026-08-01/02.
+- `Players.seasons.2026-11` holds Oct 5 onward and `2026-10` holds Sep 7 – Oct 5. After the split, both keep receiving their calendar month on top. That's accepted as minor.
