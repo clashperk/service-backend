@@ -2,13 +2,33 @@ import { Injectable, Logger } from '@nestjs/common';
 import { QueueThrottler, RequestHandler, RestManager, Util } from 'clashofclans.js';
 import { getInflightLimiter } from './inflight-limiter';
 
+// Stats move from league seasons to calendar months at this instant.
+const MONTHLY_STATS_FROM = Date.UTC(2026, 10, 1);
+
 export class Season extends Util {
-  public static get ID() {
-    return this.getSeason().seasonId;
+  // Off until the stored 28-day YYYY-MM ids are renamed to start dates, or new ids would duplicate them.
+  public static get split() {
+    return process.env.SEASON_SPLIT === '1';
+  }
+
+  /** Id for trophy league data (trophies, ranks): the league season's start date. */
+  public static get leagueId() {
+    return this.split ? this.getLeagueSeason().id : this.getSeason().seasonId;
+  }
+
+  /** Whether PlayerSeasons and activity counts are keyed by calendar month. */
+  public static get monthlyStats() {
+    return this.split && Date.now() >= MONTHLY_STATS_FROM;
+  }
+
+  /** Id for PlayerSeasons and activity counts: the calendar month once monthly stats start. */
+  public static get statsId() {
+    if (!this.split) return this.getSeason().seasonId;
+    return this.monthlyStats ? this.getMonth().id : this.getLeagueSeason().id;
   }
 
   public static get ending() {
-    const startTimestamp = this.getSeason().startTime.getTime();
+    const startTimestamp = this.getLeagueSeason().startTime.getTime();
     return new Date(startTimestamp + 60 * 60 * 1000).getTime() > Date.now();
   }
 
