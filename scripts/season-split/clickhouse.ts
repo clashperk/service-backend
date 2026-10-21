@@ -1,6 +1,6 @@
 import { ClickHouseClient } from '@clickhouse/client';
 import { BACKUP_SUFFIX, Context } from './context';
-import { isLegacyId, mapLegacyId, SeasonIdMapping } from './mapping';
+import { isLegacyId, isSelected, mapLegacyId, SeasonIdMapping } from './mapping';
 
 const ANCHOR = "toDateTime('2025-10-06 05:00:00', 'UTC')";
 const BATTLE_SEASON_DEFAULT = `formatDateTime(${ANCHOR} + toIntervalSecond(intDiv(dateDiff('second', ${ANCHOR}, ingested_at), 2419200) * 2419200), '%Y-%m-%d', 'UTC')`;
@@ -134,7 +134,9 @@ const updateBattleLogs = async (ch: ClickHouseClient, ctx: Context) => {
     }),
   );
 
-  const legacy = (await distinctIds(ch, COLUMNS[0])).filter(({ id }) => isLegacyId(id));
+  const legacy = (await distinctIds(ch, COLUMNS[0])).filter(
+    ({ id }) => isLegacyId(id) && isSelected(id),
+  );
   for (const { id, n } of legacy) {
     const mapping = mapLegacyId(id);
     for (const partition of monthPartitions(mapping)) {
@@ -152,7 +154,9 @@ const updateBattleLogs = async (ch: ClickHouseClient, ctx: Context) => {
   }
 
   if (!ctx.apply) return;
-  const left = (await distinctIds(ch, COLUMNS[0])).filter(({ id }) => isLegacyId(id));
+  const left = (await distinctIds(ch, COLUMNS[0])).filter(
+    ({ id }) => isLegacyId(id) && isSelected(id),
+  );
   if (!left.length) return;
   // Rows outside their season's month partitions; one pass over the whole table catches them.
   const mappings = left.map(({ id }) => mapLegacyId(id));
@@ -273,7 +277,7 @@ export const verifyClickhouse = async (ch: ClickHouseClient, ctx: Context) => {
   for (const source of COLUMNS) {
     const live = await distinctIds(ch, source);
     for (const { id } of live) {
-      if (!START_DATE.test(id)) ctx.problem(`${source.table} still has '${id}'`);
+      if (!START_DATE.test(id) && isSelected(id)) ctx.problem(`${source.table} still has '${id}'`);
     }
 
     const backup = source.table + BACKUP_SUFFIX;
@@ -303,6 +307,7 @@ export const verifyClickhouse = async (ch: ClickHouseClient, ctx: Context) => {
 
     console.log(`\n${source.table} (backup -> live)`);
     for (const { id, n } of before) {
+      if (isLegacyId(id) && !isSelected(id)) continue;
       const target = targetOf(id);
       const now = after.get(target) ?? 0;
       console.log(`  ${id} (${n}) -> ${target} (${now})`);

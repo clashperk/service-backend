@@ -20,6 +20,28 @@ export const mapLegacyId = (legacyId: string): SeasonIdMapping => {
   return { legacyId, seasonId: id, startTime, endTime };
 };
 
+let selected: Set<string> | null = null;
+
+/** Limits every step to these legacy ids (--ids), e.g. only the current season while writers are paused. */
+export const selectIds = (ids: string[]) => {
+  if (ids.some((id) => !isLegacyId(id)))
+    throw new Error(`--ids takes legacy YYYY-MM ids, got ${ids.join(',')}`);
+  selected = new Set(ids);
+};
+
+export const isSelected = (legacyId: string) => !selected || selected.has(legacyId);
+
+/** Every legacy 28-day id, ignoring --ids. */
+export const legacyIdsFromAll = () => {
+  const saved = selected;
+  selected = null;
+  try {
+    return legacyIdsFrom(FIRST_28_DAY_ID);
+  } finally {
+    selected = saved;
+  }
+};
+
 /** Legacy ids from the one the old code writes now back to `from`, newest first. */
 export const legacyIdsFrom = (from: string): string[] => {
   const current = Util.getSeason().seasonId;
@@ -31,5 +53,5 @@ export const legacyIdsFrom = (from: string): string[] => {
   ) {
     ids.unshift(month.id);
   }
-  return ids;
+  return ids.filter(isSelected);
 };

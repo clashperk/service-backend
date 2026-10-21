@@ -5,6 +5,7 @@ import {
   FIRST_28_DAY_RANK_ID,
   isLegacyId,
   legacyIdsFrom,
+  legacyIdsFromAll,
   mapLegacyId,
   SeasonIdMapping,
 } from './mapping';
@@ -202,7 +203,17 @@ export const renameMongo = async (db: Db, ctx: Context) => {
     return;
   }
 
-  const all = mappingsFrom(FIRST_28_DAY_ID);
+  // Once renamed, an id is never renamed again: after 2026-11-01 a YYYY-MM id may be a calendar month.
+  const done = new Set(
+    (
+      await db
+        .collection<{ legacyId: string }>(SEASON_ID_MAP)
+        .find({ renamedAt: { $exists: true } })
+        .toArray()
+    ).map((doc) => doc.legacyId),
+  );
+  for (const legacyId of done) console.log(`skip: ${legacyId} was already renamed`);
+  const all = mappingsFrom(FIRST_28_DAY_ID).filter((m) => !done.has(m.legacyId));
   await ctx.write(`store ${all.length} mappings in ${SEASON_ID_MAP}`, () =>
     db.collection(SEASON_ID_MAP).bulkWrite(
       all.map((mapping) => ({
@@ -217,7 +228,9 @@ export const renameMongo = async (db: Db, ctx: Context) => {
 
   for (const target of TARGETS) {
     const coll = db.collection(target.collection);
-    for (const { legacyId, seasonId } of mappingsFrom(target.from)) {
+    for (const { legacyId, seasonId } of mappingsFrom(target.from).filter(
+      (m) => !done.has(m.legacyId),
+    )) {
       const pending = await coll.countDocuments({ [target.field]: legacyId });
       if (!pending) continue;
 
@@ -251,11 +264,21 @@ export const renameMongo = async (db: Db, ctx: Context) => {
   }
 
   if (ctx.problems.length) return;
-  await ctx.write(`mark the rename complete in ${SEASON_ID_MAP}`, () =>
+  const renamed = all.map((m) => m.legacyId);
+  await ctx.write(`record ${renamed.join(', ')} as renamed`, () =>
     db
-      .collection<{ _id: string; at: Date }>(SEASON_ID_MAP)
-      .insertOne({ _id: RENAME_MARKER, at: new Date() }),
+      .collection(SEASON_ID_MAP)
+      .updateMany({ legacyId: { $in: renamed } }, { $set: { renamedAt: new Date() } }),
   );
+
+  const remaining = legacyIdsFromAll().filter((id) => !done.has(id) && !renamed.includes(id));
+  if (ctx.apply && !remaining.length) {
+    await ctx.write(`every id is renamed; mark the rename complete in ${SEASON_ID_MAP}`, () =>
+      db
+        .collection<{ _id: string; at: Date }>(SEASON_ID_MAP)
+        .insertOne({ _id: RENAME_MARKER, at: new Date() }),
+    );
+  }
 };
 
 /** The id a PlayerSeasons doc's trophies belong to, or null for calendar-month docs. */
@@ -394,7 +417,8 @@ export const verifyMongo = async (db: Db, ctx: Context) => {
     .toArray();
   console.log(`\n${PLAYER_LEAGUE_SEASONS}`);
   for (const { _id, n } of leagueCounts) console.log(`  ${_id}: ${n}`);
-  if (!leagueCounts.length) ctx.problem(`${PLAYER_LEAGUE_SEASONS} is empty`);
+  if (!leagueCounts.length && (await renameDone(db)))
+    ctx.problem(`${PLAYER_LEAGUE_SEASONS} is empty`);
 };
 
 /** Restores the renamed ids from the backups. Run only while the writers are still paused. */
