@@ -1,4 +1,4 @@
-import { ClashClientService } from '@app/clash-client';
+import { ClashClientService, Season } from '@app/clash-client';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import Redis from 'ioredis';
@@ -158,7 +158,7 @@ export class PlayersService {
             AND battle_season = {seasonId: String}
           ORDER BY trophies DESC
         `,
-        query_params: { playerTags, seasonId },
+        query_params: { playerTags, seasonId: Season.toLeagueId(seasonId) },
       })
       .then((res) => res.json<{ tag: string; name: string; trophies: string }>());
 

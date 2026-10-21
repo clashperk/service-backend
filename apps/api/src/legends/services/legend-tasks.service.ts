@@ -1,6 +1,6 @@
+import { Season } from '@app/clash-client';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Util } from 'clashofclans.js';
 import Redis from 'ioredis';
 import moment from 'moment';
 import { CLICKHOUSE_TOKEN, REDIS_TOKEN } from '../../db';
@@ -76,7 +76,7 @@ export class LegendTasksService {
 
   private async aggregateRanksThresholds() {
     const ranks = POSSIBLE_RANKS.filter((rank) => rank <= MAX_LIMIT);
-    const { seasonId } = Util.getSeason();
+    const seasonId = Season.leagueId;
 
     const rows = await this.clickhouseClient
       .query({
@@ -114,7 +114,7 @@ export class LegendTasksService {
   }
 
   public async getRanksByPlayerTags(tags: string[]) {
-    const { seasonId } = Util.getSeason();
+    const seasonId = Season.leagueId;
 
     const rows = await this.clickhouseClient
       .query({
@@ -126,6 +126,7 @@ export class LegendTasksService {
             rank
           FROM legend_players_ranked
           WHERE player_tag IN {tags: Array(String)}
+            AND battle_season = {seasonId: String}
         `,
         query_params: {
           tags,
@@ -169,7 +170,7 @@ export class LegendTasksService {
         WHERE battle_season = {seasonId: String};
       `,
         query_params: {
-          seasonId: Util.getSeason().seasonId,
+          seasonId: Season.leagueId,
         },
       })
       .then((res) => res.text());
@@ -182,7 +183,7 @@ export class LegendTasksService {
         FROM legend_players_ranked_projected;
       `,
         query_params: {
-          seasonId: Util.getSeason().seasonId,
+          seasonId: Season.leagueId,
         },
       })
       .then((res) => res.text());

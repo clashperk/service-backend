@@ -1,5 +1,5 @@
+import { Season } from '@app/clash-client';
 import { Inject, Injectable } from '@nestjs/common';
-import { Util } from 'clashofclans.js';
 import { Db } from 'mongodb';
 import { Collections, MONGODB_TOKEN } from '../db';
 import { GetLegendAttacksInputDto, LegendAttacksDto } from '../players/dto';
@@ -12,7 +12,7 @@ export class LegendsService {
     const items = await this.db
       .collection(Collections.LEGEND_ATTACKS)
       .aggregate<LegendAttacksDto>([
-        { $match: { tag: { $in: input.playerTags }, seasonId: Util.getSeasonId() } },
+        { $match: { tag: { $in: input.playerTags }, seasonId: Season.leagueId } },
         {
           $project: {
             _id: 0,

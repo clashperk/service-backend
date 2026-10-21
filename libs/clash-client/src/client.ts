@@ -16,6 +16,13 @@ export class Season extends Util {
     return this.split ? this.getLeagueSeason().id : this.getSeason().seasonId;
   }
 
+  /** A league season id in the scheme in use: start date once split, legacy YYYY-MM before. Accepts either. */
+  public static toLeagueId(id: string) {
+    const legacy = /^\d{4}-\d{2}$/.test(id);
+    if (this.split) return legacy ? this.getLeagueSeasonById(id).id : id;
+    return legacy ? id : this.getSeason(new Date(`${id}T05:00:00.000Z`)).seasonId;
+  }
+
   /** Whether PlayerSeasons and activity counts are keyed by calendar month. */
   public static get monthlyStats() {
     return this.split && Date.now() >= MONTHLY_STATS_FROM;

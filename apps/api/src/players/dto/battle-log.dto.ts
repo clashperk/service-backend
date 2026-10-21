@@ -41,9 +41,10 @@ export class BattleLogAggregateItemsDto {
 
 export class BattleLogLeaderboardInputDto {
   /**
-   * @example "2026-05"
+   * The league season's start date. A legacy `YYYY-MM` season id is still accepted.
+   * @example "2026-10-05"
    */
-  @Matches(/^\d{4}-\d{2}$/, { message: 'seasonId must be in YYYY-MM format' })
+  @Matches(/^\d{4}-\d{2}(-\d{2})?$/, { message: 'seasonId must be in YYYY-MM-DD format' })
   seasonId: string;
 
   @IsString({ each: true })
