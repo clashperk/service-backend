@@ -36,4 +36,13 @@ describe('Season ids', () => {
     at('2026-11-30T06:00:00Z');
     expect(Season.statsId).toBe('2026-11');
   });
+
+  it('normalises a league season id to the scheme in use', () => {
+    expect(Season.toLeagueId('2026-11')).toBe('2026-11');
+    expect(Season.toLeagueId('2026-10-05')).toBe('2026-11');
+
+    process.env.SEASON_SPLIT = '1';
+    expect(Season.toLeagueId('2026-11')).toBe('2026-10-05');
+    expect(Season.toLeagueId('2026-10-05')).toBe('2026-10-05');
+  });
 });

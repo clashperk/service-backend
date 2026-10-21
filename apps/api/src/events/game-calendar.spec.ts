@@ -2,8 +2,8 @@ import { clanGamesWindow, latestClanGamesSeason, upcomingEvents } from './game-c
 
 jest.mock('@app/clash-client', () => ({
   Season: {
-    getSeason: () => ({
-      seasonId: '2026-10',
+    getLeagueSeason: () => ({
+      id: '2026-09-28',
       startTime: new Date('2026-09-28T05:00:00Z'),
       endTime: new Date('2026-10-26T05:00:00Z'),
     }),

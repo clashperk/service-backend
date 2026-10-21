@@ -4,8 +4,8 @@ import { IsOptional, IsString, Matches } from 'class-validator';
 export class CapitalContributionInputDto {
   @IsOptional()
   @IsString()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/)
-  @ApiProperty({ required: false, example: '2026-09-25' })
+  @Matches(/^\d{4}-\d{2}$/)
+  @ApiProperty({ required: false, example: '2026-09' })
   season?: string;
 }
 

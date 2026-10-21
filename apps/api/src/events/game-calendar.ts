@@ -65,7 +65,7 @@ export interface GameEvent {
 
 /** Each recurring event that is running now or comes next, soonest change first. */
 export function upcomingEvents(now: Date): GameEvent[] {
-  const season = Season.getSeason(now);
+  const season = Season.getLeagueSeason(now);
   const events: GameEvent[] = [
     { type: 'season', startTime: season.startTime, endTime: season.endTime },
     { type: 'raid_weekend', ...currentOrNextRaidWeekend(now) },

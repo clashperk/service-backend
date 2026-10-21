@@ -36,10 +36,12 @@ Drop the backups after a week of clean reads.
    - the Go legend and battle-log trackers;
    - the bot.
 
-   **Not done yet:**
-   - Go `LegendAttacks.seasonId` / `legend_players.seasonId`.
-   - The API's legend tasks (`REPLACE PARTITION`, `Util.getSeasonId()`) and its battle-log leaderboard `seasonId` regex.
-   - The bot's readers.
+   PRs:
+   - Go legend tracker: clashperk/metrics-backend#51 (`util.LeagueSeasonID`).
+   - This API: `Season.leagueId` for legend tasks and attacks; battle-log leaderboard accepts start dates.
+   - The bot's readers: separate PR in clashperk/clashperk.
+
+   All four read `SEASON_SPLIT`, so they deploy with it off and switch together.
 2. `npm run season-split -- plan`. It must end `plan: ok`; any "already has <start date>" is a collision to resolve first.
 
 ## Window (Oct 31, before 2026-11-01 00:00 UTC)
@@ -55,7 +57,7 @@ Drop the backups after a week of clean reads.
    4. `npm run season-split -- league --apply`
    5. `npm run season-split -- clickhouse --apply`
    6. `npm run season-split -- verify`. It must end `verify: ok`.
-3. Set `SEASON_SPLIT=1` on the worker, switch the Go trackers and the API to start-date ids, then resume all writers.
+3. Set `SEASON_SPLIT=1` on the worker, the API, the Go legend tracker and the bot, restart them, then resume all writers.
 
 Each write step is safe to run again: finished renames and rebuilt tables are skipped. The exception is `mongo` after it has completed, which refuses.
 
