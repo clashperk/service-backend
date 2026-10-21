@@ -2,7 +2,7 @@ export interface PlayerLeagueSeasonEntity {
   name: string;
   tag: string;
   seasonId: string;
-  leagueId: number;
+  leagueId?: number;
   trophies: {
     initial: number;
     current: number;

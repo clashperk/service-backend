@@ -85,7 +85,7 @@ export class RankingService {
 
         operations.push({
           updateOne: {
-            filter: { countryCode: location.countryCode, season: Season.leagueId },
+            filter: { countryCode: location.countryCode, season: Season.statsId },
             update: {
               $set: {
                 country: location.name,
