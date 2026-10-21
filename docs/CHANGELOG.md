@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-22 (tickets for every server)
+- Ticket panel endpoints (`/guilds/:guildId/tickets/...`) work for every server, not only beta ones; they no longer return 403. Posting a panel is still up to the bot's `/ticket post`, which only beta servers have
+
 ## 2026-10-22 (league season ids without SEASON_SPLIT)
 - No API changes. League season ids are always the season's start date (`YYYY-MM-DD`) and activity is always keyed by calendar month; the `SEASON_SPLIT` env var is no longer read and can be dropped from `.env`
 - Remove the finished `season-split` migration script (`npm run season-split`) and its runbook
