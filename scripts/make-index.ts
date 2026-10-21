@@ -11,7 +11,9 @@ const makeIndex = (directory: string) => {
 
   const files = fs
     .readdirSync(dirPath)
-    .filter((file) => file !== INDEX_FILE_NAME && !file.endsWith('.json'));
+    .filter(
+      (file) => file !== INDEX_FILE_NAME && !file.endsWith('.json') && !file.endsWith('.spec.ts'),
+    );
   console.log(`Found ${files.length} files`);
 
   if (!files.length) return;
