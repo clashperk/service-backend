@@ -35,4 +35,12 @@ describe('Season ids', () => {
     expect(Season.toLeagueId('2026-11')).toBe('2026-10-05');
     expect(Season.toLeagueId('2026-10-05')).toBe('2026-10-05');
   });
+
+  it('keys activity by calendar month once split', () => {
+    at('2026-11-10T00:00:00Z');
+    expect(Season.activityId).toBe('2026-12');
+
+    process.env.SEASON_SPLIT = '1';
+    expect(Season.activityId).toBe('2026-11');
+  });
 });

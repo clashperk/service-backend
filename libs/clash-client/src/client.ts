@@ -20,6 +20,11 @@ export class Season extends Util {
     return legacy ? id : this.getSeason(new Date(`${id}T05:00:00.000Z`)).seasonId;
   }
 
+  /** Id for Players.seasons activity counts: the UTC calendar month once split. */
+  public static get activityId() {
+    return this.split ? this.monthId : this.getSeason().seasonId;
+  }
+
   public static get ending() {
     const startTimestamp = this.getLeagueSeason().startTime.getTime();
     return new Date(startTimestamp + 60 * 60 * 1000).getTime() > Date.now();

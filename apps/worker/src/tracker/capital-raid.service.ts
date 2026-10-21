@@ -188,7 +188,7 @@ export class CapitalRaidService {
     if (cached && this.getWeekId(season.startTime) === cached.weekId) {
       const collection = this.db.collection(Collections.PLAYERS);
       const ops: AnyBulkWriteOperation<any>[] = [];
-      const seasonId = Season.leagueId;
+      const seasonId = Season.activityId;
       for (const m of season.members) {
         const oldMember = cached.members.find((mem) => mem.tag === m.tag);
         if (oldMember?.attacks === m.attacks) continue;

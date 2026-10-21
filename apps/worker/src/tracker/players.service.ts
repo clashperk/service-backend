@@ -253,7 +253,7 @@ export class PlayersService {
               ...(player.clan && { clan: { name: player.clan.name, tag: player.clan.tag } }),
               lastSeen: new Date(),
             },
-            $inc: { [`seasons.${payload.seasonId}`]: 1 },
+            $inc: { [`seasons.${Season.activityId}`]: 1 },
           },
         );
       }
