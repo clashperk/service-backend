@@ -21,7 +21,8 @@
     "prebuild": "ts-node scripts/make-index.ts",
     "migrate:clickhouse": "ts-node -r tsconfig-paths/register scripts/migrate-clickhouse.ts up",
     "migrate:clickhouse:status": "ts-node -r tsconfig-paths/register scripts/migrate-clickhouse.ts status",
-    "release": "./scripts/release.sh"
+    "release": "./scripts/release.sh",
+    "season-split": "ts-node -r tsconfig-paths/register scripts/season-split/index.ts"
   },
   "dependencies": {
     "@clickhouse/client": "^1.18.3",
