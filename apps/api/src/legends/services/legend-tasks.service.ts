@@ -188,18 +188,6 @@ export class LegendTasksService {
       })
       .then((res) => res.text());
 
-    // await this.clickhouseClient
-    //   .query({
-    //     query: `
-    //     ALTER TABLE legend_players_ranked
-    //     DROP PARTITION '2026-04';
-    //   `,
-    //     query_params: {
-    //       seasonId: Util.getSeason().seasonId,
-    //     },
-    //   })
-    //   .then((res) => res.text());
-
     this.logger.log('Calculated legend ranks snapshot');
   }
 
