@@ -17,7 +17,12 @@ import { APIClan, APIPlayer } from 'clashofclans.js';
 import Redis from 'ioredis';
 import chunk from 'lodash/chunk';
 import { AnyBulkWriteOperation, Db, InsertOneModel, UpdateFilter, UpdateOneModel } from 'mongodb';
-import { CapitalContributionEntity, ClanGamesEntity, PlayerSeasonEntity } from '../db';
+import {
+  CapitalContributionEntity,
+  ClanGamesEntity,
+  PlayerLeagueSeasonEntity,
+  PlayerSeasonEntity,
+} from '../db';
 import { Collections, MONGODB_TOKEN } from '../db/mongodb.module';
 import { REDIS_PUB_TOKEN, REDIS_TOKEN } from '../db/redis.module';
 import { RedisService } from '../db/redis.service';
@@ -98,6 +103,7 @@ export class PlayersService {
 
   public async exec(clan: APIClan, members: PartialMember[] = [], scheduled = false) {
     const seasonOperations: AnyBulkWriteOperation<PlayerSeasonEntity>[] = [];
+    const leagueOperations: AnyBulkWriteOperation<PlayerLeagueSeasonEntity>[] = [];
     const contributionOperations: AnyBulkWriteOperation<CapitalContributionEntity>[] = [];
     const clanGamesOperations: AnyBulkWriteOperation<ClanGamesEntity>[] = [];
 
@@ -110,6 +116,9 @@ export class PlayersService {
       const operation = await this._fetchMembers(player, clan);
       if (operation.seasonOps.length) {
         seasonOperations.push(...operation.seasonOps);
+      }
+      if (operation.leagueOps.length) {
+        leagueOperations.push(...operation.leagueOps);
       }
       if (operation.clanGamesOps.length) {
         clanGamesOperations.push(...operation.clanGamesOps);
@@ -124,6 +133,11 @@ export class PlayersService {
         this.db
           .collection(Collections.PLAYER_SEASONS)
           .bulkWrite(seasonOperations, { ordered: false }),
+
+      leagueOperations.length &&
+        this.db
+          .collection(Collections.PLAYER_LEAGUE_SEASONS)
+          .bulkWrite(leagueOperations, { ordered: false }),
 
       clanGamesOperations.length &&
         this.db
@@ -423,7 +437,7 @@ export class PlayersService {
   }
 
   private async _fetchMembers(player: APIPlayer, clan: APIClan) {
-    const seasonId = Season.ID;
+    const seasonId = Season.statsId;
     const monthId = Season.monthId;
     const payload = transformAPIPlayer(player, { seasonId, monthId });
 
@@ -445,6 +459,23 @@ export class PlayersService {
       restInc.$inc = { ...restInc.$inc, builderBaseAttacksLost: 1 };
     }
 
+    // The game's win counters reset with the league season, so a month adds them up instead.
+    const monthlyStats = Season.monthlyStats;
+    if (monthlyStats && cached) {
+      restInc.$inc = {
+        ...restInc.$inc,
+        attackWins: counterGain(player.attackWins, cached.attackWins),
+        defenseWins: counterGain(player.defenseWins, cached.defenseWins),
+      };
+    }
+    if (!monthlyStats) {
+      restSet.$set = {
+        ...restSet.$set,
+        attackWins: player.attackWins,
+        defenseWins: player.defenseWins,
+      };
+    }
+
     if (cached?.clan && cached.clan.tag === clan.tag) {
       restSet.$set = {
         ...restSet.$set,
@@ -454,41 +485,23 @@ export class PlayersService {
         [`clans.${clan.tag}.donationsReceived.current`]: player.donationsReceived,
       };
 
-      if (player.donations >= cached.clan.donations) {
-        restInc.$inc = {
-          ...restInc.$inc,
-          [`clans.${clan.tag}.donations.total`]: player.donations - cached.clan.donations,
-        };
-      } else {
-        restInc.$inc = {
-          ...restInc.$inc,
-          [`clans.${clan.tag}.donations.total`]: player.donations,
-        };
-      }
-
-      if (player.donationsReceived >= cached.clan.donationsReceived) {
-        restInc.$inc = {
-          ...restInc.$inc,
-          [`clans.${clan.tag}.donationsReceived.total`]:
-            player.donationsReceived - cached.clan.donationsReceived,
-        };
-      } else {
-        restInc.$inc = {
-          ...restInc.$inc,
-          [`clans.${clan.tag}.donationsReceived.total`]: player.donationsReceived,
-        };
-      }
+      restInc.$inc = {
+        ...restInc.$inc,
+        [`clans.${clan.tag}.donations.total`]: counterGain(player.donations, cached.clan.donations),
+        [`clans.${clan.tag}.donationsReceived.total`]: counterGain(
+          player.donationsReceived,
+          cached.clan.donationsReceived,
+        ),
+      };
     }
 
     const updateOne: UpdateOneModel<PlayerSeasonEntity> = {
-      filter: { tag: player.tag, season: Season.ID },
+      filter: { tag: player.tag, season: seasonId },
       update: {
         $set: {
           'name': player.name,
           'townHallLevel': player.townHallLevel,
           'builderHallLevel': player.builderHallLevel,
-          'attackWins': player.attackWins,
-          'defenseWins': player.defenseWins,
 
           'trophies.current': player.trophies,
           'versusTrophies.current': player.builderBaseTrophies ?? 0,
@@ -518,6 +531,7 @@ export class PlayersService {
           __clans: clan.tag,
         },
         $setOnInsert: {
+          ...(monthlyStats && !cached && { attackWins: 0, defenseWins: 0 }),
           'trophies.initial': player.trophies,
           'versusBattleWins.initial': 0,
           'versusTrophies.initial': player.builderBaseTrophies ?? 0,
@@ -545,6 +559,30 @@ export class PlayersService {
       upsert: true,
     };
 
+    const leagueOps: AnyBulkWriteOperation<PlayerLeagueSeasonEntity>[] = [];
+    if (Season.split) {
+      leagueOps.push({
+        updateOne: {
+          filter: { tag: player.tag, seasonId: Season.leagueId },
+          update: {
+            $set: {
+              'name': player.name,
+              'leagueId': payload.leagueId,
+              'trophies.current': player.trophies,
+              'versusTrophies.current': player.builderBaseTrophies ?? 0,
+              'updatedAt': new Date(),
+            },
+            $setOnInsert: {
+              'trophies.initial': player.trophies,
+              'versusTrophies.initial': player.builderBaseTrophies ?? 0,
+              'createdAt': new Date(),
+            },
+          },
+          upsert: true,
+        },
+      });
+    }
+
     if (
       cached?.name !== player.name ||
       cached.builderHallLevel !== player.builderHallLevel ||
@@ -570,6 +608,7 @@ export class PlayersService {
         const monthly = this.monthly({ player: payload, clan, cached });
         return {
           seasonOps: [{ updateOne }],
+          leagueOps,
           clanGamesOps: monthly.clanGamesOps,
           capitalContributionOps: monthly.capitalContributionOps,
         };
@@ -577,6 +616,7 @@ export class PlayersService {
 
       return {
         seasonOps: [{ updateOne }],
+        leagueOps,
         clanGamesOps: [],
         capitalContributionOps: [],
       };
@@ -584,6 +624,7 @@ export class PlayersService {
 
     return {
       seasonOps: [],
+      leagueOps: [],
       clanGamesOps: [],
       capitalContributionOps: [],
     };
@@ -891,4 +932,9 @@ export class PlayersService {
   private get MAX_POINT() {
     return [0, 7, 11].includes(new Date().getMonth()) ? 5_000 : 4_000;
   }
+}
+
+// Game counters (donations, wins) reset with the league season, so a drop means a reset.
+function counterGain(current: number, previous: number) {
+  return current >= previous ? current - previous : current;
 }

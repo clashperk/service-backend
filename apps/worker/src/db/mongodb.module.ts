@@ -13,6 +13,7 @@ import {
   GlobalClanHistoryEntity,
   GlobalPlayerEntity,
   LegendAttacksEntity,
+  PlayerLeagueSeasonEntity,
   PlayerLinksEntity,
   PlayerSeasonEntity,
   PlayersEntity,
@@ -58,6 +59,7 @@ export enum Collections {
   CWL_WAR_TAGS = 'CWLWarTags',
   CLAN_MEMBERS = 'ClanMembers',
   PLAYER_SEASONS = 'PlayerSeasons',
+  PLAYER_LEAGUE_SEASONS = 'PlayerLeagueSeasons',
   CAPITAL_CONTRIBUTIONS = 'CapitalContributions',
   CAPITAL_RAID_SEASONS = 'CapitalRaidSeasons',
   CLAN_GAMES_POINTS = 'ClanGamesPoints',
@@ -91,6 +93,7 @@ interface CollectionRecords {
   [Collections.CLAN_GAMES_POINTS]: ClanGamesEntity;
   [Collections.CAPITAL_CONTRIBUTIONS]: CapitalContributionEntity;
   [Collections.PLAYER_SEASONS]: PlayerSeasonEntity;
+  [Collections.PLAYER_LEAGUE_SEASONS]: PlayerLeagueSeasonEntity;
   [Collections.CAPITAL_RAID_SEASONS]: CapitalRaidSeasonEntity;
 }
 
