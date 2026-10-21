@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-22 (league season ids without SEASON_SPLIT)
+- No API changes. League season ids are always the season's start date (`YYYY-MM-DD`) and activity is always keyed by calendar month; the `SEASON_SPLIT` env var is no longer read and can be dropped from `.env`
+- Remove the finished `season-split` migration script (`npm run season-split`) and its runbook
+
 ## 2026-10-20 (Discord channel code cleanup)
 - No API changes. Channel lookups go through one `channelStatuses` (server logs, the clan embed and reminders included), status rules live in `guilds/discord-channels.ts`, caching and limited concurrency use the shared `cached` and `mapLimit` helpers, and specs share fakes from `apps/api/test/`
 
