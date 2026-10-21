@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ConflictException } from '@nestjs/common';
 import { Db, ObjectId } from 'mongodb';
 import { Collections } from '../db';
 import { TicketExtraButtonKind } from './dto';
@@ -14,7 +14,7 @@ const ctx = { guildId: GUILD, applicationId: null };
 
 type Doc = Record<string, any>;
 
-const setup = (opts: { beta?: boolean; panels?: Doc[]; tickets?: Doc[] } = {}) => {
+const setup = (opts: { panels?: Doc[]; tickets?: Doc[] } = {}) => {
   const data: Record<string, Doc[]> = {
     [Collections.TICKET_PANELS]: opts.panels ?? [],
     [Collections.TICKETS]: opts.tickets ?? [],
@@ -73,12 +73,7 @@ const setup = (opts: { beta?: boolean; panels?: Doc[]; tickets?: Doc[] } = {}) =
     listRoles: jest.fn().mockResolvedValue([{ id: ROLE }]),
     listCategories: jest.fn().mockResolvedValue([{ id: CATEGORY, name: 'TICKETS' }]),
   };
-  const beta = { isBeta: jest.fn().mockResolvedValue(opts.beta ?? true) };
-  const service = new GuildTicketsService(
-    { collection } as unknown as Db,
-    discord as never,
-    beta as never,
-  );
+  const service = new GuildTicketsService({ collection } as unknown as Db, discord as never);
   return { service, discord, panels: data[Collections.TICKET_PANELS] };
 };
 
@@ -86,12 +81,6 @@ const create = async (service: GuildTicketsService, name = 'Applications') =>
   (await service.createPanel(ctx, { name })).panels.find((p) => p.name === name)!;
 
 describe('GuildTicketsService', () => {
-  it('only opens for beta servers', async () => {
-    const { service } = setup({ beta: false });
-    await expect(service.get(GUILD)).rejects.toThrow(ForbiddenException);
-    await expect(service.createPanel(ctx, { name: 'x' })).rejects.toThrow(ForbiddenException);
-  });
-
   it("creates a panel with the bot's defaults and refuses a taken name", async () => {
     const { service } = setup();
     const panel = await create(service);

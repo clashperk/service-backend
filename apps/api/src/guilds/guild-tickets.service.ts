@@ -1,14 +1,12 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { Db, ObjectId, WithId } from 'mongodb';
-import { BetaService } from '../beta/beta.service';
 import {
   Collections,
   MONGODB_TOKEN,
@@ -63,11 +61,9 @@ export class GuildTicketsService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private readonly discord: GuildDiscordService,
-    private readonly beta: BetaService,
   ) {}
 
   async get(guildId: string): Promise<TicketsDto> {
-    await this.assertBeta(guildId);
     const [panels, counts, settings] = await Promise.all([
       this.panels.find({ guildId }, { sort: { createdAt: 1 } }).toArray(),
       this.tickets
@@ -92,7 +88,6 @@ export class GuildTicketsService {
   }
 
   async createPanel(ctx: Ctx, body: CreateTicketPanelInput) {
-    await this.assertBeta(ctx.guildId);
     await this.assertNameFree(ctx.guildId, body.name);
     const now = new Date();
     await this.panels.insertOne({
@@ -287,7 +282,6 @@ export class GuildTicketsService {
 
   /** Shared by every panel in the server; staff send them from inside a ticket. */
   async saveReplies(ctx: Ctx, replies: TicketSavedReplyInput[]) {
-    await this.assertBeta(ctx.guildId);
     const names = replies.map((reply) => reply.name);
     if (new Set(names).size !== names.length) {
       throw new BadRequestException('Give each saved reply a different name.');
@@ -300,12 +294,6 @@ export class GuildTicketsService {
     return this.get(ctx.guildId);
   }
 
-  private async assertBeta(guildId: string) {
-    if (!(await this.beta.isBeta(guildId))) {
-      throw new ForbiddenException("Tickets are in beta and aren't open for this server yet.");
-    }
-  }
-
   // `/ticket post` and `/ticket setup` find panels by exact name.
   private async assertNameFree(guildId: string, name: string) {
     if (await this.panels.findOne({ guildId, name }, { projection: { _id: 1 } })) {
@@ -314,7 +302,6 @@ export class GuildTicketsService {
   }
 
   private async findPanel(guildId: string, panelId: string) {
-    await this.assertBeta(guildId);
     const panel = ObjectId.isValid(panelId)
       ? await this.panels.findOne({ _id: new ObjectId(panelId), guildId })
       : null;
