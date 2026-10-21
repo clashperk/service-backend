@@ -743,7 +743,7 @@ export class WarsService {
     const oldMembers: APIClanWarMember[] =
       data?.clan.tag === clan.tag ? data.clan.members : data.opponent.members;
 
-    const seasonId = Season.statsId;
+    const seasonId = Season.leagueId;
     const collection = this.db.collection(Collections.PLAYERS);
     const ops: AnyBulkWriteOperation<any>[] = [];
 
