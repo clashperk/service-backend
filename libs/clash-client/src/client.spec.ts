@@ -12,29 +12,19 @@ describe('Season ids', () => {
     at('2026-11-10T00:00:00Z');
 
     expect(Season.leagueId).toBe('2026-12');
-    expect(Season.statsId).toBe('2026-12');
   });
 
-  it('uses the league start date for league data once split', () => {
+  it('uses the league season start date once split', () => {
     process.env.SEASON_SPLIT = '1';
-    at('2026-11-10T00:00:00Z');
 
+    at('2026-11-02T04:59:59Z');
+    expect(Season.leagueId).toBe('2026-10-05');
+
+    at('2026-11-02T05:00:00Z');
     expect(Season.leagueId).toBe('2026-11-02');
-  });
-
-  it('keys stats by league season before November 2026 and by month after', () => {
-    process.env.SEASON_SPLIT = '1';
-
-    at('2026-10-31T23:59:59Z');
-    expect(Season.statsId).toBe('2026-10-05');
-    expect(Season.monthlyStats).toBe(false);
-
-    at('2026-11-01T00:00:00Z');
-    expect(Season.statsId).toBe('2026-11');
-    expect(Season.monthlyStats).toBe(true);
 
     at('2026-11-30T06:00:00Z');
-    expect(Season.statsId).toBe('2026-11');
+    expect(Season.leagueId).toBe('2026-11-30');
   });
 
   it('normalises a league season id to the scheme in use', () => {
@@ -44,5 +34,13 @@ describe('Season ids', () => {
     process.env.SEASON_SPLIT = '1';
     expect(Season.toLeagueId('2026-11')).toBe('2026-10-05');
     expect(Season.toLeagueId('2026-10-05')).toBe('2026-10-05');
+  });
+
+  it('keys activity by calendar month once split', () => {
+    at('2026-11-10T00:00:00Z');
+    expect(Season.activityId).toBe('2026-12');
+
+    process.env.SEASON_SPLIT = '1';
+    expect(Season.activityId).toBe('2026-11');
   });
 });

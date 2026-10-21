@@ -7,7 +7,6 @@ export * from './clan-wars.entity';
 export * from './cwl-groups.entity';
 export * from './global-clan-history.entity';
 export * from './legend-attacks.entity';
-export * from './player-league-season.entity';
 export * from './player-links.entity';
 export * from './player-season.entity';
 export * from './players.entity';

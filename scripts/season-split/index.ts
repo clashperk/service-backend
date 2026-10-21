@@ -12,14 +12,8 @@ import {
   verifyClickhouse,
 } from './clickhouse';
 import { Context } from './context';
-import {
-  backfillLeagueSeasons,
-  backupMongo,
-  planMongo,
-  renameMongo,
-  rollbackMongo,
-  verifyMongo,
-} from './mongo';
+import { selectIds } from './mapping';
+import { backupMongo, planMongo, renameMongo, rollbackMongo, verifyMongo } from './mongo';
 
 const USAGE = `Usage: npm run season-split -- <step> [--apply]
 
@@ -27,14 +21,14 @@ Steps, in order (see docs/season-split-runbook.md):
   plan        read-only counts and collision checks
   backup      copy the ids about to change (Mongo) and battle_logs partitions (ClickHouse)
   mongo       rename 28-day YYYY-MM ids to start dates, newest first
-  league      create PlayerLeagueSeasons indexes and backfill trophies from PlayerSeasons
   clickhouse  rewrite battle_logs ids and rebuild the legend tables
   verify      read-only checks against the backups
   rollback    restore the old ids from the backups
 
-Without --apply, write steps only print what they would do.`;
+Without --apply, write steps only print what they would do.
+--ids=2026-11 limits a step to those legacy ids; an id is never renamed twice.`;
 
-const STEPS = ['plan', 'backup', 'mongo', 'league', 'clickhouse', 'verify', 'rollback'];
+const STEPS = ['plan', 'backup', 'mongo', 'clickhouse', 'verify', 'rollback'];
 
 const requireEnv = (key: string) => {
   const value = process.env[key];
@@ -50,6 +44,9 @@ const main = async () => {
     process.exitCode = 1;
     return;
   }
+
+  const ids = process.argv.find((arg) => arg.startsWith('--ids='));
+  if (ids) selectIds(ids.slice('--ids='.length).split(','));
 
   const ctx = new Context(apply && !['plan', 'verify'].includes(step));
   const mongo = new MongoClient(requireEnv('MONGODB_URL'));
@@ -75,9 +72,6 @@ const main = async () => {
         break;
       case 'mongo':
         await renameMongo(db, ctx);
-        break;
-      case 'league':
-        await backfillLeagueSeasons(db, ctx);
         break;
       case 'clickhouse':
         await applyClickhouse(clickhouse, ctx);
