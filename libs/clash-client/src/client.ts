@@ -3,26 +3,19 @@ import { QueueThrottler, RequestHandler, RestManager, Util } from 'clashofclans.
 import { getInflightLimiter } from './inflight-limiter';
 
 export class Season extends Util {
-  // Off until the stored 28-day YYYY-MM ids are renamed to start dates, or new ids would duplicate them.
-  public static get split() {
-    return process.env.SEASON_SPLIT === '1';
-  }
-
   /** Id for everything keyed by the 28-day league season: the season's start date. */
   public static get leagueId() {
-    return this.split ? this.getLeagueSeason().id : this.getSeason().seasonId;
+    return this.getLeagueSeason().id;
   }
 
-  /** A league season id in the scheme in use: start date once split, legacy YYYY-MM before. Accepts either. */
+  /** The start-date id for a league season id; callers may still send a legacy YYYY-MM id. */
   public static toLeagueId(id: string) {
-    const legacy = /^\d{4}-\d{2}$/.test(id);
-    if (this.split) return legacy ? this.getLeagueSeasonById(id).id : id;
-    return legacy ? id : this.getSeason(new Date(`${id}T05:00:00.000Z`)).seasonId;
+    return /^\d{4}-\d{2}$/.test(id) ? this.getLeagueSeasonById(id).id : id;
   }
 
-  /** Id for Players.seasons activity counts: the UTC calendar month once split. */
+  /** Id for Players.seasons activity counts: the UTC calendar month. */
   public static get activityId() {
-    return this.split ? this.monthId : this.getSeason().seasonId;
+    return this.monthId;
   }
 
   public static get ending() {

@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-22 — League season ids no longer depend on an env var
+The 2026-10-21 migration renamed every stored 28-day id to its start date and its backups were dropped, so the `SEASON_SPLIT` flag-off path could only write legacy `YYYY-MM` ids that collide with the renamed history. `Season.leagueId` is always the start date. `toLeagueId` still maps a legacy `YYYY-MM` id to its start date, because older clients may send one. The `season-split` script went with the flag: with no backups and no legacy ids left, it has nothing to do.
+
 ## 2026-10-20 — Roster writes follow the bot; roles wait for its refresh
 The bot reads rosters fresh, so the API writes them directly in `/roster`'s format and checks. Sign-up checks live in one place (`evaluate`), used by the check endpoint, adding and moving; it counts players earlier in the same request toward the size and accounts-per-member limits, which the bot's bulk import doesn't. The bot gives and removes roster and group roles and posts change logs through its own Discord client, so players added, moved or removed here get their roles when the bot next reconciles them (its Refresh button or the next sign-up). Times are ISO strings; the bot's timezone lookup is for typed times and isn't needed. Deleting a group leaves members pointing at it, as the bot does.
 
