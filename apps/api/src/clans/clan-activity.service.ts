@@ -51,8 +51,8 @@ export class ClanActivityService {
           UNION ALL
           SELECT if(action = 'JOINED_CLAN', 'joined', 'left') AS type, tag AS playerTag, '' AS playerName,
             clanTag, '' AS clanName, toInt64(0) AS value, createdAt
-          FROM player_activities
-          WHERE clanTag IN {clanTags:Array(String)} AND action IN ('JOINED_CLAN', 'LEFT_CLAN')
+          FROM clan_join_leave_logs
+          WHERE clanTag IN {clanTags:Array(String)}
             AND createdAt > now() - toIntervalDay({days:UInt8})
         )
         WHERE type IN {types:Array(String)}

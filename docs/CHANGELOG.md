@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-22 (faster clan activity)
+- No API changes. Clan activity reads joins and leaves from a new ClickHouse table, `clan_join_leave_logs`, ordered by clan, instead of scanning `player_activities`, so a clan's joins and leaves no longer take 5–10 seconds. Run `pnpm migrate:clickhouse` before deploying the api: migration `0004_clan_join_leave_logs` creates the table, a materialized view that fills it from `player_activities`, and backfills the last 90 days
+
 ## 2026-10-22 (tickets for every server)
 - Ticket panel endpoints (`/guilds/:guildId/tickets/...`) work for every server, not only beta ones; they no longer return 403. Posting a panel is still up to the bot's `/ticket post`, which only beta servers have
 

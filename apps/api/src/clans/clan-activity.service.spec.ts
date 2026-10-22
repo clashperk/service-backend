@@ -87,6 +87,7 @@ describe('ClanActivityService.getActivity', () => {
       { query: string; query_params: Record<string, unknown> },
     ];
     expect(sql).toMatch(/WHERE type IN \{types:Array\(String\)\}\s+ORDER BY/);
+    expect(sql).toContain('FROM clan_join_leave_logs');
     expect(query_params.types).toEqual(['joined', 'left']);
   });
 });
