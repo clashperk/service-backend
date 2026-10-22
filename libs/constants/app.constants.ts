@@ -6,7 +6,6 @@ export enum WarType {
   CWL,
 }
 
-/** @deprecated */
 export const extraAchievements = {
   'Union Buster': 'builderHutsDestroyed',
   'Wall Buster': 'wallsDestroyed',
@@ -22,10 +21,6 @@ export const extraAchievements = {
   'Firefighter': 'infernoTowersDestroyed',
 } as const;
 
-/** @deprecated */
-export const extraAchievementsSet: Set<string> = new Set(Object.keys(extraAchievements));
-
-/** @deprecated */
 export const achievements = {
   'Most Valuable Clanmate': 'capitalGoldContributions',
   'Aggressive Capitalism': 'clanCapitalRaids',
@@ -48,131 +43,6 @@ export const achievements = {
 
   'Combined achievements': 'combinedAchievements',
 } as const;
-
-/** @deprecated */
-export const troops = {
-  'Barbarian': 'barbarian',
-  'Archer': 'archer',
-  'Goblin': 'goblin',
-  'Giant': 'giant',
-  'Wall Breaker': 'wall_breaker',
-  'Balloon': 'balloon',
-  'Wizard': 'wizard',
-  'Healer': 'healer',
-  'Dragon': 'dragon',
-  'P.E.K.K.A': 'pekka',
-  'Minion': 'minion',
-  'Hog Rider': 'hog_rider',
-  'Valkyrie': 'valkyrie',
-  'Golem': 'golem',
-  'Witch': 'witch',
-  'Lava Hound': 'lava_hound',
-  'Bowler': 'bowler',
-  'Baby Dragon': 'baby_dragon',
-  'Miner': 'miner',
-  'Raged Barbarian': 'raged_barbarian',
-  'Sneaky Archer': 'sneaky_archer',
-  'Beta Minion': 'beta_minion',
-  'Boxer Giant': 'boxer_giant',
-  'Bomber': 'bomber',
-  // Replaced with Power P.E.K.K.A
-  'Super P.E.K.K.A': 'super_pekka',
-  'Power P.E.K.K.A': 'power_pekka',
-  'Cannon Cart': 'cannon_cart',
-  'Drop Ship': 'drop_ship',
-  'Night Witch': 'night_witch',
-  'Wall Wrecker': 'wall_wrecker',
-  'Battle Blimp': 'battle_blimp',
-  'Yeti': 'yeti',
-  'Ice Golem': 'ice_golem',
-  'Electro Dragon': 'electro_dragon',
-  'Stone Slammer': 'stone_slammer',
-  'Dragon Rider': 'dragon_rider',
-  'Hog Glider': 'hog_glider',
-  'Siege Barracks': 'siege_barracks',
-  'Headhunter': 'headhunter',
-  'Apprentice Warden': 'apprentice_warden',
-  'Log Launcher': 'log_launcher',
-  'Flame Flinger': 'flame_flinger',
-  'Battle Drill': 'battle_drill',
-  'Electro Titan': 'electro_titan',
-} as const;
-
-/** @deprecated */
-export const super_troops = {
-  'Super Barbarian': 'super_barbarian',
-  'Super Archer': 'super_archer',
-  'Super Wall Breaker': 'super_wall_breaker',
-  'Super Giant': 'super_giant',
-  'Super Miner': 'super_miner',
-  'Super Valkyrie': 'super_valkyrie',
-  'Super Witch': 'super_witch',
-  'Sneaky Goblin': 'sneaky_goblin',
-  'Inferno Dragon': 'inferno_dragon',
-  'Ice Hound': 'ice_hound',
-  'Rocket Balloon': 'rocket_balloon',
-  'Super Bowler': 'super_bowler',
-  'Super Dragon': 'super_dragon',
-  'Super Wizard': 'super_wizard',
-  'Super Minion': 'super_minion',
-  'Super Hog Rider': 'super_hog_rider',
-} as const;
-
-/** @deprecated */
-export const pets = {
-  'L.A.S.S.I': 'lassi',
-  'Mighty Yak': 'mighty_yak',
-  'Electro Owl': 'electro_owl',
-  'Unicorn': 'unicorn',
-  'Phoenix': 'phoenix',
-  'Poison Lizard': 'poison_lizard',
-  'Diggy': 'diggy',
-  'Frosty': 'frosty',
-} as const;
-
-/** @deprecated */
-export const heroes = {
-  'Barbarian King': 'barbarian_king',
-  'Archer Queen': 'archer_queen',
-  'Grand Warden': 'grand_warden',
-  'Battle Machine': 'battle_machine',
-  'Royal Champion': 'royal_champion',
-} as const;
-
-/** @deprecated */
-export const spells = {
-  'Lightning Spell': 'lightning_spell',
-  'Healing Spell': 'healing_spell',
-  'Rage Spell': 'rage_spell',
-  'Jump Spell': 'jump_spell',
-  'Freeze Spell': 'freeze_spell',
-  'Poison Spell': 'poison_spell',
-  'Earthquake Spell': 'earthquake_spell',
-  'Haste Spell': 'haste_spell',
-  'Clone Spell': 'clone_spell',
-  'Skeleton Spell': 'skeleton_spell',
-  'Bat Spell': 'bat_spell',
-  'Invisibility Spell': 'invisibility_spell',
-  'Recall Spell': 'recall_spell',
-} as const;
-
-/** @deprecated */
-export const units = {
-  ...troops,
-  ...super_troops,
-  ...heroes,
-  ...pets,
-  ...spells,
-} as const;
-
-/** @deprecated */
-export const unitsMap = Object.entries(units).reduce<Record<string, string>>(
-  (acc, [key, value]) => {
-    acc[value] = key;
-    return acc;
-  },
-  {},
-);
 
 /** { "name": "id" } */
 export const UNITS_MAP_BY_NAME: Record<string, number> = {
@@ -376,14 +246,6 @@ export const ACHIEVEMENTS_MAP_BY_NAME: Record<string, number> = {
   'Multi-Gear Tower Trampler': 51,
 };
 
-/** { "id": "name" } */
-export const ACHIEVEMENTS_MAP_BY_ID = Object.entries(ACHIEVEMENTS_MAP_BY_NAME).reduce<
-  Record<string, string>
->((record, [name, id]) => {
-  record[id] = name;
-  return record;
-}, {});
-
 interface RawUnit {
   id: number;
   name: string;
@@ -440,4 +302,3 @@ export enum ACHIEVEMENTS_ENUM {
 }
 
 export const SUPER_TROOP_SET = new Set(RAW_DATA.RAW_SUPER_UNITS.map((unit) => unit.name));
-export const UNIT_ID_LIST = Object.values(UNITS_MAP_BY_NAME);

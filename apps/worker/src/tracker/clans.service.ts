@@ -6,7 +6,7 @@ import {
   RedisChannels,
   RedisKeys,
   RolePositions,
-  UNRANKED_TIER,
+  UNRANKED_TIER_ID,
   WorkerEvents,
 } from '@app/constants';
 import { formatDuration } from '@app/helpers';
@@ -136,7 +136,7 @@ export class ClansService {
           data.donations += donations;
           data.donated.push({
             hall: townHallLevel,
-            league: member.leagueTier?.id || UNRANKED_TIER,
+            league: member.leagueTier?.id || UNRANKED_TIER_ID,
             name: member.name,
             tag: member.tag,
             donated: donations,
@@ -147,7 +147,7 @@ export class ClansService {
           data.receives += receives;
           data.received.push({
             hall: townHallLevel,
-            league: member.leagueTier?.id || UNRANKED_TIER,
+            league: member.leagueTier?.id || UNRANKED_TIER_ID,
             name: member.name,
             tag: member.tag,
             received: receives,
@@ -164,7 +164,7 @@ export class ClansService {
           players.push({
             name: member.name,
             tag: member.tag, //
-            leagueId: member.leagueTier?.id || UNRANKED_TIER,
+            leagueId: member.leagueTier?.id || UNRANKED_TIER_ID,
             townHallLevel,
             trophies: member.trophies,
           });
@@ -177,7 +177,7 @@ export class ClansService {
         if (donations && donations > 0) {
           data.donations += donations;
           data.donated.push({
-            league: member.leagueTier?.id || UNRANKED_TIER,
+            league: member.leagueTier?.id || UNRANKED_TIER_ID,
             name: member.name,
             tag: member.tag,
             donated: donations,
@@ -188,7 +188,7 @@ export class ClansService {
         if (receives && receives > 0) {
           data.receives += receives;
           data.received.push({
-            league: member.leagueTier?.id || UNRANKED_TIER,
+            league: member.leagueTier?.id || UNRANKED_TIER_ID,
             name: member.name,
             tag: member.tag,
             received: receives,
@@ -200,7 +200,7 @@ export class ClansService {
         players.push({
           name: member.name,
           tag: member.tag,
-          leagueId: member.leagueTier?.id || UNRANKED_TIER,
+          leagueId: member.leagueTier?.id || UNRANKED_TIER_ID,
           townHallLevel,
           trophies: member.trophies,
         });

@@ -13,16 +13,12 @@ export class Season extends Util {
     return /^\d{4}-\d{2}$/.test(id) ? this.getLeagueSeasonById(id).id : id;
   }
 
-  /** Id for Players.seasons activity counts: the UTC calendar month. */
-  public static get activityId() {
-    return this.monthId;
-  }
-
   public static get ending() {
     const startTimestamp = this.getLeagueSeason().startTime.getTime();
     return new Date(startTimestamp + 60 * 60 * 1000).getTime() > Date.now();
   }
 
+  /** The UTC calendar month, `YYYY-MM`: keys activity counts and month-long events. */
   public static get monthId() {
     return new Date().toISOString().substring(0, 7);
   }

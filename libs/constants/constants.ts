@@ -22,12 +22,6 @@ export const LEGEND_LEAGUE_ID = 105000036;
 
 export const UNRANKED_TIER_ID = 105000000;
 
-/** Alias of {@link UNRANKED_TIER_ID} used by the tracking worker (apps/worker). */
-export const UNRANKED_TIER = UNRANKED_TIER_ID;
-
-/** Equivalent to {@link Config.IS_PROD}; used by apps/worker. */
-export const PRODUCTION_MODE = process.env.NODE_ENV === 'production';
-
 /** Internal event-emitter keys for the tracking worker (apps/worker). */
 export enum WorkerEvents {
   WORKER_STARTED = 'worker_started',

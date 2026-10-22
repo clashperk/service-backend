@@ -1,5 +1,6 @@
 import { fixTag } from '@app/helpers';
 import { ClashClientService } from '@app/clash-client';
+import { UNRANKED_TIER_ID } from '@app/constants';
 import { ErrorCodes } from '@app/dto';
 import {
   BadRequestException,
@@ -8,7 +9,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { APIClan, APIPlayer } from 'clashofclans.js';
+import { APIClan, APIPlayer, UNRANKED_WAR_LEAGUE_ID } from 'clashofclans.js';
 import { Db, ObjectId, WithId } from 'mongodb';
 import {
   Collections,
@@ -31,8 +32,6 @@ import {
 
 // The bot's numbers: an unset max is 65; new rosters start from the server's last-used settings.
 const ROSTER_MAX_LIMIT = 65;
-const UNRANKED_TIER_ID = 105000000;
-const UNRANKED_WAR_LEAGUE_ID = 48000000;
 const DEFAULT_TROPHY_LAYOUT = '#/TH_ICON/TROPHIES/NAME';
 const MINUTE = 60 * 1000;
 

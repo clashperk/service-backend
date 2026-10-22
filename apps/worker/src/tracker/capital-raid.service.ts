@@ -1,5 +1,5 @@
 import { ClashClient, ClashClientService, Season } from '@app/clash-client';
-import { Flags, RedisChannels, RedisKeys, UNRANKED_TIER, WorkerEvents } from '@app/constants';
+import { Flags, RedisChannels, RedisKeys, UNRANKED_TIER_ID, WorkerEvents } from '@app/constants';
 import { formatDuration, Util } from '@app/helpers';
 import { Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -188,7 +188,7 @@ export class CapitalRaidService {
     if (cached && this.getWeekId(season.startTime) === cached.weekId) {
       const collection = this.db.collection(Collections.PLAYERS);
       const ops: AnyBulkWriteOperation<any>[] = [];
-      const seasonId = Season.activityId;
+      const seasonId = Season.monthId;
       for (const m of season.members) {
         const oldMember = cached.members.find((mem) => mem.tag === m.tag);
         if (oldMember?.attacks === m.attacks) continue;
@@ -202,7 +202,7 @@ export class CapitalRaidService {
           ...(clanMember && {
             trophies: clanMember.trophies,
             townHallLevel: clanMember.townHallLevel,
-            leagueId: clanMember.leagueTier?.id || UNRANKED_TIER,
+            leagueId: clanMember.leagueTier?.id || UNRANKED_TIER_ID,
           }),
           lastSeen: new Date(),
         };
