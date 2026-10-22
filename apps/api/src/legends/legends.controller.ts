@@ -60,7 +60,7 @@ export class LegendsController {
       items: [log],
     } = await this.legendService.getLegendAttacks(
       { playerTags: [playerTag] },
-      seasonId ? Season.toLeagueId(seasonId) : Season.leagueId,
+      seasonId ?? Season.leagueId,
     );
 
     if (log) return log;
