@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-22 (link takeover)
+- `POST /links` checks for an existing link by the tag the game returns, so a differently spelled tag (`2pp` for `#2PP`) can no longer overwrite another user's link
+- `DELETE /links/:playerTag` and `PUT /links/:playerTag/default` accept tags in any spelling
+
 ## 2026-10-22 (cleanup)
 - Remove `GET`/`POST /cache-status-check`: it was public and echoed the request's headers from a cache shared by every caller
 - No other API changes: unused constants, helpers and aliases are gone from the shared libs
