@@ -1,5 +1,5 @@
-import { ApiExcludeTypings, Cache } from '@app/decorators';
-import { Controller, Get, Post, Req, VERSION_NEUTRAL } from '@nestjs/common';
+import { ApiExcludeTypings } from '@app/decorators';
+import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
 import { ApiExcludeController, ApiExcludeEndpoint } from '@nestjs/swagger';
 
 @Controller({
@@ -9,8 +9,6 @@ import { ApiExcludeController, ApiExcludeEndpoint } from '@nestjs/swagger';
 @ApiExcludeController()
 @ApiExcludeTypings()
 export class AppController {
-  constructor() {}
-
   @ApiExcludeEndpoint()
   @Get('/')
   getHello(): unknown {
@@ -20,21 +18,5 @@ export class AppController {
   @Get('/health')
   getHealth(): unknown {
     return { message: 'Ok' };
-  }
-
-  @Post('/cache-status-check')
-  @Cache(30)
-  cacheStatusCheckPOST(@Req() req: Request): unknown {
-    return {
-      headers: { ...req.headers },
-    };
-  }
-
-  @Get('/cache-status-check')
-  @Cache(30)
-  cacheStatusCheckGET(@Req() req: Request): unknown {
-    return {
-      headers: { ...req.headers },
-    };
   }
 }
