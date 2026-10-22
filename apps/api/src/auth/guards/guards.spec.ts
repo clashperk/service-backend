@@ -1,7 +1,10 @@
-import { ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { AuthGuard } from '@nestjs/passport';
+import { AuthGuardStrategies } from '../app.constants';
 import { fallbackUser, JwtUser, UserRoles } from '../dto';
 import { JwtStrategy } from '../strategies';
+import { ApiKeyGuard } from './api-key.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 
@@ -87,5 +90,33 @@ describe('JwtAuthGuard', () => {
     expect((first as { user?: JwtUser }).user?.userId).toBe('222222222222222222');
     expect((second as { user?: JwtUser }).user?.userId).toBe(fallbackUser.userId);
     expect(fallbackUser.userId).toBe('526971716711350273');
+  });
+
+  it('ignores an API key in the query string, which ends up in logs', () => {
+    const guard = new JwtAuthGuard(
+      { getAllAndOverride: () => false } as unknown as Reflector,
+      { getOrThrow: () => 'key' } as never,
+    );
+    const jwtCheck = jest.spyOn(AuthGuard(AuthGuardStrategies.JWT).prototype, 'canActivate');
+    jwtCheck.mockReturnValue(false);
+    const req = { headers: {}, query: { apiKey: 'key' } };
+
+    expect(guard.canActivate(context(req))).toBe(false);
+    expect((req as { user?: JwtUser }).user).toBeUndefined();
+    jwtCheck.mockRestore();
+  });
+});
+
+describe('ApiKeyGuard', () => {
+  const guard = new ApiKeyGuard({ getOrThrow: () => 'key' } as never);
+
+  it('accepts the key in the x-api-key header', () => {
+    expect(guard.canActivate(context({ headers: { 'x-api-key': 'key' }, query: {} }))).toBe(true);
+  });
+
+  it('refuses the key in the query string', () => {
+    expect(() => guard.canActivate(context({ headers: {}, query: { apiKey: 'key' } }))).toThrow(
+      UnauthorizedException,
+    );
   });
 });
