@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   APIClan,
   APIClanWarLeagueRound,
+  APILeagueTier,
   APIPlayer,
   getWarResult,
   SearchOptions,
@@ -105,6 +106,37 @@ export class ClashClientService {
         throw error;
       });
     return this.leagueNames;
+  }
+
+  /** The weekly ranked group a player is in, with their own battles; null when they have none. */
+  async getLeagueGroup(groupTag: string, seasonId: number, playerTag: string) {
+    const { body, res } = await this.clashClient.getLeagueGroup(groupTag, seasonId, {
+      playerTag,
+    });
+    return res.ok && body.members?.length ? body : null;
+  }
+
+  /** A player's results in past ranked weeks, oldest first. */
+  async getLeagueHistory(playerTag: string) {
+    const { body, res } = await this.clashClient.getLeagueHistory(playerTag);
+    return res.ok ? body.items : [];
+  }
+
+  private leagueTiers: Promise<Map<number, APILeagueTier>> | null = null;
+
+  /** Ranked league tiers by id; fetched once, like the other league lists. */
+  getLeagueTiers() {
+    this.leagueTiers ??= this.clashClient
+      .getLeagueTiers()
+      .then(({ res, body }) => {
+        if (!res.ok) throw new Error('League tiers unavailable');
+        return new Map(body.items.map((tier) => [tier.id, tier]));
+      })
+      .catch((error: Error) => {
+        this.leagueTiers = null;
+        throw error;
+      });
+    return this.leagueTiers;
   }
 
   async verifyPlayerOrThrow(playerTag: string, apiToken: string | null) {

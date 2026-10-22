@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-22 (legend seasons and ranked battles)
+- Add `GET /players/:playerTag/ranked`: the player's ranked week from the game (league, rank in the group, promotion and demotion zone sizes, trophies, wins and losses, the whole group's standings, and the player's own attacks and defenses with stars and destruction) and their past weeks (league, placement, trophies, wins and losses). `current` is null when the player isn't in a group
+- Add `GET /legends/:playerTag/seasons`: the player's last 6 Legend League seasons, newest first, with start and end trophies and trophies gained from attacks and lost to defenses
+- `GET /legends/:playerTag/attacks` takes an optional `seasonId` (the season's start date) to read a past season; without it, the current season as before
+
 ## 2026-10-22 (faster clan activity)
 - No API changes. Clan activity reads joins and leaves from a new ClickHouse table, `clan_join_leave_logs`, ordered by clan, instead of scanning `player_activities`, so a clan's joins and leaves no longer take 5–10 seconds. Run `pnpm migrate:clickhouse` before deploying the api: migration `0004_clan_join_leave_logs` creates the table, a materialized view that fills it from `player_activities`, and backfills the last 90 days
 

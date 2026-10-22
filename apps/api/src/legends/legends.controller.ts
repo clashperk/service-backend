@@ -1,3 +1,4 @@
+import { Season } from '@app/clash-client';
 import { Cache } from '@app/decorators';
 import {
   Body,
@@ -7,6 +8,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -17,7 +19,7 @@ import {
   LegendAttacksItemsDto,
   LegendRankingThresholdsDto,
 } from '../players/dto';
-import { LegendRankDto } from './dto';
+import { LegendRankDto, LegendSeasonInputDto, LegendSeasonsDto } from './dto';
 import { LegendsService } from './legends.service';
 import { LegendTasksService } from './services/legend-tasks.service';
 
@@ -52,13 +54,23 @@ export class LegendsController {
   @Cache(300)
   async getLegendAttacksByPlayerTag(
     @Param('playerTag') playerTag: string,
+    @Query() { seasonId }: LegendSeasonInputDto,
   ): Promise<LegendAttacksDto> {
     const {
       items: [log],
-    } = await this.legendService.getLegendAttacks({ playerTags: [playerTag] });
+    } = await this.legendService.getLegendAttacks(
+      { playerTags: [playerTag] },
+      seasonId ? Season.toLeagueId(seasonId) : Season.leagueId,
+    );
 
     if (log) return log;
     throw new NotFoundException('Legend attacks not found.');
+  }
+
+  @Get('/:playerTag/seasons')
+  @Cache(300)
+  async getLegendSeasons(@Param('playerTag') playerTag: string): Promise<LegendSeasonsDto> {
+    return { items: await this.legendService.getLegendSeasons(playerTag) };
   }
 
   @Get('/:playerTag/estimate-rank')
