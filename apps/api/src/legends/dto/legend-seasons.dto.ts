@@ -2,12 +2,11 @@ import { IsOptional, Matches } from 'class-validator';
 
 export class LegendSeasonInputDto {
   /**
-   * The league season's start date; the current season when left out. A legacy `YYYY-MM` id is
-   * still accepted.
+   * The league season's start date; the current season when left out.
    * @example "2026-10-05"
    */
   @IsOptional()
-  @Matches(/^\d{4}-\d{2}(-\d{2})?$/, { message: 'seasonId must be in YYYY-MM-DD format' })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/, { message: 'seasonId must be in YYYY-MM-DD format' })
   seasonId?: string;
 }
 
