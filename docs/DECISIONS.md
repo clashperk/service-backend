@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-22 — Legend seasons total trophies, not attacks
+Decided by: Claude, pending Suvajit's review. The worker logs a trophy change each time it sees one, so several attacks between two checks land as one `attack` entry (+269 for what was 7 or 8 attacks), and `attackLogs`/`defenseLogs` count those entries, not attacks. `GET /legends/:playerTag/seasons` therefore reports only trophies gained from attacks and lost to defenses, and no attack or defense counts.
+
 ## 2026-10-22 — Joins and leaves get their own clan-ordered table
 Decided by: Suvajit (materialized view), details by Claude. `player_activities` (1.26 billion rows) is ordered by player tag, so `WHERE clanTag = …` read every row in the date range: about 64 million rows and 5–10 seconds for 30 days. `clan_join_leave_logs` is ordered by `(clanTag, createdAt)` and filled by `clan_join_leave_logs_mv` on every insert into `player_activities`, so the worker is unchanged. It keeps 90 days (TTL), three times the activity endpoint's 30-day maximum. The migration backfills rows older than the view's creation in 30-day slices; it is a `ReplacingMergeTree` keyed on every column, so rows written in the seconds around the view's creation that land twice are merged away. `pnpm migrate:clickhouse` waits up to 10 minutes per statement for the backfill.
 
