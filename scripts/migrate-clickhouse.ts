@@ -25,6 +25,8 @@ const main = async () => {
     url: requireEnv('CLICKHOUSE_HOST'),
     username: requireEnv('CLICKHOUSE_USER'),
     password: requireEnv('CLICKHOUSE_PASSWORD'),
+    // Backfills read tens of millions of rows; the 30-second default cuts them off.
+    request_timeout: 10 * 60_000,
   });
 
   try {

@@ -58,4 +58,49 @@ export const clickhouseMigrations: ClickhouseMigration[] = [
       `ALTER TABLE clan_member_event_logs ADD COLUMN IF NOT EXISTS diff Int64 DEFAULT 0`,
     ],
   },
+  {
+    // player_activities is ordered by player tag, so reading one clan's joins and leaves scanned
+    // every row in the range. This copy is ordered by clan; Replacing dedupes the backfill overlap.
+    name: '0004_clan_join_leave_logs',
+    statements: [
+      `
+        CREATE TABLE IF NOT EXISTS clan_join_leave_logs (
+          clanTag String,
+          tag String,
+          action LowCardinality(String),
+          createdAt DateTime
+        ) ENGINE = ReplacingMergeTree()
+        PARTITION BY toYYYYMM(createdAt)
+        ORDER BY (clanTag, createdAt, tag, action)
+        TTL createdAt + INTERVAL 90 DAY
+      `,
+      `
+        CREATE MATERIALIZED VIEW IF NOT EXISTS clan_join_leave_logs_mv TO clan_join_leave_logs AS
+        SELECT clanTag, tag, action, createdAt FROM player_activities
+        WHERE action IN ('JOINED_CLAN', 'LEFT_CLAN')
+      `,
+      // Rows written before the view existed, in 30-day slices so no one insert runs too long.
+      `
+        INSERT INTO clan_join_leave_logs
+        SELECT clanTag, tag, action, createdAt FROM player_activities
+        WHERE action IN ('JOINED_CLAN', 'LEFT_CLAN')
+          AND createdAt >= now() - INTERVAL 90 DAY AND createdAt < now() - INTERVAL 60 DAY
+          AND createdAt < (SELECT metadata_modification_time FROM system.tables WHERE database = currentDatabase() AND name = 'clan_join_leave_logs_mv')
+      `,
+      `
+        INSERT INTO clan_join_leave_logs
+        SELECT clanTag, tag, action, createdAt FROM player_activities
+        WHERE action IN ('JOINED_CLAN', 'LEFT_CLAN')
+          AND createdAt >= now() - INTERVAL 60 DAY AND createdAt < now() - INTERVAL 30 DAY
+          AND createdAt < (SELECT metadata_modification_time FROM system.tables WHERE database = currentDatabase() AND name = 'clan_join_leave_logs_mv')
+      `,
+      `
+        INSERT INTO clan_join_leave_logs
+        SELECT clanTag, tag, action, createdAt FROM player_activities
+        WHERE action IN ('JOINED_CLAN', 'LEFT_CLAN')
+          AND createdAt >= now() - INTERVAL 30 DAY
+          AND createdAt < (SELECT metadata_modification_time FROM system.tables WHERE database = currentDatabase() AND name = 'clan_join_leave_logs_mv')
+      `,
+    ],
+  },
 ];
