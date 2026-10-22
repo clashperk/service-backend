@@ -3,7 +3,6 @@ import { ConsoleLogger, Injectable, Logger, NestMiddleware } from '@nestjs/commo
 import * as Sentry from '@sentry/nestjs';
 import { NextFunction, Request, Response } from 'express';
 import mapKeys from 'lodash/mapKeys';
-import pick from 'lodash/pick';
 import moment from 'moment';
 
 export class CustomLogger extends ConsoleLogger {
@@ -51,12 +50,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
         method: req.method,
         path: req.url,
         ip: req.ip,
-        ...mapKeys(
-          req.user || {
-            body: pick(req.body || {}, ['passKey']),
-          },
-          (_, key) => `user.${key}`,
-        ),
+        ...mapKeys(req.user || {}, (_, key) => `user.${key}`),
         user_agent: req.headers['user-agent'],
         referrer: req.headers['referrer'],
       });

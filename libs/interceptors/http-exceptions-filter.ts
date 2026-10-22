@@ -10,7 +10,6 @@ import {
 import * as Sentry from '@sentry/nestjs';
 import { SentryExceptionCaptured } from '@sentry/nestjs';
 import { Request, Response } from 'express';
-import { pick } from 'lodash';
 import mapKeys from 'lodash/mapKeys';
 
 const ErrorCodesMap = Object.fromEntries(
@@ -51,13 +50,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
       method: req.method,
       path: req.url,
       ip: req.ip,
-      ...mapKeys(
-        req.user || {
-          body: pick(req.body || {}, ['passKey']),
-          headers: pick(req.headers || {}, ['x-access-token', 'authorization']),
-        },
-        (_, key) => `user.${key}`,
-      ),
+      ...mapKeys(req.user || {}, (_, key) => `user.${key}`),
       user_agent: req.headers['user-agent'],
       referrer: req.headers['referrer'],
     });
