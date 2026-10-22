@@ -1,6 +1,7 @@
 import { ClashClientService } from '@app/clash-client';
 import { DiscordLinkService } from '@app/clash-client/discord-link.service';
 import { DiscordRestService } from '@app/discord-rest';
+import { fixTag } from '@app/helpers';
 import { ConflictException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { PlayerLinksEntity } from '@app/collections';
@@ -32,18 +33,17 @@ export class LinksService {
 
   public async createLink(caller: { userId: string; isAdmin: boolean }, input: CreateLinkInputDto) {
     const { userId, isAdmin } = caller;
-    const { apiToken, playerTag, userId: targetUserId } = input;
-    const existing = await this.links.findOne({ tag: playerTag });
-    const isVerified = await this.clashClientService.verifyPlayerOrThrow(playerTag, apiToken);
+    const { apiToken, userId: targetUserId } = input;
+    // Check and write by the tag the game returns: a differently spelled tag must not miss the link.
+    const player = await this.clashClientService.getPlayerOrThrow(input.playerTag);
+    const existing = await this.links.findOne({ tag: player.tag });
+    const isVerified = await this.clashClientService.verifyPlayerOrThrow(player.tag, apiToken);
 
     if (existing && existing.userId !== targetUserId && !isVerified) {
       throw new ConflictException('Player tag already linked to another user.');
     }
 
-    const [user, player] = await Promise.all([
-      this.discordRest.getUser(targetUserId),
-      this.clashClientService.getPlayerOrThrow(playerTag),
-    ]);
+    const user = await this.discordRest.getUser(targetUserId);
 
     if (targetUserId !== userId && !isAdmin) {
       if (!player.clan || !(await this.isVerifiedClanLeader(userId, player.clan.tag))) {
@@ -86,7 +86,8 @@ export class LinksService {
   }
 
   public async deleteLink(input: { userId: string; playerTag: string; isAdmin: boolean }) {
-    const { userId, playerTag, isAdmin } = input;
+    const { userId, isAdmin } = input;
+    const playerTag = fixTag(input.playerTag);
 
     const link = await this.links.findOne({ tag: playerTag });
     if (!link) return { message: 'Ok' };
@@ -112,7 +113,8 @@ export class LinksService {
    * with the lowest `order`, the same rule the bot's link command uses.
    */
   public async setDefaultLink(input: { userId: string; playerTag: string }) {
-    const { userId, playerTag } = input;
+    const { userId } = input;
+    const playerTag = fixTag(input.playerTag);
 
     const link = await this.links.findOne({ tag: playerTag });
     if (!link || link.userId !== userId) {

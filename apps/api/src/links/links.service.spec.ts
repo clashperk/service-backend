@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { LinksService } from './links.service';
 
@@ -55,8 +55,13 @@ const createService = (links: Link[], clanMembers: Member[] = []) => {
   const db = { collection: () => collection } as unknown as Db;
   const clashClient = {
     verifyPlayerOrThrow: () => Promise.resolve(false),
+    // The game answers with its own spelling of the tag.
     getPlayerOrThrow: (tag: string) =>
-      Promise.resolve({ tag, name: 'Player', clan: { tag: '#CLAN' } }),
+      Promise.resolve({
+        tag: `#${tag.toUpperCase().replace(/O/g, '0').replace(/^#/, '').replace(/\s/g, '')}`,
+        name: 'Player',
+        clan: { tag: '#CLAN' },
+      }),
     getClanOrThrow: (tag: string) => Promise.resolve({ tag, memberList: clanMembers }),
   };
   const discordRest = {
@@ -111,6 +116,17 @@ describe('LinksService.setDefaultLink', () => {
     expect(updates).toHaveLength(0);
   });
 
+  it('finds the link when the tag is spelled differently', async () => {
+    const { service, updates } = createService([
+      { tag: '#A', userId: 'u1', order: 0 },
+      { tag: '#2PP', userId: 'u1', order: 3 },
+    ]);
+
+    await service.setDefaultLink({ userId: 'u1', playerTag: '2pp' });
+
+    expect(updates[0].filter).toEqual({ tag: '#2PP' });
+  });
+
   it('refuses a tag that is not linked', async () => {
     const { service } = createService([]);
 
@@ -152,6 +168,15 @@ describe('LinksService.createLink', () => {
     await service.createLink(caller, { playerTag: '#A', userId: 'u1' } as never);
 
     expect(updates[0].update.$set).not.toHaveProperty('order');
+  });
+
+  it("refuses another user's link spelled differently", async () => {
+    const { service, updates } = createService([{ tag: '#2PP', userId: 'u2', verified: true }]);
+
+    await expect(
+      service.createLink(caller, { playerTag: '2 pp', userId: 'u1' } as never),
+    ).rejects.toThrow(ConflictException);
+    expect(updates).toHaveLength(0);
   });
 
   it('refuses to link a tag to another user', async () => {
