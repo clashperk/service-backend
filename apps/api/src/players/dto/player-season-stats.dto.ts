@@ -19,7 +19,7 @@ export class PlayerSeasonClanStatsDto {
 
 /** Totals for one season; counters are the gain since the season started. */
 export class PlayerSeasonStatsDto {
-  /** `YYYY-MM`. */
+  /** The league season's start date, `YYYY-MM-DD`. */
   season: string;
   townHallLevel: number;
   trophies: number;

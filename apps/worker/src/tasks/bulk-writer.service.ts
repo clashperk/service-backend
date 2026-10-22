@@ -1,4 +1,4 @@
-import { UNRANKED_TIER, WorkerEvents } from '@app/constants';
+import { UNRANKED_TIER_ID, WorkerEvents } from '@app/constants';
 import { ClickHouseClient } from '@clickhouse/client';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
@@ -162,7 +162,7 @@ export class BulkWriterService {
             trophies: player.trophies,
             donations: player.donations,
             attackWins: player.attackWins,
-            leagueId: player.leagueTier?.id ?? UNRANKED_TIER,
+            leagueId: player.leagueTier?.id ?? UNRANKED_TIER_ID,
             clanTag,
             trackingId,
           },

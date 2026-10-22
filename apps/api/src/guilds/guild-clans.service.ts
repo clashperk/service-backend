@@ -1,4 +1,5 @@
 import { ClashClientService } from '@app/clash-client';
+import { fixTag } from '@app/helpers';
 import {
   BadRequestException,
   ConflictException,
@@ -23,8 +24,6 @@ const REMINDER_COLLECTIONS = {
 
 // A clan added to more servers than this needs verifying wherever it's added next.
 const MAX_SHARED_SERVERS = 10;
-
-const fixTag = (tag: string) => `#${tag.toUpperCase().replace(/^#/, '').replace(/O/g, '0')}`;
 const categoryKey = (name: string) => name.toLowerCase().trim().replace(/\s+/g, '_');
 
 /** Smaller servers ask for verification sooner. */

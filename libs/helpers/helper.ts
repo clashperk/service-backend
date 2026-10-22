@@ -15,10 +15,6 @@ export const isValidWorker = (id: number) => {
   return id % numCPUs === workerId - 1;
 };
 
-export const getWorkerId = () => {
-  return cluster.worker?.id ?? 1;
-};
-
 export const formatDuration = (ms: number) => {
   return moment.duration(ms).format('D[d] H[h] m[m] s[s]', { trim: 'both mid' });
 };
@@ -29,10 +25,6 @@ export function codeBlock(...lines: string[]) {
 
 export function paragraph(...lines: string[]) {
   return lines.join('<br/>');
-}
-
-export function expandable(label: string, ...summary: string[]) {
-  return `\n<details>\n<summary>\n${label}\n</summary>\n\n${summary.join('<br/>')}\n</details>`;
 }
 
 export function hyperlink(url: string) {

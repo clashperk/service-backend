@@ -25,6 +25,6 @@ describe('Season ids', () => {
 
   it('keys activity by calendar month', () => {
     at('2026-11-10T00:00:00Z');
-    expect(Season.activityId).toBe('2026-11');
+    expect(Season.monthId).toBe('2026-11');
   });
 });

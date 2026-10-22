@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-22 (cleanup)
+- Remove `GET`/`POST /cache-status-check`: it was public and echoed the request's headers from a cache shared by every caller
+- No other API changes: unused constants, helpers and aliases are gone from the shared libs
+
 ## 2026-10-22 (legend seasons and ranked battles)
 - Add `GET /players/:playerTag/ranked`: the player's ranked week from the game (league, rank in the group, promotion and demotion zone sizes, trophies, wins and losses, the whole group's standings, and the player's own attacks and defenses with stars and destruction) and their past weeks (league, placement, trophies, wins and losses). `current` is null when the player isn't in a group
 - Add `GET /legends/:playerTag/seasons`: the player's last 6 Legend League seasons, newest first, with start and end trophies and trophies gained from attacks and lost to defenses

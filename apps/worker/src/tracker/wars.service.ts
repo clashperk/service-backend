@@ -385,12 +385,9 @@ export class WarsService {
 
   // Fetch Clan War League Rounds [CWL]
   private async getClanWarLeagueGroups(tag: string, cache: Cache) {
-    // The current CWL season can no longer be derived from the clock (the API season is an
-    // unpredictable YYYY-MM-DD, and there can be more than one CWL per month). Probe the clan's
-    // most recent stored group and reuse it ONLY while that CWL is still active — i.e. it still
-    // has a war yet to start (`next` in the future). A finished or previous-season group has
-    // `next` in the past, so it is never reused; we fall through to the live API and operate
-    // strictly on the current season below.
+    // The clock can't tell which CWL season is current (ids are unpredictable dates, sometimes
+    // two a month), so reuse the clan's latest stored group only while a war is still to start
+    // (`next` in the future); otherwise read the live group.
     const cached = await this.db
       .collection(Collections.CWL_GROUPS)
       .findOne({ 'clans.tag': tag }, { sort: { _id: -1 } });
@@ -743,7 +740,7 @@ export class WarsService {
     const oldMembers: APIClanWarMember[] =
       data?.clan.tag === clan.tag ? data.clan.members : data.opponent.members;
 
-    const seasonId = Season.activityId;
+    const seasonId = Season.monthId;
     const collection = this.db.collection(Collections.PLAYERS);
     const ops: AnyBulkWriteOperation<any>[] = [];
 
