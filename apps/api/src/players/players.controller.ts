@@ -16,10 +16,12 @@ import {
   ClanHistoryItemsDto,
   PlayerSeasonStatsInputDto,
   PlayerSeasonStatsItemsDto,
+  RankedDto,
 } from './dto';
 import { PlayersService } from './players.service';
 import { GlobalService } from './services/global.service';
 import { PlayerWarsService } from './services/player-wars.service';
+import { RankedService } from './services/ranked.service';
 
 @Controller('/players')
 @ApiBearerAuth()
@@ -29,6 +31,7 @@ export class PlayersController {
     private playerWarsService: PlayerWarsService,
     private playersService: PlayersService,
     private globalService: GlobalService,
+    private rankedService: RankedService,
   ) {}
 
   @Get('/:playerTag')
@@ -44,6 +47,12 @@ export class PlayersController {
     @Query() query: PlayerSeasonStatsInputDto,
   ): Promise<PlayerSeasonStatsItemsDto> {
     return this.playersService.getSeasonStats(playerTag, query.limit);
+  }
+
+  @Get('/:playerTag/ranked')
+  @Cache(300)
+  getRanked(@Param('playerTag') playerTag: string): Promise<RankedDto> {
+    return this.rankedService.getRanked(playerTag);
   }
 
   @Get('/:playerTag/battle-log')

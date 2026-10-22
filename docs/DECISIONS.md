@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-22 — Ranked weeks come live from the game
+Decided by: Claude, pending Suvajit's review. `GET /players/:playerTag/ranked` reads the player, their league group (`/leaguegroup/{tag}/{seasonId}?playerTag=`, which carries their own attack and defense logs) and their league history from the Clash API, like the bot's ranked view, rather than our `battle_logs`, which only cover tracked players. Promotion and demotion zone sizes use the bot's `LeaguePromotionsMap` percentages, rounded up. League tier names and icons are fetched once per process.
+
 ## 2026-10-22 — Legend seasons total trophies, not attacks
 Decided by: Claude, pending Suvajit's review. The worker logs a trophy change each time it sees one, so several attacks between two checks land as one `attack` entry (+269 for what was 7 or 8 attacks), and `attackLogs`/`defenseLogs` count those entries, not attacks. `GET /legends/:playerTag/seasons` therefore reports only trophies gained from attacks and lost to defenses, and no attack or defense counts.
 
