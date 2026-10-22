@@ -60,7 +60,7 @@ export function build(app: NestExpressApplication) {
       type: 'apiKey',
       in: 'header',
       name: 'x-api-key',
-      description: 'in header (x-api-key: [key]) or in query (?apiKey=[key])',
+      description: 'in header (x-api-key: [key])',
     })
     .addGlobalResponse({ type: ErrorResponseDto, status: 500 })
     .build();

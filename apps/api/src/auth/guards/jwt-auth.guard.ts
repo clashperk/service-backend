@@ -38,7 +38,7 @@ export class JwtAuthGuard extends AuthGuard(AuthGuardStrategies.JWT) {
   public useMasterKey(context: ExecutionContext) {
     const req = this.getRequest(context);
 
-    const key = req.headers?.['x-api-key'] || req.query['apiKey'] || req.cookies?.['x-api-key'];
+    const key = req.headers?.['x-api-key'] || req.cookies?.['x-api-key'];
     const userId = req.headers?.['x-user-id'] || req.query['userId'] || req.cookies?.['x-user-id'];
 
     if (!key || key !== this.apiKey) {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-22 (secrets out of logs)
+- Request logs and error reports sent to Sentry no longer include the login `passKey` or the `authorization` / `x-access-token` headers
+- The API key is no longer accepted as `?apiKey=`; send it in the `x-api-key` header (or the Swagger cookie). The worker's own API is unchanged
+
 ## 2026-10-22 (link takeover)
 - `POST /links` checks for an existing link by the tag the game returns, so a differently spelled tag (`2pp` for `#2PP`) can no longer overwrite another user's link
 - `DELETE /links/:playerTag` and `PUT /links/:playerTag/default` accept tags in any spelling

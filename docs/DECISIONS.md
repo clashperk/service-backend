@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-10-22 — The API key travels only in a header or cookie
+Decided by: Suvajit. The api stops reading `?apiKey=`, because URLs land in our logs, Sentry traces and proxy logs, and the key acts as ADMIN for any user. No caller in this repo used it; an outside caller still sending it now gets 401 and must switch to `x-api-key`. The worker's guard still reads the query and is out of this change.
+
+## 2026-10-22 — Two security review findings are accepted for now
+Decided by: Suvajit. Tokens from `POST /auth/generate-passkey` keep no expiry, so a revoked or downgraded portal user keeps a token issued that way until `JWT_SECRET` rotates. The bot can still be set to grant roles with moderator permissions (auto-roles check only the bot's own rank; ticket add-roles only that the role is in the server; roster and roster-group roles not at all), so a user with only the bot's manager role can hand themselves such a role.
+
 ## Clash API requests are capped per process
 Each tracker fork bursts to about 200 requests in flight (five services, each running `Promise.all` over whole clans). Measured in a container over five runs, per-request latency grows with in-flight depth in one process: about 40 ms at 24, 55 ms at 48, 95 ms at 96 and 220–300 ms at 200. `libs/clash-client/src/inflight-limiter.ts` bounds the depth, so bursts queue as cheap promises instead of at the server, cutting latency 2–4×. The semaphore is process-wide because each tracker service builds its own `ClashClient`; a per-client cap would allow six times the intended depth. The default, `CLASH_API_MAX_INFLIGHT=96`, is the conservative choice: its worst run still sustained 248 requests a second, about twice what a fork uses (100–120), while the median fetch drops from about 224 ms to 95 ms. 48 roughly halves latency again, but its worst run was 126 requests a second, too close to demand for a default. `0` turns the cap off without a code change.
 
