@@ -1,5 +1,8 @@
 # Decisions
 
+## Clash API requests are capped per process
+Each tracker fork bursts to about 200 requests in flight (five services, each running `Promise.all` over whole clans). Measured in a container over five runs, per-request latency grows with in-flight depth in one process: about 40 ms at 24, 55 ms at 48, 95 ms at 96 and 220–300 ms at 200. `libs/clash-client/src/inflight-limiter.ts` bounds the depth, so bursts queue as cheap promises instead of at the server, cutting latency 2–4×. The semaphore is process-wide because each tracker service builds its own `ClashClient`; a per-client cap would allow six times the intended depth. The default, `CLASH_API_MAX_INFLIGHT=96`, is the conservative choice: its worst run still sustained 248 requests a second, about twice what a fork uses (100–120), while the median fetch drops from about 224 ms to 95 ms. 48 roughly halves latency again, but its worst run was 126 requests a second, too close to demand for a default. `0` turns the cap off without a code change.
+
 ## 2026-10-22 — Ranked weeks come live from the game
 Decided by: Claude, pending Suvajit's review. `GET /players/:playerTag/ranked` reads the player, their league group (`/leaguegroup/{tag}/{seasonId}?playerTag=`, which carries their own attack and defense logs) and their league history from the Clash API, like the bot's ranked view, rather than our `battle_logs`, which only cover tracked players. Promotion and demotion zone sizes use the bot's `LeaguePromotionsMap` percentages, rounded up. League tier names and icons are fetched once per process.
 

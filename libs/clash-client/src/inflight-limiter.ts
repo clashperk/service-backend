@@ -1,25 +1,5 @@
-/**
- * Process-wide cap on concurrent Clash API requests.
- *
- * Why this exists: each tracker fork bursts to ~200 requests in flight (five
- * services, each fanning out `Promise.all` over whole clans at once). Measured
- * in-container over five runs, per-request latency scales with in-flight depth
- * in one process: ~40ms at 24, ~55ms at 48, ~95ms at 96, ~220-300ms at 200.
- * Bounding depth cuts latency by 2-4x; the burst simply queues here (cheap
- * promises) instead of at the server.
- *
- * Why it is process-wide: every tracker service builds its own ClashClient via
- * `getClient()`, so a per-instance cap would still allow 6x the intended depth.
- * All instances in a fork share this one semaphore.
- *
- * Tuning: CLASH_API_MAX_INFLIGHT (default 96). 96 is the conservative choice:
- * its worst benchmark run still sustained 248 req/s, roughly twice what a fork
- * actually consumes (~100-120 req/s), so the sweep cannot slow down, while the
- * median fetch drops from ~224ms to ~95ms. Dropping to 48 roughly halves the
- * latency again (~55ms) but its worst run was 126 req/s — too close to demand
- * to be the default; dial it via env and watch the sweep duration. Set 0 to
- * disable the cap entirely — a rollback that needs no code change.
- */
+// One semaphore per process: every tracker service builds its own ClashClient, and deep
+// bursts multiply per-request latency. CLASH_API_MAX_INFLIGHT (default 96, 0 = off); see DECISIONS.md.
 
 class Semaphore {
   private inflight = 0;

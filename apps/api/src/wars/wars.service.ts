@@ -135,8 +135,8 @@ export class WarsService {
   }
 
   async getClanWarLeagueForClan(clanTag: string): Promise<ClanWarLeaguesDto> {
-    // The current CWL season is no longer a clock-derived YYYY-MM (the live API season is an
-    // unpredictable YYYY-MM-DD), so fetch the latest stored group for the clan.
+    // The clock can't tell which CWL season is current (the game's ids are unpredictable dates),
+    // so use the clan's latest stored group.
     const leagueGroup = await this.db
       .collection(Collections.CWL_GROUPS)
       .findOne({ 'clans.tag': clanTag }, { sort: { _id: -1 } });
