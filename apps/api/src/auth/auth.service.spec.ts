@@ -1,9 +1,13 @@
+import { BotNotInGuildException } from '@app/discord-rest';
 import { HttpException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { Collections } from '../db';
 import { AuthService } from './auth.service';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+jest.mock('@app/discord-rest', () => ({
+  DiscordRestService: class {},
+  BotNotInGuildException: jest.requireActual('@app/discord-rest').BotNotInGuildException,
+}));
 
 const GUILD = '111111111111111111';
 const OTHER = '111111111111111112';
@@ -161,16 +165,16 @@ describe('AuthService.getGuildAccess', () => {
 
   it('says yes for a manager and no once they lose it', async () => {
     const manager = setup({ guild: { owner_id: USER } });
-    await expect(access(manager.service)).resolves.toEqual({ canManage: true });
+    await expect(access(manager.service)).resolves.toEqual({ hasBot: true, canManage: true });
 
     const member = setup({ member: { roles: [ROLE(3)] } });
-    await expect(access(member.service)).resolves.toEqual({ canManage: false });
+    await expect(access(member.service)).resolves.toEqual({ hasBot: true, canManage: false });
   });
 
   it('says no when the bot is gone from the server', async () => {
     const { service, discord } = setup();
-    discord.getGuild.mockRejectedValueOnce(new HttpException('Missing Access', 403));
-    await expect(access(service)).resolves.toEqual({ canManage: false });
+    discord.getGuild.mockRejectedValueOnce(new BotNotInGuildException());
+    await expect(access(service)).resolves.toEqual({ hasBot: false, canManage: false });
   });
 
   it('fails on other Discord errors, so the dashboard can keep the server for now', async () => {

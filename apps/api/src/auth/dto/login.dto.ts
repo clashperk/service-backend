@@ -148,6 +148,9 @@ export class GuildAccessInputDto {
 }
 
 export class GuildAccessDto {
+  /** False when the bot was never added to the server or has been removed. */
+  hasBot: boolean;
+
   /** Owner, Administrator, Manage Server or the bot manager role. */
   canManage: boolean;
 }
