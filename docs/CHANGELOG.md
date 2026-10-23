@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-23 (bot left a server)
+- A server ClashPerk was removed from now answers `403` with code `BOT_NOT_IN_GUILD` and a readable message on its channels, roles and member lookups, instead of a `500`
+- `POST /auth/guild-access` returns `hasBot` beside `canManage`; it answered `500` for a server the bot had left, so the dashboard kept it open
+
 ## 2026-10-22 (secrets out of logs)
 - Request logs and error reports sent to Sentry no longer include the login `passKey` or the `authorization` / `x-access-token` headers
 - The API key is no longer accepted as `?apiKey=`; send it in the `x-api-key` header (or the Swagger cookie). The worker's own API is unchanged

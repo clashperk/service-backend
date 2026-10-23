@@ -1,5 +1,6 @@
-import { REST } from '@discordjs/rest';
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { ErrorCodes } from '@app/dto';
+import { DiscordAPIError, REST } from '@discordjs/rest';
+import { ForbiddenException, HttpException, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   APIChannel,
@@ -7,9 +8,23 @@ import {
   APIGuildMember,
   APIUser,
   APIWebhook,
+  RESTJSONErrorCodes,
   Routes,
 } from 'discord-api-types/v10';
 import { URLSearchParams } from 'url';
+
+// What Discord answers on a server's routes when the bot was never added or has been removed.
+const NOT_IN_SERVER: number[] = [RESTJSONErrorCodes.UnknownGuild, RESTJSONErrorCodes.MissingAccess];
+
+/** The bot can't see the server, so nothing in it can be read or managed. */
+export class BotNotInGuildException extends ForbiddenException {
+  constructor() {
+    super(
+      ErrorCodes.BOT_NOT_IN_GUILD,
+      "ClashPerk isn't in this server any more. Invite it again to manage the server.",
+    );
+  }
+}
 
 @Injectable()
 export class DiscordRestService {
@@ -31,6 +46,18 @@ export class DiscordRestService {
     return client;
   }
 
+  /** A request on one of a server's routes, with "not in this server" as `BotNotInGuildException`. */
+  private async inServer<T>(request: Promise<unknown>): Promise<T> {
+    try {
+      return (await request) as T;
+    } catch (error) {
+      if (error instanceof DiscordAPIError && NOT_IN_SERVER.includes(Number(error.code))) {
+        throw new BotNotInGuildException();
+      }
+      throw error;
+    }
+  }
+
   async getUser(userId: string): Promise<APIUser> {
     try {
       return (await this.bot(null).get(Routes.user(userId))) as APIUser;
@@ -44,10 +71,11 @@ export class DiscordRestService {
     query: string;
     token: string | null;
   }): Promise<APIGuildMember[]> {
-    const payload = await this.bot(input.token).get(Routes.guildMembersSearch(input.guildId), {
-      query: new URLSearchParams({ query: input.query, limit: '50' }),
-    });
-    return payload as APIGuildMember[];
+    return this.inServer<APIGuildMember[]>(
+      this.bot(input.token).get(Routes.guildMembersSearch(input.guildId), {
+        query: new URLSearchParams({ query: input.query, limit: '50' }),
+      }),
+    );
   }
 
   /** Every member of a server, 1,000 per request; needs the Server Members intent. */
@@ -56,9 +84,11 @@ export class DiscordRestService {
     const members: APIGuildMember[] = [];
     let after = '0';
     for (;;) {
-      const page = (await rest.get(Routes.guildMembers(input.guildId), {
-        query: new URLSearchParams({ limit: '1000', after }),
-      })) as APIGuildMember[];
+      const page = await this.inServer<APIGuildMember[]>(
+        rest.get(Routes.guildMembers(input.guildId), {
+          query: new URLSearchParams({ limit: '1000', after }),
+        }),
+      );
       members.push(...page);
       if (page.length < 1000) return members;
       after = page[page.length - 1].user.id;
@@ -70,24 +100,24 @@ export class DiscordRestService {
     token: string | null;
     withCounts?: boolean;
   }): Promise<APIGuild> {
-    const payload = await this.bot(input.token).get(Routes.guild(input.guildId), {
-      query: new URLSearchParams(input.withCounts ? { with_counts: 'true' } : {}),
-    });
-
-    return payload as APIGuild;
+    return this.inServer<APIGuild>(
+      this.bot(input.token).get(Routes.guild(input.guildId), {
+        query: new URLSearchParams(input.withCounts ? { with_counts: 'true' } : {}),
+      }),
+    );
   }
 
   async listChannels(input: { guildId: string; token: string | null }): Promise<APIChannel[]> {
-    const payload = await this.bot(input.token).get(Routes.guildChannels(input.guildId));
-
-    return payload as APIChannel[];
+    return this.inServer<APIChannel[]>(
+      this.bot(input.token).get(Routes.guildChannels(input.guildId)),
+    );
   }
 
   /** The bot's own member record in a server, for its roles. */
   async getBotMember(input: { guildId: string; token: string | null }) {
     const rest = this.bot(input.token);
     const me = (await rest.get(Routes.user('@me'))) as APIUser;
-    return (await rest.get(Routes.guildMember(input.guildId, me.id))) as APIGuildMember;
+    return this.inServer<APIGuildMember>(rest.get(Routes.guildMember(input.guildId, me.id)));
   }
 
   /** A member of a server; null when they aren't in it or the bot isn't. */
@@ -104,9 +134,9 @@ export class DiscordRestService {
 
   /** Active threads, forum posts included; Discord leaves archived ones out. */
   async listActiveThreads(input: { guildId: string; token: string | null }) {
-    const payload = (await this.bot(input.token).get(Routes.guildActiveThreads(input.guildId))) as {
-      threads: APIChannel[];
-    };
+    const payload = await this.inServer<{ threads: APIChannel[] }>(
+      this.bot(input.token).get(Routes.guildActiveThreads(input.guildId)),
+    );
     return payload.threads;
   }
 

@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-23 — "Bot not in this server" is one error, raised by the Discord client
+Decided by: Suvajit. `DiscordRestService` turns Discord's Unknown Guild (10004) and Missing Access (50001) on a server's own routes (the server, its channels, active threads and members) into `BotNotInGuildException`, a 403 with `BOT_NOT_IN_GUILD`. Every caller gets the same answer, and `getGuildAccess` reports `hasBot: false` from it, so the dashboard can check bot presence when a server is picked without a list of the bot's servers. `BotGuilds` keeps rows for servers the bot has left (the bot doesn't remove them), so it can't answer that on its own. Missing Permissions (50013) is left alone: the bot is in the server but lacks a permission.
+
 ## 2026-10-22 — The API key travels only in a header or cookie
 Decided by: Suvajit. The api stops reading `?apiKey=`, because URLs land in our logs, Sentry traces and proxy logs, and the key acts as ADMIN for any user. No caller in this repo used it; an outside caller still sending it now gets 401 and must switch to `x-api-key`. The worker's guard still reads the query and is out of this change.
 

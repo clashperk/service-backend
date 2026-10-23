@@ -1,9 +1,8 @@
 import { RedisKeys } from '@app/constants';
-import { DiscordRestService } from '@app/discord-rest';
+import { BotNotInGuildException, DiscordRestService } from '@app/discord-rest';
 import { ErrorCodes } from '@app/dto';
 import { HttpService } from '@nestjs/axios';
 import {
-  HttpException,
   Inject,
   Injectable,
   Logger,
@@ -268,22 +267,20 @@ export class AuthService {
     };
   }
 
-  /** Owner, Administrator, Manage Server, or the bot manager role: what the dashboard requires. */
-  /** The dashboard asks this each time it renews a session, so lost access ends within the hour. */
+  /**
+   * Whether the bot is in the server and the user can manage it (owner, Administrator, Manage
+   * Server or the bot manager role). The dashboard asks when a server is picked and on renewals.
+   */
   async getGuildAccess(input: { userId: string; guildId: string; applicationId?: string | null }) {
     try {
-      return {
-        canManage: await this.canManageGuild(
-          input.guildId,
-          input.userId,
-          input.applicationId ?? null,
-        ),
-      };
+      const canManage = await this.canManageGuild(
+        input.guildId,
+        input.userId,
+        input.applicationId ?? null,
+      );
+      return { hasBot: true, canManage };
     } catch (error) {
-      // The bot was removed or can't see the server: nothing there to manage.
-      if (error instanceof HttpException && [403, 404].includes(error.getStatus())) {
-        return { canManage: false };
-      }
+      if (error instanceof BotNotInGuildException) return { hasBot: false, canManage: false };
       throw error;
     }
   }
