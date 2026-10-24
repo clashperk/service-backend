@@ -1,34 +1,9 @@
-import { ClashClientService } from '@app/clash-client';
+import { ClashClientService, LeagueTierRules } from '@app/clash-client';
 import { Injectable } from '@nestjs/common';
 import { APILeagueGroupList, APILeagueTier } from 'clashofclans.js';
 import { RankedBattleDto, RankedDto, RankedLeagueDto } from '../dto';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
-
-/** Percent of a group that moves up and down a league each week, by league tier id (as the bot). */
-const ZONES: Record<number, { promotion: number; demotion: number }> = {
-  105000000: { promotion: 50, demotion: 0 },
-  105000001: { promotion: 50, demotion: 0 },
-  105000002: { promotion: 50, demotion: 10 },
-  105000003: { promotion: 50, demotion: 10 },
-  105000004: { promotion: 40, demotion: 10 },
-  ...Object.fromEntries(
-    Array.from({ length: 6 }, (_, i) => [105000005 + i, { promotion: 30, demotion: 10 }]),
-  ),
-  ...Object.fromEntries(
-    Array.from({ length: 9 }, (_, i) => [105000011 + i, { promotion: 30, demotion: 15 }]),
-  ),
-  ...Object.fromEntries(
-    Array.from({ length: 4 }, (_, i) => [105000020 + i, { promotion: 25, demotion: 20 }]),
-  ),
-  ...Object.fromEntries(
-    Array.from({ length: 8 }, (_, i) => [105000024 + i, { promotion: 20, demotion: 20 }]),
-  ),
-  105000032: { promotion: 15, demotion: 15 },
-  105000033: { promotion: 15, demotion: 15 },
-  105000034: { promotion: 5, demotion: 15 },
-  105000035: { promotion: 3, demotion: 15 },
-};
 
 type Log = APILeagueGroupList['attackLogs'][number];
 
@@ -39,7 +14,7 @@ export class RankedService {
   /** The player's ranked week so far and their past weeks, as the bot's ranked view shows them. */
   async getRanked(playerTag: string): Promise<RankedDto> {
     const player = await this.clashClientService.getPlayerOrThrow(playerTag);
-    const [group, history, tiers] = await Promise.all([
+    const [group, history, tiers, rules] = await Promise.all([
       player.currentLeagueGroupTag
         ? this.clashClientService.getLeagueGroup(
             player.currentLeagueGroupTag,
@@ -49,6 +24,7 @@ export class RankedService {
         : null,
       this.clashClientService.getLeagueHistory(player.tag),
       this.clashClientService.getLeagueTiers().catch(() => new Map<number, APILeagueTier>()),
+      this.clashClientService.getLeagueTierRules().catch(() => new Map<number, LeagueTierRules>()),
     ]);
 
     const league = (id: number): RankedLeagueDto => {
@@ -57,7 +33,9 @@ export class RankedService {
     };
 
     return {
-      current: group ? this.toWeek(group, player, league(player.leagueTier.id)) : null,
+      current: group
+        ? this.toWeek(group, player, league(player.leagueTier.id), rules.get(player.leagueTier.id))
+        : null,
       history: history
         .map((week) => ({
           league: league(week.leagueTierId),
@@ -79,11 +57,11 @@ export class RankedService {
     group: APILeagueGroupList,
     player: { tag: string; currentLeagueSeasonId: number; leagueTier: { id: number } },
     league: RankedLeagueDto,
+    rules: LeagueTierRules | undefined,
   ) {
     const total = group.members.length;
     const rank = group.members.findIndex((m) => m.playerTag === player.tag) + 1;
     const me = group.members[rank - 1];
-    const zones = ZONES[player.leagueTier.id];
     const startTime = new Date(player.currentLeagueSeasonId * 1000);
 
     return {
@@ -92,9 +70,10 @@ export class RankedService {
       endTime: new Date(startTime.getTime() + WEEK),
       rank,
       total,
-      promotionZone: zones ? Math.ceil((total * zones.promotion) / 100) : 0,
-      demotionZone: zones ? Math.ceil((total * zones.demotion) / 100) : 0,
+      promotionZone: rules ? Math.ceil((total * rules.promotePercent) / 100) : 0,
+      demotionZone: rules ? Math.ceil((total * rules.demotePercent) / 100) : 0,
       trophies: me?.leagueTrophies ?? 0,
+      maxBattles: rules?.maxBattles ?? null,
       attackWins: me?.attackWinCount ?? 0,
       attackLosses: me?.attackLoseCount ?? 0,
       defenseWins: me?.defenseWinCount ?? 0,

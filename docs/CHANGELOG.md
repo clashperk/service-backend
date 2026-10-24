@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-25 (ranked limits)
+- `GET /players/:playerTag/ranked` returns the current week's `maxBattles` (attacks allowed, and the most defenses taken), so clients can show "1 of 24" mid-week
+- Ranked promotion and demotion zones follow the game's percentages for each league; several lower leagues showed a demotion zone twice the real size
+
 ## 2026-10-25 (war stats)
 - `GET /wars/:clanTag/members/stats` totals each member over the clan's latest ended wars (`type=all|regular`, `wars=1–100`) or its latest CWL seasons (`type=cwl`, `seasons=1–12`): wars, attacks, missed attacks, stars, three-stars, destruction, and attacks and three-stars on a same-or-higher Town Hall
 - `GET /players/:playerTag/wars` takes `limit` (newest first, default 50); `startDate` is optional

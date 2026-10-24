@@ -12,6 +12,20 @@ import moment from 'moment';
 import { ClashClient } from './client';
 import { ClanWarDto } from './dto/clan-wars.dto';
 
+type AssetLeagueTier = {
+  id: number;
+  battle_count: number;
+  promote_percentage: number | null;
+  demote_percentage: number | null;
+};
+
+export type LeagueTierRules = {
+  /** Null for a tier without weekly battles (Unranked). */
+  maxBattles: number | null;
+  promotePercent: number;
+  demotePercent: number;
+};
+
 @Injectable()
 export class ClashClientService {
   constructor(
@@ -137,6 +151,32 @@ export class ClashClientService {
         throw error;
       });
     return this.leagueTiers;
+  }
+
+  private leagueTierRules: Promise<Map<number, LeagueTierRules>> | null = null;
+
+  /** Each ranked tier's weekly battles and zone percents, from the game data on the asset CDN. */
+  getLeagueTierRules() {
+    this.leagueTierRules ??= fetch('https://assets.clashperk.com/raw.min.json')
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Game data unavailable');
+        const { league_tiers } = (await res.json()) as { league_tiers: AssetLeagueTier[] };
+        return new Map(
+          league_tiers.map((tier) => [
+            tier.id,
+            {
+              maxBattles: tier.battle_count || null,
+              promotePercent: tier.promote_percentage ?? 0,
+              demotePercent: tier.demote_percentage ?? 0,
+            },
+          ]),
+        );
+      })
+      .catch((error: Error) => {
+        this.leagueTierRules = null;
+        throw error;
+      });
+    return this.leagueTierRules;
   }
 
   async verifyPlayerOrThrow(playerTag: string, apiToken: string | null) {

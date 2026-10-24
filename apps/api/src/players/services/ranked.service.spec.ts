@@ -33,6 +33,10 @@ const createService = (group: unknown) =>
       Promise.resolve(
         new Map([[105000035, { id: 105000035, name: 'Legend II', iconUrls: { large: 'L' } }]]),
       ),
+    getLeagueTierRules: () =>
+      Promise.resolve(
+        new Map([[105000035, { maxBattles: 30, promotePercent: 3, demotePercent: 15 }]]),
+      ),
   } as never);
 
 describe('RankedService.getRanked', () => {
@@ -67,6 +71,7 @@ describe('RankedService.getRanked', () => {
       total: 100,
       promotionZone: 3,
       demotionZone: 15,
+      maxBattles: 30,
       trophies: 1998,
       league: { name: 'Legend II', iconUrl: 'L' },
       startTime: new Date('2026-10-19T05:00:00Z'),
