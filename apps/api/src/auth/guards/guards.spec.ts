@@ -1,5 +1,6 @@
 import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import * as Sentry from '@sentry/nestjs';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthGuardStrategies } from '../app.constants';
 import { fallbackUser, JwtUser, UserRoles } from '../dto';
@@ -9,6 +10,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 
 jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+jest.mock('@sentry/nestjs', () => ({ logger: { warn: jest.fn() } }));
 
 const GUILD = '111111111111111111';
 
@@ -61,17 +63,45 @@ describe('RolesGuard', () => {
 });
 
 describe('JwtStrategy', () => {
+  const req = (userAgent?: string) =>
+    ({
+      headers: { 'user-agent': userAgent },
+      ip: '127.0.0.1',
+      method: 'GET',
+      url: '/v1/x',
+    }) as never;
+  beforeEach(() => jest.clearAllMocks());
   const strategy = () => {
     const config = { getOrThrow: () => 'secret' };
     const auth = { revalidateJwtUser: (payload: JwtUser) => Promise.resolve(payload) };
     return new JwtStrategy(config as never, auth as never);
   };
 
+  it('reports a dashboard token sent by a script, with its jti', async () => {
+    await strategy().validate(req('python-requests/2.32'), user({ version: '1', jti: 'jti-1' }));
+    await strategy().validate(req(), user({ version: '1', jti: 'jti-2' }));
+
+    expect(Sentry.logger.warn).toHaveBeenCalledTimes(2);
+    expect(Sentry.logger.warn).toHaveBeenCalledWith(
+      'Dashboard token sent by a script',
+      expect.objectContaining({ 'token.jti': 'jti-1', 'user_agent': 'python-requests/2.32' }),
+    );
+  });
+
+  it('stays quiet for browsers, the dashboard server and API tokens', async () => {
+    const chrome = 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/141.0 Safari/537.36';
+    await strategy().validate(req(chrome), user({ version: '1' }));
+    await strategy().validate(req('node'), user({ version: '1' }));
+    await strategy().validate(req('curl/8.7.1'), user({ version: 'v2' }));
+
+    expect(Sentry.logger.warn).not.toHaveBeenCalled();
+  });
+
   it("marks tokens the dashboard didn't sign as API tokens", async () => {
-    await expect(strategy().validate(user({ version: '1' }))).resolves.toMatchObject({
+    await expect(strategy().validate(req(), user({ version: '1' }))).resolves.toMatchObject({
       portal: false,
     });
-    await expect(strategy().validate(user({ version: 'v2' }))).resolves.toMatchObject({
+    await expect(strategy().validate(req(), user({ version: 'v2' }))).resolves.toMatchObject({
       portal: true,
     });
   });

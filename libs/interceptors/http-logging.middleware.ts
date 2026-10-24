@@ -1,4 +1,5 @@
 import { fallbackUser } from '@app/auth';
+import { getClientIp } from '@app/helpers';
 import { ConsoleLogger, Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 import { NextFunction, Request, Response } from 'express';
@@ -28,7 +29,7 @@ export class HttpLoggingMiddleware implements NestMiddleware {
     const { method, originalUrl } = req;
     const { statusCode } = res;
     const responseTime = Date.now() - startTime;
-    const remoteAddr = this.formatIp(this.getClientIp(req));
+    const remoteAddr = this.formatIp(getClientIp(req));
     const userId = `@${req.user?.username || req.user?.userId || 'unauthenticated'}`;
 
     const logMessage = [
@@ -60,9 +61,5 @@ export class HttpLoggingMiddleware implements NestMiddleware {
   private formatIp(ip?: string): string {
     if (ip === '::1') return 'localhost';
     return ip || 'invalid-ip';
-  }
-
-  private getClientIp(req: Request): string {
-    return (req.headers['cf-connecting-ip'] || req.ip) as string;
   }
 }
