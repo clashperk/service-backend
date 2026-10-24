@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-25 — Ranked league rules come from the asset CDN's game data
+Decided by: Suvajit. The game API only reports a week's battle limit once the week ends, and has no zone percentages, so the API reads `league_tiers` (`battle_count`, `promote_percentage`, `demote_percentage`) from `https://assets.clashperk.com/raw.min.json`, loaded once per process and retried after a failure. This replaces a hardcoded zone table that had drifted from the game. Without the data the week still loads, with no zones and a null `maxBattles`.
+
 ## 2026-10-25 — War stats count ended wars only
 Decided by: Suvajit. Member and player war totals only count wars that have ended, so a war in progress doesn't show unused attacks as missed or drag hit rates down mid-war. "Same or higher Town Hall" compares the defender's Town Hall in that war with the attacker's; an attack whose defender isn't in the stored lineup isn't counted there. CWL stats take whole seasons rather than a war count, since CWL is played and judged by season; a season played in two clans is two rows in a player's history, each with that clan's league.
 
