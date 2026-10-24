@@ -9,13 +9,15 @@ import { WarTypes } from '../players/dto/war-types.enum';
 import { CwlArchiveService } from './cwl-archive.service';
 import {
   ClanWarDto,
-  ClanWarLeagueMemberDto,
+  ClanWarMemberTotalsDto,
   ClanWarLeagueSeasonsDto,
   ClanWarLeagueStandingsDto,
   ClanWarLeaguesDto,
   ClanWarListDto,
+  ClanWarStatsDto,
   ClanWarSummaryDto,
   CurrentWarDto,
+  WarStatsType,
 } from './dto';
 
 // Member lists make a stored war ~50 KB; the list only needs the score.
@@ -68,6 +70,7 @@ const SEASON_PROJECTION = {
   'clan.members.townhallLevel': 1,
   'clan.members.attacks.stars': 1,
   'clan.members.attacks.destructionPercentage': 1,
+  'clan.members.attacks.defenderTag': 1,
   'opponent.tag': 1,
   'opponent.name': 1,
   'opponent.badgeUrls': 1,
@@ -80,17 +83,45 @@ const SEASON_PROJECTION = {
   'opponent.members.townhallLevel': 1,
   'opponent.members.attacks.stars': 1,
   'opponent.members.attacks.destructionPercentage': 1,
+  'opponent.members.attacks.defenderTag': 1,
+};
+
+// What member totals read from each side of a war.
+const STATS_PROJECTION = {
+  '_id': 0,
+  'season': 1,
+  'warType': 1,
+  'state': 1,
+  'startTime': 1,
+  'endTime': 1,
+  'attacksPerMember': 1,
+  'clan.tag': 1,
+  'clan.members.tag': 1,
+  'clan.members.name': 1,
+  'clan.members.townhallLevel': 1,
+  'clan.members.attacks.stars': 1,
+  'clan.members.attacks.destructionPercentage': 1,
+  'clan.members.attacks.defenderTag': 1,
+  'opponent.tag': 1,
+  'opponent.members.tag': 1,
+  'opponent.members.name': 1,
+  'opponent.members.townhallLevel': 1,
+  'opponent.members.attacks.stars': 1,
+  'opponent.members.attacks.destructionPercentage': 1,
+  'opponent.members.attacks.defenderTag': 1,
 };
 
 // The tracker can miss a war's last update and leave it "inWar" after it ended.
 const storedState = <S extends string>(war: { state: S; endTime: Date }): S | 'warEnded' =>
   war.endTime.getTime() <= Date.now() ? 'warEnded' : war.state;
 
-/** Each member's season totals from the clan's side of every round, most stars first. */
-const memberTotals = (wars: ClanWarsEntity[], clanTag: string): ClanWarLeagueMemberDto[] => {
-  const totals = new Map<string, ClanWarLeagueMemberDto>();
+/** Each member's totals from the clan's side of the given wars (oldest first), most stars first. */
+const memberTotals = (wars: ClanWarsEntity[], clanTag: string): ClanWarMemberTotalsDto[] => {
+  const totals = new Map<string, ClanWarMemberTotalsDto>();
   for (const war of wars) {
     const clan = war.clan.tag === clanTag ? war.clan : war.opponent;
+    const opponent = war.clan.tag === clanTag ? war.opponent : war.clan;
+    const defenderTownHall = new Map(opponent.members.map((m) => [m.tag, m.townhallLevel]));
     const ended = storedState(war) === 'warEnded';
     for (const member of clan.members) {
       const total = totals.get(member.tag) ?? {
@@ -103,18 +134,24 @@ const memberTotals = (wars: ClanWarsEntity[], clanTag: string): ClanWarLeagueMem
         threeStars: 0,
         destruction: 0,
         missed: 0,
+        sameThAttacks: 0,
+        sameThThreeStars: 0,
       };
       // Wars are oldest first, so the last one seen sets the current name and Town Hall.
       total.name = member.name;
       total.townHallLevel = member.townhallLevel;
       total.wars += 1;
       const attacks = member.attacks ?? [];
-      if (ended && attacks.length === 0) total.missed += 1;
+      if (ended) total.missed += Math.max(0, (war.attacksPerMember || 1) - attacks.length);
       for (const attack of attacks) {
         total.attacks += 1;
         total.stars += attack.stars;
         total.destruction += attack.destructionPercentage;
         if (attack.stars === 3) total.threeStars += 1;
+        if ((defenderTownHall.get(attack.defenderTag) ?? 0) >= member.townhallLevel) {
+          total.sameThAttacks += 1;
+          if (attack.stars === 3) total.sameThThreeStars += 1;
+        }
       }
       totals.set(member.tag, total);
     }
@@ -306,6 +343,60 @@ export class WarsService {
     return {
       items,
       next: wars.length > limit ? page[page.length - 1].startTime.getTime() : null,
+    };
+  }
+
+  /** Each member's totals over the clan's latest ended wars, or over its latest CWL seasons. */
+  public async getClanWarStats(input: {
+    clanTag: string;
+    type: WarStatsType;
+    wars: number;
+    seasons: number;
+  }): Promise<ClanWarStatsDto> {
+    const { clanTag, type } = input;
+    const ended = {
+      $or: [{ 'clan.tag': clanTag }, { 'opponent.tag': clanTag }],
+      endTime: { $lte: new Date() },
+    };
+
+    let wars: ClanWarsEntity[];
+    if (type === 'cwl') {
+      const match = { ...ended, warType: WarTypes.CWL };
+      const seasons = await this.wars
+        .aggregate<{
+          _id: string;
+        }>([
+          { $match: match },
+          { $group: { _id: '$season', start: { $max: '$startTime' } } },
+          { $sort: { start: -1 } },
+          { $limit: input.seasons },
+        ])
+        .toArray();
+      wars = await this.wars
+        .find(
+          { ...match, season: { $in: seasons.map(({ _id }) => _id) } },
+          { projection: STATS_PROJECTION, sort: { startTime: -1 } },
+        )
+        .toArray();
+    } else {
+      const warType =
+        type === 'regular' ? WarTypes.REGULAR : { $in: [WarTypes.REGULAR, WarTypes.CWL] };
+      wars = await this.wars
+        .find(
+          { ...ended, warType },
+          { projection: STATS_PROJECTION, sort: { startTime: -1 }, limit: input.wars },
+        )
+        .toArray();
+    }
+
+    return {
+      wars: wars.length,
+      seasons: [
+        ...new Set(
+          wars.filter((war) => war.warType === (WarTypes.CWL as number)).map((war) => war.season),
+        ),
+      ],
+      members: memberTotals([...wars].reverse(), clanTag),
     };
   }
 

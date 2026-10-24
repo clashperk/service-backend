@@ -10,6 +10,8 @@ import {
   ClanWarLeaguesDto,
   ClanWarListDto,
   ClanWarListInputDto,
+  ClanWarStatsDto,
+  ClanWarStatsInputDto,
   CurrentWarDto,
 } from './dto';
 import { WarsService } from './wars.service';
@@ -41,6 +43,15 @@ export class WarsController {
     @Query() query: ClanWarLeagueSeasonsInputDto,
   ): Promise<ClanWarLeagueSeasonsDto> {
     return this.warsService.getClanWarLeagueSeasons({ clanTag, limit: query.limit });
+  }
+
+  @Get('/:clanTag/members/stats')
+  @Cache(60 * 5)
+  async getClanWarStats(
+    @Param('clanTag') clanTag: string,
+    @Query() query: ClanWarStatsInputDto,
+  ): Promise<ClanWarStatsDto> {
+    return this.warsService.getClanWarStats({ clanTag, ...query });
   }
 
   @Get('/:clanTag/clan-war-leagues/groups/:groupId/standings')

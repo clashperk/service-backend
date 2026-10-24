@@ -504,3 +504,133 @@ describe('WarsService.getClanWarLeagueStandings', () => {
     );
   });
 });
+
+describe('WarsService.getClanWarStats', () => {
+  type StatsAttack = Attack & { defenderTag: string };
+  type StatsWar = {
+    season: string;
+    warType: number;
+    state: string;
+    startTime: Date;
+    endTime: Date;
+    attacksPerMember: number;
+    clan: { tag: string; members: (Member & { attacks?: StatsAttack[] })[] };
+    opponent: { tag: string; members: Member[] };
+  };
+
+  const hit = (defenderTag: string, stars: number): StatsAttack => ({
+    defenderTag,
+    stars,
+    destructionPercentage: stars === 3 ? 100 : 70,
+  });
+  const statsWar = (
+    day: number,
+    warType: number,
+    members: StatsWar['clan']['members'],
+    ended = true,
+  ): StatsWar => ({
+    season: warType === 3 ? '2026-10' : '2026-09',
+    warType,
+    state: ended ? 'warEnded' : 'inWar',
+    startTime: new Date(Date.UTC(2026, 9, day)),
+    endTime: ended ? new Date(Date.UTC(2026, 9, day + 1)) : new Date(Date.now() + 60_000),
+    attacksPerMember: warType === 3 ? 1 : 2,
+    clan: { tag: '#A', members },
+    opponent: {
+      tag: `#X${day}`,
+      members: [
+        { tag: '#BIG', name: 'Big', townhallLevel: 16 },
+        { tag: '#SMALL', name: 'Small', townhallLevel: 12 },
+      ],
+    },
+  });
+  const member = (tag: string, townhallLevel: number, attacks?: StatsAttack[]) => ({
+    tag,
+    name: tag,
+    townhallLevel,
+    attacks,
+  });
+
+  const createStatsService = (wars: StatsWar[]) => {
+    const pick = (filter: { warType: number | { $in: number[] }; season?: { $in: string[] } }) =>
+      wars
+        .filter((war) => war.endTime.getTime() <= Date.now())
+        .filter((war) =>
+          typeof filter.warType === 'number'
+            ? war.warType === filter.warType
+            : filter.warType.$in.includes(war.warType),
+        )
+        .filter((war) => !filter.season || filter.season.$in.includes(war.season))
+        .sort((a, b) => +b.startTime - +a.startTime);
+    const collection = {
+      find: (filter: Parameters<typeof pick>[0], options: { limit?: number }) => ({
+        toArray: () => Promise.resolve(pick(filter).slice(0, options.limit)),
+      }),
+      aggregate: (pipeline: { $limit?: number }[]) => ({
+        toArray: () =>
+          Promise.resolve(
+            [...new Set(pick({ warType: 3 }).map((war) => war.season))]
+              .slice(0, pipeline.find((stage) => stage.$limit)!.$limit)
+              .map((_id) => ({ _id })),
+          ),
+      }),
+    };
+    const db = { collection: () => collection } as unknown as Db;
+    return new WarsService(db, null as never, null as never);
+  };
+
+  const wars = [
+    statsWar(1, 1, [member('#P1', 15, [hit('#BIG', 3), hit('#SMALL', 3)]), member('#P2', 14)]),
+    statsWar(3, 1, [member('#P1', 16, [hit('#BIG', 2)])]),
+    statsWar(5, 3, [member('#P1', 16, [hit('#BIG', 3)]), member('#P2', 14)]),
+    statsWar(7, 1, [member('#P1', 16)], false),
+  ];
+
+  it('totals the latest ended wars, missed attacks and same-or-higher Town Hall hits', async () => {
+    const stats = await createStatsService(wars).getClanWarStats({
+      clanTag: '#A',
+      type: 'all',
+      wars: 25,
+      seasons: 3,
+    });
+
+    // The war still in progress isn't counted.
+    expect(stats.wars).toBe(3);
+    expect(stats.seasons).toEqual(['2026-10']);
+    const p1 = stats.members.find((m) => m.tag === '#P1')!;
+    expect(p1).toMatchObject({
+      townHallLevel: 16,
+      wars: 3,
+      attacks: 4,
+      threeStars: 3,
+      missed: 1,
+      sameThAttacks: 3,
+      sameThThreeStars: 2,
+    });
+    // Two unused regular attacks and one unused CWL attack.
+    expect(stats.members.find((m) => m.tag === '#P2')).toMatchObject({ attacks: 0, missed: 3 });
+  });
+
+  it('counts only the asked number of wars, newest first', async () => {
+    const stats = await createStatsService(wars).getClanWarStats({
+      clanTag: '#A',
+      type: 'regular',
+      wars: 1,
+      seasons: 3,
+    });
+    expect(stats.wars).toBe(1);
+    expect(stats.members.map((m) => m.tag)).toEqual(['#P1']);
+    expect(stats.members[0]).toMatchObject({ attacks: 1, missed: 1, stars: 2 });
+  });
+
+  it('counts whole CWL seasons for cwl', async () => {
+    const stats = await createStatsService(wars).getClanWarStats({
+      clanTag: '#A',
+      type: 'cwl',
+      wars: 25,
+      seasons: 1,
+    });
+    expect(stats).toMatchObject({ wars: 1, seasons: ['2026-10'] });
+    expect(stats.members.find((m) => m.tag === '#P2')).toMatchObject({ missed: 1 });
+  });
+});
