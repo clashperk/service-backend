@@ -88,10 +88,9 @@ describe('JwtStrategy', () => {
     );
   });
 
-  it('stays quiet for browsers, the dashboard server and API tokens', async () => {
+  it('stays quiet for browsers and API tokens', async () => {
     const chrome = 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/141.0 Safari/537.36';
     await strategy().validate(req(chrome), user({ version: '1' }));
-    await strategy().validate(req('node'), user({ version: '1' }));
     await strategy().validate(req('curl/8.7.1'), user({ version: 'v2' }));
 
     expect(Sentry.logger.warn).not.toHaveBeenCalled();

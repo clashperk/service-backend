@@ -9,9 +9,9 @@ import { AuthGuardStrategies, DASHBOARD_TOKEN_VERSION } from '../app.constants';
 import { AuthService } from '../auth.service';
 import { JwtUser } from '../dto';
 
-// Clients a browser never identifies as. Node's own fetch is left out: the dashboard's server uses it.
+// Clients a browser never identifies as.
 const SCRIPT_AGENT =
-  /^(curl|wget|python|aiohttp|httpx|axios|got|okhttp|go-http-client|java|apache-httpclient|postmanruntime|insomnia|httpie|powershell|libwww-perl|ruby|php|dart|deno|bun)\b/i;
+  /^(curl|wget|python|aiohttp|httpx|axios|got|okhttp|go-http-client|java|apache-httpclient|postmanruntime|insomnia|httpie|powershell|libwww-perl|ruby|php|dart|deno|bun|node|undici)\b/i;
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, AuthGuardStrategies.JWT) {
