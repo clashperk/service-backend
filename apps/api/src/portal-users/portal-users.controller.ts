@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   AddedPortalUserDto,
@@ -9,7 +9,9 @@ import {
   PortalUsersDto,
 } from './dto/portal-users.dto';
 import { PortalUsersService } from './portal-users.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.ADMIN)
 @Controller('/admin/portal-users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([UserRoles.ADMIN])

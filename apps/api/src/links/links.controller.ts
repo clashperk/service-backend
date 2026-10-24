@@ -1,11 +1,13 @@
 import { ResultOkDto } from '@app/dto';
 import { codeBlock } from '@app/helpers';
 import { Body, Controller, Delete, HttpCode, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import { CreateLinkInputDto, GetLinksInputDto, LinksDto } from './dto';
 import { LinksService } from './links.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.LINKS)
 @Controller('/links')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)

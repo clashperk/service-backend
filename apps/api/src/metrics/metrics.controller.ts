@@ -1,10 +1,12 @@
 import { ApiExcludeRoute, ApiExcludeTypings, Cache } from '@app/decorators';
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import { CommandsUsageLogItemsDto, GetCommandsUsageLogsInputDto } from './dto';
 import { MetricsService } from './metrics.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.INTERNAL)
 @Controller('/metrics')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([UserRoles.ADMIN])

@@ -12,7 +12,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   AddGuildClanInput,
@@ -72,7 +72,9 @@ import { GuildRemindersService } from './guild-reminders.service';
 import { GuildButtonsService } from './guild-buttons.service';
 import { GuildServerLogsService } from './guild-server-logs.service';
 import { GuildsService } from './guilds.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.GUILDS)
 @Controller('/guilds')
 @ApiBearerAuth()
 @Roles([UserRoles.USER])

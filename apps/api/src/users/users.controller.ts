@@ -1,10 +1,12 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import { ClanTagInput, TimezoneInput, UserSettingsDto } from './dto/user-settings.dto';
 import { UsersService } from './users.service';
+import { ApiTag } from '../api-tags';
 
 /** The signed-in user's bot settings; the bot can call these for the member who ran a command. */
+@ApiTags(ApiTag.USERS)
 @Controller('/users/me')
 @ApiBearerAuth()
 @Roles([UserRoles.USER])

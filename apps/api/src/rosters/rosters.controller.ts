@@ -10,7 +10,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import { RostersEntity } from '../db';
 import {
@@ -29,7 +29,9 @@ import {
 } from './dto';
 import { GetRostersDto } from './dto/rosters.dto';
 import { RostersService } from './rosters.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.ROSTERS)
 @Controller('/rosters')
 @ApiBearerAuth()
 @Roles([UserRoles.USER])

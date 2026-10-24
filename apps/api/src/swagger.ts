@@ -1,7 +1,8 @@
 import { Config } from '@app/constants';
-import { ErrorResponseDto } from '@app/dto';
+import { ErrorResponseDto, UserRoles } from '@app/dto';
 import { getTurnstileScript } from '@app/helpers/turnstile-script';
 import { ConfigService } from '@nestjs/config';
+import { INestApplication } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import {
   DocumentBuilder,
@@ -10,33 +11,46 @@ import {
   SwaggerModule,
 } from '@nestjs/swagger';
 import { readFileSync } from 'node:fs';
+import { API_TAG_DESCRIPTIONS } from './api-tags';
 
 const version = JSON.parse(readFileSync('./package.json', 'utf-8')).version;
 
-function filterRoutes({
-  document,
-  extension,
-}: {
-  document: OpenAPIObject;
-  extension: string;
-}): OpenAPIObject {
-  const mutated = { ...document, paths: {} };
-  for (const path in document.paths) {
-    const pathItem = document.paths[path];
+type Operation = { 'tags'?: string[]; 'x-required-roles'?: UserRoles[] } & Record<string, unknown>;
 
-    const options = Object.entries(pathItem).filter(([_, operation]) => {
-      return !operation?.[extension];
-    });
+/** API tokens can't call routes only dashboard sessions or admins may use, so those stay unpublished. */
+const NOT_FOR_API_TOKENS = [UserRoles.USER, UserRoles.ADMIN];
 
-    if (options.length > 0) {
-      mutated.paths[path] = Object.fromEntries(options);
-    }
+const isPublished = (operation: Operation) => {
+  const roles = operation['x-required-roles'] ?? [];
+  return (
+    !operation['x-internal'] &&
+    !(roles.length && roles.every((role) => NOT_FOR_API_TOKENS.includes(role)))
+  );
+};
+
+function filterOperations(
+  document: OpenAPIObject,
+  keep: (operation: Operation) => boolean,
+): OpenAPIObject {
+  const paths: OpenAPIObject['paths'] = {};
+  for (const [path, pathItem] of Object.entries(document.paths)) {
+    const operations = Object.entries(pathItem).filter(([, operation]) =>
+      keep(operation as Operation),
+    );
+    if (operations.length) paths[path] = Object.fromEntries(operations);
   }
-  return mutated;
+
+  const used = new Set(
+    Object.values(paths).flatMap((pathItem) =>
+      Object.values(pathItem).flatMap((operation) => (operation as Operation).tags ?? []),
+    ),
+  );
+  return { ...document, paths, tags: document.tags?.filter((tag) => used.has(tag.name)) };
 }
 
-export function build(app: NestExpressApplication) {
-  const config = new DocumentBuilder()
+/** The full document, and the published one: no internal routes, none API tokens can't call. */
+export function createDocuments(app: INestApplication) {
+  const builder = new DocumentBuilder()
     .setTitle('ClashPerk Discord Bot API')
     .setDescription(
       [
@@ -62,13 +76,20 @@ export function build(app: NestExpressApplication) {
       name: 'x-api-key',
       description: 'in header (x-api-key: [key])',
     })
-    .addGlobalResponse({ type: ErrorResponseDto, status: 500 })
-    .build();
+    .addGlobalResponse({ type: ErrorResponseDto, status: 500 });
+  for (const [name, description] of Object.entries(API_TAG_DESCRIPTIONS)) {
+    builder.addTag(name, description);
+  }
+  const config = builder.build();
 
   const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (_, methodKey) => methodKey,
   });
-  const published = filterRoutes({ document, extension: 'x-internal' });
+  return { document, published: filterOperations(document, isPublished) };
+}
+
+export function build(app: NestExpressApplication) {
+  const { document, published } = createDocuments(app);
 
   const configService = app.get(ConfigService);
   const turnstileSiteKey = configService.getOrThrow('CLOUDFLARE_TURNSTILE_SITE_KEY');
@@ -88,7 +109,7 @@ export function build(app: NestExpressApplication) {
     customJsStr: getTurnstileScript(turnstileSiteKey),
     patchDocumentOnRequest: (req) => {
       if (req['query']?.['x-typings-ignored']) {
-        return filterRoutes({ document, extension: 'x-typings-ignored' });
+        return filterOperations(document, (operation) => !operation['x-typings-ignored']);
       }
 
       if (!Config.IS_PROD || req['cookies']?.['x-api-key'] === configService.get('API_KEY')) {

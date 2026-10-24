@@ -1,9 +1,12 @@
 import { ApiExcludeRoute, Cache } from '@app/decorators';
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from '../auth';
 import { ExportMembersInput, ExportMembersOutputDto } from './dto';
 import { ExportsService } from './exports.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.INTERNAL)
 @Controller('/exports')
 @ApiExcludeRoute()
 @UseGuards(ApiKeyGuard)

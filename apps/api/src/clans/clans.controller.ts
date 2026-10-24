@@ -1,7 +1,7 @@
 import { ClanDto } from '@app/clash-client';
 import { Cache } from '@app/decorators';
 import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import { ClanActivityService } from './clan-activity.service';
 import { ClansService } from './clans.service';
@@ -17,7 +17,9 @@ import {
   ClanLinksDto,
   LastSeenDto,
 } from './dto';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.CLANS)
 @Controller('/clans')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
