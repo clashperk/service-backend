@@ -2,6 +2,12 @@ import { ApiProperty } from '@nestjs/swagger';
 import { randomUUID } from 'node:crypto';
 import { UserRoles } from '../../dto/user-roles.enum';
 
+/** Who a token is for, signed as its `aud` claim. Every token the API signs is for the API. */
+export enum TokenAudience {
+  DASHBOARD = 'dashboard',
+  API = 'api',
+}
+
 export class JwtUserInput {
   jti: string;
   userId: string;
@@ -26,11 +32,15 @@ export class JwtUser implements JwtUserInput {
   guildIds: string[];
   applicationId?: string;
   cacheMultiplier?: number;
-  /** Set by the API, not the token: issued by `/auth/login` or `/auth/turnstile` rather than the dashboard. */
-  portal?: boolean;
+  /** Settled by `JwtStrategy` from the token's claim; unset for the API key. */
+  aud?: TokenAudience;
 
   static isAdmin(user: JwtUser) {
     return user.roles.includes(UserRoles.ADMIN);
+  }
+
+  static isApiToken(user: JwtUser) {
+    return user.aud === TokenAudience.API;
   }
 }
 

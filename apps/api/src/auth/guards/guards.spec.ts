@@ -3,14 +3,14 @@ import { Reflector } from '@nestjs/core';
 import * as Sentry from '@sentry/nestjs';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthGuardStrategies } from '../app.constants';
-import { fallbackUser, JwtUser, UserRoles } from '../dto';
+import { fallbackUser, JwtUser, TokenAudience, UserRoles } from '../dto';
 import { JwtStrategy } from '../strategies';
 import { ApiKeyGuard } from './api-key.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 
 jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
-jest.mock('@sentry/nestjs', () => ({ logger: { warn: jest.fn() } }));
+jest.mock('@sentry/nestjs', () => ({ logger: { warn: jest.fn(), info: jest.fn() } }));
 
 const GUILD = '111111111111111111';
 
@@ -45,16 +45,26 @@ describe('RolesGuard', () => {
   });
 
   it('refuses API tokens on dashboard-only routes, admins included', () => {
-    expect(() => check([UserRoles.USER], user({ portal: true }))).toThrow(ForbiddenException);
+    expect(() => check([UserRoles.USER], user({ aud: TokenAudience.API }))).toThrow(
+      ForbiddenException,
+    );
     expect(() =>
-      check([UserRoles.USER], user({ portal: true, roles: [UserRoles.ADMIN], guildIds: [] })),
+      check(
+        [UserRoles.USER],
+        user({ aud: TokenAudience.API, roles: [UserRoles.ADMIN], guildIds: [] }),
+      ),
     ).toThrow(ForbiddenException);
   });
 
   it('still lets API tokens use routes that name their role', () => {
-    const portal = user({ portal: true, roles: [UserRoles.VIEWER, UserRoles.FETCH_ROSTERS] });
-    expect(check([UserRoles.USER, UserRoles.FETCH_ROSTERS], portal)).toBe(true);
-    expect(check([UserRoles.ADMIN], user({ portal: true, roles: [UserRoles.ADMIN] }))).toBe(true);
+    const apiToken = user({
+      aud: TokenAudience.API,
+      roles: [UserRoles.VIEWER, UserRoles.FETCH_ROSTERS],
+    });
+    expect(check([UserRoles.USER, UserRoles.FETCH_ROSTERS], apiToken)).toBe(true);
+    expect(
+      check([UserRoles.ADMIN], user({ aud: TokenAudience.API, roles: [UserRoles.ADMIN] })),
+    ).toBe(true);
   });
 
   it("lets the bot's API key through as a service", () => {
@@ -71,15 +81,55 @@ describe('JwtStrategy', () => {
       url: '/v1/x',
     }) as never;
   beforeEach(() => jest.clearAllMocks());
-  const strategy = () => {
-    const config = { getOrThrow: () => 'secret' };
+  const strategy = (requireAudience = false) => {
+    const config = {
+      getOrThrow: () => 'secret',
+      get: () => (requireAudience ? '1' : undefined),
+    };
     const auth = { revalidateJwtUser: (payload: JwtUser) => Promise.resolve(payload) };
     return new JwtStrategy(config as never, auth as never);
   };
+  const dashboard = (overrides: Partial<JwtUser> = {}) =>
+    user({ aud: TokenAudience.DASHBOARD, ...overrides });
+  const api = (overrides: Partial<JwtUser> = {}) => user({ aud: TokenAudience.API, ...overrides });
 
-  it('reports a dashboard token sent by a script, with its jti', async () => {
-    await strategy().validate(req('python-requests/2.32'), user({ version: '1', jti: 'jti-1' }));
-    await strategy().validate(req(), user({ version: '1', jti: 'jti-2' }));
+  it('reads API tokens and dashboard sessions from the audience, not the version', async () => {
+    await expect(strategy().validate(req(), dashboard({ version: 'v2' }))).resolves.toMatchObject({
+      aud: TokenAudience.DASHBOARD,
+    });
+    await expect(strategy().validate(req(), api({ version: '1' }))).resolves.toMatchObject({
+      aud: TokenAudience.API,
+    });
+  });
+
+  it('refuses a token signed for another audience', async () => {
+    await expect(strategy().validate(req(), user({ aud: 'billing' } as never))).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('falls back to the version for tokens without an audience, and logs them', async () => {
+    await expect(strategy().validate(req(), user({ version: '1' }))).resolves.toMatchObject({
+      aud: TokenAudience.DASHBOARD,
+    });
+    await expect(strategy().validate(req(), user({ version: 'v2' }))).resolves.toMatchObject({
+      aud: TokenAudience.API,
+    });
+    expect(Sentry.logger.info).toHaveBeenCalledTimes(2);
+  });
+
+  it('refuses tokens without an audience once audiences are required', async () => {
+    await expect(strategy(true).validate(req(), user({ version: '1' }))).rejects.toThrow(
+      UnauthorizedException,
+    );
+    await expect(strategy(true).validate(req(), api())).resolves.toMatchObject({
+      aud: TokenAudience.API,
+    });
+  });
+
+  it('reports a dashboard session sent by a script, with its jti', async () => {
+    await strategy().validate(req('python-requests/2.32'), dashboard({ jti: 'jti-1' }));
+    await strategy().validate(req(), dashboard({ jti: 'jti-2' }));
 
     expect(Sentry.logger.warn).toHaveBeenCalledTimes(2);
     expect(Sentry.logger.warn).toHaveBeenCalledWith(
@@ -90,19 +140,10 @@ describe('JwtStrategy', () => {
 
   it('stays quiet for browsers and API tokens', async () => {
     const chrome = 'Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/141.0 Safari/537.36';
-    await strategy().validate(req(chrome), user({ version: '1' }));
-    await strategy().validate(req('curl/8.7.1'), user({ version: 'v2' }));
+    await strategy().validate(req(chrome), dashboard());
+    await strategy().validate(req('curl/8.7.1'), api({ version: '1' }));
 
     expect(Sentry.logger.warn).not.toHaveBeenCalled();
-  });
-
-  it("marks tokens the dashboard didn't sign as API tokens", async () => {
-    await expect(strategy().validate(req(), user({ version: '1' }))).resolves.toMatchObject({
-      portal: false,
-    });
-    await expect(strategy().validate(req(), user({ version: 'v2' }))).resolves.toMatchObject({
-      portal: true,
-    });
   });
 });
 

@@ -31,6 +31,7 @@ import {
   JwtUserInput,
   LoginOkDto,
   swaggerUser,
+  TokenAudience,
   UserRoles,
 } from './dto';
 
@@ -364,7 +365,7 @@ export class AuthService {
       username: input.username.toLowerCase(),
     } satisfies JwtUserInput;
 
-    return this.jwtService.sign(payload, options);
+    return this.jwtService.sign(payload, { ...options, audience: TokenAudience.API });
   }
 
   private get users() {

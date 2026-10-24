@@ -1,1 +1,1 @@
-export { fallbackUser, JwtUser, JwtUserInput, swaggerUser } from '@app/auth';
+export { fallbackUser, JwtUser, JwtUserInput, swaggerUser, TokenAudience } from '@app/auth';

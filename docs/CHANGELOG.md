@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-24 (token audience)
+- Tokens the API signs (`/auth/login`, `/auth/turnstile`, `/auth/generate-passkey`) now carry `aud: "api"`; the dashboard is to sign its sessions with `aud: "dashboard"`
+- Whether a token is an API token or a dashboard session now comes from `aud`, not `version`; a token with any other `aud` gets 401
+- Tokens without `aud` still work through the old version rule, logged to Sentry as `Token without an audience`, until `JWT_REQUIRE_AUDIENCE=1` is set; then they get 401
+
 ## 2026-10-24 (token misuse logging)
 - A rejected token's Sentry error log names it by a 16-character SHA-256 fingerprint plus its unverified `jti`, `userId`, `version` and whether it expired; the token itself is never logged
 - Sentry gets a `Dashboard token sent by a script` warning, with the `jti`, user, IP and user agent, each time a dashboard token arrives from a script client (curl, Python, Postman and similar) or with no user agent
