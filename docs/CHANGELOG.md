@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-25 (game API failures)
+- Player, clan, CWL and player-verification lookups answer 503 when the Clash of Clans API times out, is in maintenance or rate-limits us; 404 now only means the game says the tag doesn't exist. Clients no longer show real players and clans as "not found" for a minute after an API restart
+
 ## 2026-10-25 (ranked limits)
 - `GET /players/:playerTag/ranked` returns the current week's `maxBattles` (attacks allowed, and the most defenses taken), so clients can show "1 of 24" mid-week
 - Ranked promotion and demotion zones follow the game's percentages for each league; several lower leagues showed a demotion zone twice the real size
