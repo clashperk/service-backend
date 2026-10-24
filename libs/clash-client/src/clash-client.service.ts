@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   APIClan,
@@ -25,6 +25,12 @@ export type LeagueTierRules = {
   promotePercent: number;
   demotePercent: number;
 };
+
+/** Only a game API 404 means the tag doesn't exist; timeouts, maintenance and rate limits are worth a retry. */
+const failure = (status: number, notFound: string) =>
+  status === 404
+    ? new NotFoundException(notFound)
+    : new ServiceUnavailableException('The Clash of Clans API is unavailable. Try again shortly.');
 
 @Injectable()
 export class ClashClientService {
@@ -74,14 +80,14 @@ export class ClashClientService {
 
   async getClanOrThrow(clanTag: string) {
     const { body, res } = await this.clashClient.getClan(clanTag);
-    if (!res.ok) throw new NotFoundException(`Clan ${clanTag} not found.`);
+    if (!res.ok) throw failure(res.status, `Clan ${clanTag} not found.`);
 
     return body;
   }
 
   async getPlayerOrThrow(playerTag: string) {
     const { body, res } = await this.clashClient.getPlayer(playerTag);
-    if (!res.ok) throw new NotFoundException(`Player ${playerTag} not found.`);
+    if (!res.ok) throw failure(res.status, `Player ${playerTag} not found.`);
 
     return body;
   }
@@ -183,8 +189,9 @@ export class ClashClientService {
     if (!apiToken) return false;
 
     const { body, res } = await this.clashClient.verifyPlayerToken(playerTag, apiToken);
-    const isVerified = res.ok && body.status === 'ok';
+    if (!res.ok) throw failure(res.status, `Player ${playerTag} could not be verified.`);
 
+    const isVerified = body.status === 'ok';
     if (!isVerified) throw new NotFoundException(`Player ${playerTag} could not be verified.`);
 
     return isVerified;
@@ -192,9 +199,8 @@ export class ClashClientService {
 
   async getClanWarLeague(clanTag: string) {
     const { body, res } = await this.clashClient.getClanWarLeagueGroup(clanTag);
-    if (!res.ok || body.state === 'notInWar') {
-      throw new NotFoundException(`Clan ${clanTag} is not in CWL.`);
-    }
+    if (!res.ok) throw failure(res.status, `Clan ${clanTag} is not in CWL.`);
+    if (body.state === 'notInWar') throw new NotFoundException(`Clan ${clanTag} is not in CWL.`);
 
     const rounds = body.rounds.filter((round) => !round.warTags.includes('#0'));
     const warTags = rounds.map((round) => round.warTags).flat();
