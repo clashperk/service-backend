@@ -2,7 +2,7 @@ import { PlayerDto } from '@app/clash-client';
 import { Cache } from '@app/decorators';
 import { ResultOkDto } from '@app/dto';
 import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   AggregateAttackHistoryItemsDto,
@@ -22,7 +22,9 @@ import { PlayersService } from './players.service';
 import { GlobalService } from './services/global.service';
 import { PlayerWarsService } from './services/player-wars.service';
 import { RankedService } from './services/ranked.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.PLAYERS)
 @Controller('/players')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, RolesGuard)

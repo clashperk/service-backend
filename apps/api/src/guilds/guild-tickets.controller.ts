@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import {
   CreateTicketPanelInput,
@@ -13,7 +13,9 @@ import {
 } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
 import { GuildTicketsService } from './guild-tickets.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.GUILDS)
 @Controller('/guilds/:guildId')
 @ApiBearerAuth()
 @Roles([UserRoles.USER])
@@ -24,7 +26,7 @@ export class GuildTicketsController {
     private readonly discord: GuildDiscordService,
   ) {}
 
-  @Get('/categories')
+  @Get('/channel-categories')
   listCategories(
     @Param('guildId') guildId: string,
     @CurrentUser() user: JwtUser,

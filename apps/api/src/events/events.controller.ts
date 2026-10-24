@@ -1,10 +1,12 @@
 import { Cache } from '@app/decorators';
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import { UpcomingEventsDto } from './dto';
 import { upcomingEvents } from './game-calendar';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.EVENTS)
 @Controller('/events')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()

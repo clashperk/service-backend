@@ -1,9 +1,12 @@
 import { ApiExcludeRoute, ApiExcludeTypings, ApiKeyAuth } from '@app/decorators';
 import { Controller, Post, UseGuards } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { ApiKeyGuard } from '../auth/guards';
 import { MessageOkDto } from '../links/dto';
 import { TasksService } from './tasks.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.INTERNAL)
 @Controller('/tasks')
 @UseGuards(ApiKeyGuard)
 @ApiKeyAuth()

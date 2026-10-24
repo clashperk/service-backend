@@ -11,7 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import {
   GetLegendAttacksInputDto,
@@ -22,7 +22,9 @@ import {
 import { LegendRankDto, LegendSeasonInputDto, LegendSeasonsDto } from './dto';
 import { LegendsService } from './legends.service';
 import { LegendTasksService } from './services/legend-tasks.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.LEGENDS)
 @Controller('/legends')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)

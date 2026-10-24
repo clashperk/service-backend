@@ -9,10 +9,13 @@ import {
   RawBodyRequest,
   Req,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { InteractionType } from 'discord-interactions';
 import { MessageOkDto } from '../links/dto';
 import { WebhookService } from './webhook.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.INTERNAL)
 @Controller('/webhook')
 @ApiExcludeRoute()
 @ApiExcludeTypings()

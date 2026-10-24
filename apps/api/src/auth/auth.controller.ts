@@ -1,7 +1,7 @@
 import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { paragraph } from '@app/helpers';
 import { Body, Controller, Get, HttpCode, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
-import { ApiExcludeEndpoint, ApiExtraModels, ApiOperation } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiExtraModels, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import {
@@ -23,8 +23,10 @@ import {
   TurnstileLoginDto,
 } from './dto';
 import { ApiKeyGuard } from './guards';
+import { ApiTag } from '../api-tags';
 
 @ApiExtraModels(JwtUserInput)
+@ApiTags(ApiTag.AUTH)
 @Controller('/auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -46,6 +48,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Generate a passKey required for authentication.' })
   @UseGuards(ApiKeyGuard)
   @Post('/generate-passkey')
+  @ApiExcludeRoute()
   @ApiKeyAuth()
   async generatePasskey(@Body() body: GenerateTokenInputDto): Promise<GenerateTokenDto> {
     return this.authService.generateToken(body);

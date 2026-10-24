@@ -1,6 +1,6 @@
 import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { Body, Controller, Delete, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   ApiKeyGuard,
   CurrentUser,
@@ -12,7 +12,9 @@ import {
 } from '../auth';
 import { BetaService } from './beta.service';
 import { AddBetaGuildsInput, BetaGuildIdsDto, BetaGuildsDto } from './dto/beta-guilds.dto';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.ADMIN)
 @Controller('/admin/beta-guilds')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles([UserRoles.ADMIN])
@@ -44,6 +46,7 @@ export class BetaAdminController {
 }
 
 /** For the bot's command-registration workflow, which registers beta commands per server. */
+@ApiTags(ApiTag.INTERNAL)
 @Controller('/beta-guilds')
 export class BetaInternalController {
   constructor(private readonly betaService: BetaService) {}

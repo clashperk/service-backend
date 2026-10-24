@@ -1,6 +1,6 @@
 import { Cache } from '@app/decorators';
 import { Controller, Get, Param, ParseIntPipe, Query, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth';
 import {
   ClanWarDto,
@@ -13,7 +13,9 @@ import {
   CurrentWarDto,
 } from './dto';
 import { WarsService } from './wars.service';
+import { ApiTag } from '../api-tags';
 
+@ApiTags(ApiTag.WARS)
 @Controller('/wars')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
