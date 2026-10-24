@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-24 — The `aud` claim says who a token is for
+Decided by: Suvajit. `version` describes a token's format, and nothing stopped an API token being signed as `1`, so it can't tell dashboard sessions from API tokens. Tokens now carry a signed `aud` of `dashboard` or `api`, which `JwtStrategy` turns into `portal`. Tokens without one fall back to the version rule only until `JWT_REQUIRE_AUDIENCE=1`; the `Token without an audience` Sentry log shows when none are left. Non-expiring API tokens from `generate-passkey` must be reissued before that. Separate signing secrets per issuer would be stronger, and can follow.
+
 ## 2026-10-24 — Token misuse is only logged, with no state
 Decided by: Suvajit. Misused tokens go to Sentry and nothing is stored. A token seen from many IPs is found by querying the existing success logs, which carry `user.jti`, `ip` and `user_agent`. Revoking one token by `jti` and counting IPs per token would both need Redis, so they wait.
 

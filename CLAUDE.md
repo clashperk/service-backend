@@ -56,7 +56,7 @@ All data clients are `@Global()` modules providing **injection tokens**, not rep
 
 ### Auth & authorization (`apps/api/src/auth/`)
 
-- **JWT** via passport (`JwtStrategy`, strategy name `jwt`). Tokens accepted from `Authorization: Bearer` or `x-access-token` header. `validate()` calls `AuthService.revalidateJwtUser`, which rejects blocked users (Redis `USER_BLOCKED:*`) unless they are ADMIN.
+- **JWT** via passport (`JwtStrategy`, strategy name `jwt`). Tokens accepted from `Authorization: Bearer` or `x-access-token` header. `validate()` calls `AuthService.revalidateJwtUser`, which rejects blocked users (Redis `USER_BLOCKED:*`) unless they are ADMIN. The `aud` claim (`TokenAudience`: `dashboard` or `api`) decides whether a token is a dashboard session or an API token (`portal`); tokens without `aud` are accepted until `JWT_REQUIRE_AUDIENCE=1`.
 - **`JwtAuthGuard`** is the standard controller guard. It also supports a **master API key bypass**: a request carrying the correct `x-api-key` (header/query/cookie) is authenticated as a synthetic `fallbackUser`, optionally impersonating `x-user-id`. The `@Public()` decorator skips auth entirely.
 - **`ApiKeyGuard`** (separate from the bypass) protects internal endpoints like `/tasks` — requires `x-api-key` to equal `API_KEY`.
 - **`RolesGuard`** + `@Roles(...)` enforce `UserRoles`; ADMIN bypasses all checks. It also enforces **per-guild access**: if a request carries a `guildId` (param/body/query) not in the JWT's `guildIds`, it throws `GUILD_ACCESS_FORBIDDEN`.
