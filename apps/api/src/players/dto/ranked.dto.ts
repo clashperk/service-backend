@@ -54,6 +54,9 @@ export class RankedWeekDto extends RankedRecordDto {
   /** The bottom this many move down; 0 when nobody does. */
   demotionZone: number;
   trophies: number;
+  /** Attacks allowed this week, and the most defenses taken; null when the game data is unavailable. */
+  @ApiProperty({ type: Number, nullable: true })
+  maxBattles: number | null;
   /** Standings, best first. */
   members: RankedGroupMemberDto[];
   /** The player's own attacks and defenses, newest first. */
