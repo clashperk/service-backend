@@ -1,5 +1,11 @@
-/** The dashboard signs its users' tokens with this version; `/auth/login` and `/auth/turnstile` use 'v2'. */
-export const DASHBOARD_TOKEN_VERSION = '1';
+/** Who a token is for, signed as its `aud` claim. Every token this service signs is for the API. */
+export enum TokenAudience {
+  DASHBOARD = 'dashboard',
+  API = 'api',
+}
+
+/** Dashboard tokens signed before `aud` existed carry this version; accepted until audiences are required. */
+export const LEGACY_DASHBOARD_VERSION = '1';
 
 export enum AuthGuardStrategies {
   JWT = 'jwt',

@@ -26,7 +26,9 @@ export class JwtUser implements JwtUserInput {
   guildIds: string[];
   applicationId?: string;
   cacheMultiplier?: number;
-  /** Set by the API, not the token: issued by `/auth/login` or `/auth/turnstile` rather than the dashboard. */
+  /** `dashboard` or `api`; see `TokenAudience`. */
+  aud?: string | string[];
+  /** Set by the API from `aud`, not read from the token: an API token rather than a dashboard session. */
   portal?: boolean;
 
   static isAdmin(user: JwtUser) {

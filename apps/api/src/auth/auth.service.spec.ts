@@ -1,7 +1,9 @@
 import { BotNotInGuildException } from '@app/discord-rest';
 import { HttpException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Db } from 'mongodb';
 import { Collections } from '../db';
+import { TokenAudience } from './app.constants';
 import { AuthService } from './auth.service';
 
 jest.mock('@app/discord-rest', () => ({
@@ -181,5 +183,27 @@ describe('AuthService.getGuildAccess', () => {
     const { service, discord } = setup();
     discord.getGuild.mockRejectedValueOnce(new HttpException('Bad gateway', 502));
     await expect(access(service)).rejects.toThrow(HttpException);
+  });
+});
+
+describe('AuthService.login', () => {
+  it('signs the token for the API audience', async () => {
+    const users = {
+      findOneAndUpdate: () =>
+        Promise.resolve({ userId: USER, roles: ['viewer'], username: 'pug', guildIds: [] }),
+    };
+    const jwt = new JwtService({ secret: 'secret' });
+    const service = new AuthService(
+      null as never,
+      { collection: () => users } as unknown as Db,
+      jwt,
+      null as never,
+      null as never,
+      null as never,
+    );
+
+    const { accessToken } = await service.login('passkey');
+
+    expect(jwt.verify<{ aud: string }>(accessToken).aud).toBe(TokenAudience.API);
   });
 });

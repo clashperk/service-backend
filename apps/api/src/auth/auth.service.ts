@@ -17,6 +17,7 @@ import { Db } from 'mongodb';
 import { firstValueFrom } from 'rxjs';
 import { Collections, MONGODB_TOKEN, REDIS_TOKEN } from '../db';
 import { toRoleIds } from '../guilds/manager-roles';
+import { TokenAudience } from './app.constants';
 
 const ADMINISTRATOR = BigInt(1 << 3);
 const MANAGE_GUILD = BigInt(1 << 5);
@@ -364,7 +365,7 @@ export class AuthService {
       username: input.username.toLowerCase(),
     } satisfies JwtUserInput;
 
-    return this.jwtService.sign(payload, options);
+    return this.jwtService.sign(payload, { ...options, audience: TokenAudience.API });
   }
 
   private get users() {
