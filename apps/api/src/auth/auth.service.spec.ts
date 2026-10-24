@@ -3,8 +3,8 @@ import { HttpException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Db } from 'mongodb';
 import { Collections } from '../db';
-import { TokenAudience } from './app.constants';
 import { AuthService } from './auth.service';
+import { TokenAudience } from './dto';
 
 jest.mock('@app/discord-rest', () => ({
   DiscordRestService: class {},

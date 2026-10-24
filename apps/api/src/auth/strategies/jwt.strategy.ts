@@ -5,9 +5,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import * as Sentry from '@sentry/nestjs';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { AuthGuardStrategies, LEGACY_DASHBOARD_VERSION, TokenAudience } from '../app.constants';
+import { AuthGuardStrategies, LEGACY_DASHBOARD_VERSION } from '../app.constants';
 import { AuthService } from '../auth.service';
-import { JwtUser } from '../dto';
+import { JwtUser, TokenAudience } from '../dto';
+
+type TokenClaims = Omit<JwtUser, 'aud'> & { aud?: string | string[] };
 
 // Clients a browser never identifies as.
 const SCRIPT_AGENT =
@@ -33,14 +35,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, AuthGuardStrategies.
     this.requireAudience = configService.get('JWT_REQUIRE_AUDIENCE') === '1';
   }
 
-  async validate(req: Request, payload: JwtUser): Promise<JwtUser> {
-    const audience = this.audienceOf(req, payload);
-    const user = await this.authService.revalidateJwtUser(payload);
-    if (audience === TokenAudience.DASHBOARD) this.reportScriptUse(req, user);
-    return { ...user, portal: audience === TokenAudience.API };
+  async validate(req: Request, payload: TokenClaims): Promise<JwtUser> {
+    const aud = this.audienceOf(req, payload);
+    const user = await this.authService.revalidateJwtUser({ ...payload, aud });
+    if (aud === TokenAudience.DASHBOARD) this.reportScriptUse(req, user);
+    return user;
   }
 
-  private audienceOf(req: Request, payload: JwtUser): TokenAudience {
+  private audienceOf(req: Request, payload: TokenClaims): TokenAudience {
     const claimed = [payload.aud ?? []].flat();
     const audience = Object.values(TokenAudience).find((aud) => claimed.includes(aud));
     if (audience) return audience;

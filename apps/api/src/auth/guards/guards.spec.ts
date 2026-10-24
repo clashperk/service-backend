@@ -2,8 +2,8 @@ import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@ne
 import { Reflector } from '@nestjs/core';
 import * as Sentry from '@sentry/nestjs';
 import { AuthGuard } from '@nestjs/passport';
-import { AuthGuardStrategies, TokenAudience } from '../app.constants';
-import { fallbackUser, JwtUser, UserRoles } from '../dto';
+import { AuthGuardStrategies } from '../app.constants';
+import { fallbackUser, JwtUser, TokenAudience, UserRoles } from '../dto';
 import { JwtStrategy } from '../strategies';
 import { ApiKeyGuard } from './api-key.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -45,16 +45,26 @@ describe('RolesGuard', () => {
   });
 
   it('refuses API tokens on dashboard-only routes, admins included', () => {
-    expect(() => check([UserRoles.USER], user({ portal: true }))).toThrow(ForbiddenException);
+    expect(() => check([UserRoles.USER], user({ aud: TokenAudience.API }))).toThrow(
+      ForbiddenException,
+    );
     expect(() =>
-      check([UserRoles.USER], user({ portal: true, roles: [UserRoles.ADMIN], guildIds: [] })),
+      check(
+        [UserRoles.USER],
+        user({ aud: TokenAudience.API, roles: [UserRoles.ADMIN], guildIds: [] }),
+      ),
     ).toThrow(ForbiddenException);
   });
 
   it('still lets API tokens use routes that name their role', () => {
-    const portal = user({ portal: true, roles: [UserRoles.VIEWER, UserRoles.FETCH_ROSTERS] });
-    expect(check([UserRoles.USER, UserRoles.FETCH_ROSTERS], portal)).toBe(true);
-    expect(check([UserRoles.ADMIN], user({ portal: true, roles: [UserRoles.ADMIN] }))).toBe(true);
+    const apiToken = user({
+      aud: TokenAudience.API,
+      roles: [UserRoles.VIEWER, UserRoles.FETCH_ROSTERS],
+    });
+    expect(check([UserRoles.USER, UserRoles.FETCH_ROSTERS], apiToken)).toBe(true);
+    expect(
+      check([UserRoles.ADMIN], user({ aud: TokenAudience.API, roles: [UserRoles.ADMIN] })),
+    ).toBe(true);
   });
 
   it("lets the bot's API key through as a service", () => {
@@ -85,25 +95,25 @@ describe('JwtStrategy', () => {
 
   it('reads API tokens and dashboard sessions from the audience, not the version', async () => {
     await expect(strategy().validate(req(), dashboard({ version: 'v2' }))).resolves.toMatchObject({
-      portal: false,
+      aud: TokenAudience.DASHBOARD,
     });
     await expect(strategy().validate(req(), api({ version: '1' }))).resolves.toMatchObject({
-      portal: true,
+      aud: TokenAudience.API,
     });
   });
 
   it('refuses a token signed for another audience', async () => {
-    await expect(strategy().validate(req(), user({ aud: 'billing' }))).rejects.toThrow(
+    await expect(strategy().validate(req(), user({ aud: 'billing' } as never))).rejects.toThrow(
       UnauthorizedException,
     );
   });
 
   it('falls back to the version for tokens without an audience, and logs them', async () => {
     await expect(strategy().validate(req(), user({ version: '1' }))).resolves.toMatchObject({
-      portal: false,
+      aud: TokenAudience.DASHBOARD,
     });
     await expect(strategy().validate(req(), user({ version: 'v2' }))).resolves.toMatchObject({
-      portal: true,
+      aud: TokenAudience.API,
     });
     expect(Sentry.logger.info).toHaveBeenCalledTimes(2);
   });
@@ -112,7 +122,9 @@ describe('JwtStrategy', () => {
     await expect(strategy(true).validate(req(), user({ version: '1' }))).rejects.toThrow(
       UnauthorizedException,
     );
-    await expect(strategy(true).validate(req(), api())).resolves.toMatchObject({ portal: true });
+    await expect(strategy(true).validate(req(), api())).resolves.toMatchObject({
+      aud: TokenAudience.API,
+    });
   });
 
   it('reports a dashboard session sent by a script, with its jti', async () => {

@@ -3,6 +3,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { ROLES_METADATA } from '../decorators/roles.decorator';
+import { JwtUser } from '../dto/jwt-user.dto';
 import { UserRoles } from '../dto/user-roles.dto';
 
 @Injectable()
@@ -36,7 +37,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // `user` means a person signed in to the dashboard; API tokens never count as one, admin or not.
-    if (user.portal && roles.every((role) => role === UserRoles.USER)) {
+    if (JwtUser.isApiToken(user) && roles.every((role) => role === UserRoles.USER)) {
       throw new ForbiddenException();
     }
 
