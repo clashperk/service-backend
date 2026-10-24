@@ -49,4 +49,26 @@ describe('Sentry request logs', () => {
     expect(sent).not.toContain(PASSKEY);
     expect(sent).not.toContain('eyJhbGciOiJIUzI1NiJ9');
   });
+
+  it('name a rejected token by fingerprint and claims, never the token itself', () => {
+    const claims = { jti: 'jti-1', userId: '444444444444444444', version: '1', exp: 1 };
+    const body = Buffer.from(JSON.stringify(claims)).toString('base64url');
+    const token = `eyJhbGciOiJIUzI1NiJ9.${body}.forged-signature`;
+    const req = { ...loginRequest(), body: {}, headers: { authorization: `Bearer ${token}` } };
+    const res = { status: () => res, json: () => res };
+    const host = {
+      switchToHttp: () => ({ getRequest: () => req, getResponse: () => res }),
+    } as unknown as ArgumentsHost;
+    new HttpExceptionsFilter().catch(new UnauthorizedException(), host);
+
+    const [[, fields]] = (Sentry.logger.error as jest.Mock).mock.calls as [[string, object]];
+    expect(fields).toMatchObject({
+      'token.jti': 'jti-1',
+      'token.user_id': '444444444444444444',
+      'token.version': '1',
+      'token.expired': true,
+    });
+    expect(fields['token.fingerprint']).toMatch(/^[0-9a-f]{16}$/);
+    expect(JSON.stringify(fields)).not.toContain('forged-signature');
+  });
 });

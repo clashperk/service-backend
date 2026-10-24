@@ -1,3 +1,4 @@
+import { JwtUser } from '@app/auth';
 import { ErrorCodes } from '@app/dto';
 import {
   ArgumentsHost,
@@ -9,12 +10,37 @@ import {
 } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 import { SentryExceptionCaptured } from '@sentry/nestjs';
+import { createHash } from 'crypto';
 import { Request, Response } from 'express';
 import mapKeys from 'lodash/mapKeys';
 
 const ErrorCodesMap = Object.fromEntries(
   Object.entries(ErrorCodes).map(([key, value]) => [value, key]),
 ) as Record<string, keyof typeof ErrorCodes>;
+
+const readClaims = (token: string): Partial<JwtUser> | null => {
+  try {
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString()) as JwtUser;
+  } catch {
+    return null;
+  }
+};
+
+/** Names a rejected token without logging it: a hash, and its claims, which nothing has verified. */
+const describeToken = (req: Request) => {
+  const token =
+    req.headers.authorization?.replace(/^Bearer\s+/i, '') || req.headers['x-access-token'];
+  if (typeof token !== 'string' || !token) return {};
+
+  const claims = readClaims(token);
+  return {
+    'token.fingerprint': createHash('sha256').update(token).digest('hex').slice(0, 16),
+    'token.jti': claims?.jti,
+    'token.user_id': claims?.userId,
+    'token.version': claims?.version,
+    'token.expired': typeof claims?.exp === 'number' ? claims.exp * 1000 < Date.now() : undefined,
+  };
+};
 
 @Catch()
 export class HttpExceptionsFilter implements ExceptionFilter {
@@ -50,7 +76,7 @@ export class HttpExceptionsFilter implements ExceptionFilter {
       method: req.method,
       path: req.url,
       ip: req.ip,
-      ...mapKeys(req.user || {}, (_, key) => `user.${key}`),
+      ...(req.user ? mapKeys(req.user, (_, key) => `user.${key}`) : describeToken(req)),
       user_agent: req.headers['user-agent'],
       referrer: req.headers['referrer'],
     });
