@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-25 (war stats)
+- `GET /wars/:clanTag/members/stats` totals each member over the clan's latest ended wars (`type=all|regular`, `wars=1–100`) or its latest CWL seasons (`type=cwl`, `seasons=1–12`): wars, attacks, missed attacks, stars, three-stars, destruction, and attacks and three-stars on a same-or-higher Town Hall
+- `GET /players/:playerTag/wars` takes `limit` (newest first, default 50); `startDate` is optional
+- `GET /players/:playerTag/clan-war-leagues/aggregate` returns one row per league group with the clan, its league, attacks, missed attacks, stars, three-stars and destruction. It counted rounds as attacks before
+- CWL season member totals count missed attacks per unused attack and include the same-or-higher Town Hall counts
+
 ## 2026-10-25 (API docs)
 - **Breaking:** `GET /guilds/:guildId/categories` (Discord category channels, used for ticket panels) moved to `GET /guilds/:guildId/channel-categories`; `/guilds/:guildId/categories` now only manages clan categories
 - The public API docs list only routes an API token can call (35 operations, down from 129): admin routes, dashboard-only routes (`user` role only) and `POST /auth/generate-passkey` are no longer published. They stay in the internal doc

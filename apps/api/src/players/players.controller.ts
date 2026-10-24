@@ -8,6 +8,7 @@ import {
   AggregateAttackHistoryItemsDto,
   AggregateClanWarLeagueHistoryItemsDto,
   AttackHistoryInputDto,
+  PlayerWarsInputDto,
   AttackHistoryItemsDto,
   BattleLogAggregateItemsDto,
   BattleLogItemsDto,
@@ -89,9 +90,9 @@ export class PlayersController {
   @Cache(600)
   getAttackHistory(
     @Param('playerTag') playerTag: string,
-    @Query() query: AttackHistoryInputDto,
+    @Query() query: PlayerWarsInputDto,
   ): Promise<AttackHistoryItemsDto> {
-    return this.playerWarsService.getAttackHistory({ playerTag, startDate: query.startDate });
+    return this.playerWarsService.getAttackHistory({ playerTag, ...query });
   }
 
   @Get('/:playerTag/wars/aggregate')

@@ -55,20 +55,24 @@ export class ClanWarLeagueRoundDto {
   opponent: ClanWarSideDto;
 }
 
-export class ClanWarLeagueMemberDto {
+/** One member's totals over a set of the clan's wars. */
+export class ClanWarMemberTotalsDto {
   tag: string;
   name: string;
-  /** From the member's latest war in the season. */
+  /** From the member's latest war in the set. */
   townHallLevel: number;
-  /** Rounds the member was in the lineup for. */
+  /** Wars the member was in the lineup for. */
   wars: number;
   attacks: number;
   stars: number;
   threeStars: number;
   /** Sum over attacks; divide by `attacks` for the average. */
   destruction: number;
-  /** Ended rounds the member was in without attacking. */
+  /** Attacks left unused in ended wars. */
   missed: number;
+  /** Attacks on a base of the same or a higher Town Hall. */
+  sameThAttacks: number;
+  sameThThreeStars: number;
 }
 
 export class ClanWarLeagueSeasonDto {
@@ -93,7 +97,7 @@ export class ClanWarLeagueSeasonDto {
   rounds: ClanWarLeagueRoundDto[];
 
   /** Most stars first. */
-  members: ClanWarLeagueMemberDto[];
+  members: ClanWarMemberTotalsDto[];
 }
 
 export class ClanWarLeagueSeasonsDto {
