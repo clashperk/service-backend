@@ -26,7 +26,7 @@ export class GuildTicketsController {
     private readonly discord: GuildDiscordService,
   ) {}
 
-  @Get('/categories')
+  @Get('/channel-categories')
   listCategories(
     @Param('guildId') guildId: string,
     @CurrentUser() user: JwtUser,
