@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-25 (API docs)
+- **Breaking:** `GET /guilds/:guildId/categories` (Discord category channels, used for ticket panels) moved to `GET /guilds/:guildId/channel-categories`; `/guilds/:guildId/categories` now only manages clan categories
+- The public API docs list only routes an API token can call (35 operations, down from 129): admin routes, dashboard-only routes (`user` role only) and `POST /auth/generate-passkey` are no longer published. They stay in the internal doc
+- Every route has an explicit tag, listed in a fixed order with a description: Auth, Players, Clans, Wars, Legends, Links, Events, Guilds (ticket panels included), Rosters, Users, Admin, Internal
+
 ## 2026-10-24 (token audience)
 - Tokens the API signs (`/auth/login`, `/auth/turnstile`, `/auth/generate-passkey`) now carry `aud: "api"`; the dashboard is to sign its sessions with `aud: "dashboard"`
 - Whether a token is an API token or a dashboard session now comes from `aud`, not `version`; a token with any other `aud` gets 401

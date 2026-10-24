@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-25 — The public docs list what API tokens can call
+Decided by: Suvajit. Admin routes and routes whose only role is `user` (dashboard sessions) aren't published until the dashboard API is opened up; the published document drops any operation whose `x-required-roles` are all `user` or `admin`, so new routes follow without per-route decorators. Tags come from `ApiTag` (`apps/api/src/api-tags.ts`), not class names, and ticket panels share the Guilds tag. The Discord category list moved to `/channel-categories` so `/categories` means clan categories only.
+
 ## 2026-10-24 — The `aud` claim says who a token is for
 Decided by: Suvajit. `version` describes a token's format, and nothing stopped an API token being signed as `1`, so it can't tell dashboard sessions from API tokens. Tokens now carry a signed `aud` of `dashboard` or `api`, which `JwtStrategy` settles into `req.user.aud` in place of the old derived `portal` flag. Tokens without one fall back to the version rule only until `JWT_REQUIRE_AUDIENCE=1`; the `Token without an audience` Sentry log shows when none are left. Non-expiring API tokens from `generate-passkey` must be reissued before that. Separate signing secrets per issuer would be stronger, and can follow.
 
