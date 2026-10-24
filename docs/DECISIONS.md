@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-24 — Token misuse is only logged, with no state
+Decided by: Suvajit. Misused tokens go to Sentry and nothing is stored. A token seen from many IPs is found by querying the existing success logs, which carry `user.jti`, `ip` and `user_agent`. Revoking one token by `jti` and counting IPs per token would both need Redis, so they wait.
+
 ## 2026-10-23 — "Bot not in this server" is one error, raised by the Discord client
 Decided by: Suvajit. `DiscordRestService` turns Discord's Unknown Guild (10004) and Missing Access (50001) on a server's own routes (the server, its channels, active threads and members) into `BotNotInGuildException`, a 403 with `BOT_NOT_IN_GUILD`. Every caller gets the same answer, and `getGuildAccess` reports `hasBot: false` from it, so the dashboard can check bot presence when a server is picked without a list of the bot's servers. `BotGuilds` keeps rows for servers the bot has left (the bot doesn't remove them), so it can't answer that on its own. Missing Permissions (50013) is left alone: the bot is in the server but lacks a permission.
 

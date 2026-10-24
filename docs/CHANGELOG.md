@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-24 (token misuse logging)
+- A rejected token's Sentry error log names it by a 16-character SHA-256 fingerprint plus its unverified `jti`, `userId`, `version` and whether it expired; the token itself is never logged
+- Sentry gets a `Dashboard token sent by a script` warning, with the `jti`, user, IP and user agent, each time a dashboard token arrives from a script client (curl, Python, Postman and similar) or with no user agent
+
 ## 2026-10-23 (bot left a server)
 - A server ClashPerk was removed from now answers `403` with code `BOT_NOT_IN_GUILD` and a readable message on its channels, roles and member lookups, instead of a `500`
 - `POST /auth/guild-access` returns `hasBot` beside `canManage`; it answered `500` for a server the bot had left, so the dashboard kept it open

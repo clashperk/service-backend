@@ -1,3 +1,4 @@
+import { Request } from 'express';
 import moment from 'moment';
 import cluster from 'node:cluster';
 import { createHash } from 'node:crypto';
@@ -34,3 +35,7 @@ export function hyperlink(url: string) {
 /** A player or clan tag as the game writes it: `#`, upper case, and O read as 0. */
 export const fixTag = (tag: string) =>
   `#${tag.trim().toUpperCase().replace(/^#/, '').replace(/O/g, '0')}`;
+
+/** The caller's address, preferring the one Cloudflare names over `req.ip`. */
+export const getClientIp = (req: Request) =>
+  (req.headers['cf-connecting-ip'] as string | undefined) || req.ip || '';
