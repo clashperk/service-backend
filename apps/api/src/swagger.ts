@@ -88,8 +88,21 @@ export function createDocuments(app: INestApplication) {
   return { document, published: filterOperations(document, isPublished) };
 }
 
+type Documents = ReturnType<typeof createDocuments>;
+
+/** In production only the API key unlocks the full document; the typings view filters whichever applies. */
+export function documentFor(
+  { document, published }: Documents,
+  req: { cookies?: Record<string, string>; query?: Record<string, unknown> },
+  { apiKey, isProd }: { apiKey: string; isProd: boolean },
+) {
+  const visible = !isProd || req.cookies?.['x-api-key'] === apiKey ? document : published;
+  if (!req.query?.['x-typings-ignored']) return visible;
+  return filterOperations(visible, (operation) => !operation['x-typings-ignored']);
+}
+
 export function build(app: NestExpressApplication) {
-  const { document, published } = createDocuments(app);
+  const documents = createDocuments(app);
 
   const configService = app.get(ConfigService);
   const turnstileSiteKey = configService.getOrThrow('CLOUDFLARE_TURNSTILE_SITE_KEY');
@@ -107,18 +120,12 @@ export function build(app: NestExpressApplication) {
       showExtensions: !Config.IS_PROD,
     },
     customJsStr: getTurnstileScript(turnstileSiteKey),
-    patchDocumentOnRequest: (req) => {
-      if (req['query']?.['x-typings-ignored']) {
-        return filterOperations(document, (operation) => !operation['x-typings-ignored']);
-      }
-
-      if (!Config.IS_PROD || req['cookies']?.['x-api-key'] === configService.get('API_KEY')) {
-        return document;
-      }
-
-      return published;
-    },
+    patchDocumentOnRequest: (req) =>
+      documentFor(documents, req as Parameters<typeof documentFor>[1], {
+        apiKey: configService.getOrThrow('API_KEY'),
+        isProd: Config.IS_PROD,
+      }),
   };
 
-  SwaggerModule.setup('/docs', app, document, customOptions);
+  SwaggerModule.setup('/docs', app, documents.document, customOptions);
 }

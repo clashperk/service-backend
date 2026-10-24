@@ -6,7 +6,7 @@ import { OpenAPIObject } from '@nestjs/swagger';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { API_TAG_DESCRIPTIONS, ApiTag } from './api-tags';
-import { createDocuments } from './swagger';
+import { createDocuments, documentFor } from './swagger';
 
 jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
@@ -64,5 +64,26 @@ describe('Swagger documents', () => {
     expect(tags).not.toContain(ApiTag.INTERNAL);
     expect(tags).not.toContain(ApiTag.GUILDS);
     expect(tags?.slice(0, 2)).toEqual([ApiTag.AUTH, ApiTag.PLAYERS]);
+  });
+
+  describe('documentFor', () => {
+    const prod = { apiKey: 'key', isProd: true };
+    const paths = (document: OpenAPIObject) => Object.keys(document.paths).length;
+
+    it('serves the published document to anyone in production, typings view included', () => {
+      expect(documentFor(documents, {}, prod)).toBe(documents.published);
+      const typings = documentFor(documents, { query: { 'x-typings-ignored': '1' } }, prod);
+      expect(paths(typings)).toBeLessThanOrEqual(paths(documents.published));
+    });
+
+    it('serves the full document with the API key cookie, or outside production', () => {
+      expect(documentFor(documents, { cookies: { 'x-api-key': 'key' } }, prod)).toBe(
+        documents.document,
+      );
+      expect(documentFor(documents, { cookies: { 'x-api-key': 'nope' } }, prod)).toBe(
+        documents.published,
+      );
+      expect(documentFor(documents, {}, { ...prod, isProd: false })).toBe(documents.document);
+    });
   });
 });

@@ -75,7 +75,7 @@ All data clients are `@Global()` modules providing **injection tokens**, not rep
 ### API surface & docs
 
 - Versioned URI routing (`/v1`, `/v2`) enabled globally; default versions are `1` and `2`.
-- Swagger UI at **`/docs`** (JSON at `/docs/json`). The public document holds only routes an API token can call: it drops routes flagged `x-internal` and those whose `@Roles` are only `user` or `admin`, unless the request presents the API key. `@ApiExcludeTypings()` / `x-typings-ignored` further filter the generated typings doc. Use `@ApiExcludeRoute()` for internal-only endpoints (e.g. `/tasks`).
+- Swagger UI at **`/docs`** (JSON at `/docs/json`). The public document holds only routes an API token can call: it drops routes flagged `x-internal` and those whose `@Roles` are only `user` or `admin`, unless the request presents the API key. `@ApiExcludeTypings()` / `x-typings-ignored` further filter whichever document the request may see (the typings view needs the API key for internal routes too). Use `@ApiExcludeRoute()` for internal-only endpoints (e.g. `/tasks`).
 - Every controller carries `@ApiTags(ApiTag.X)` from `apps/api/src/api-tags.ts`, which also sets the tags' order and descriptions; `swagger.spec.ts` fails on an untagged route or a dashboard/admin route in the public document.
 
 ### Tracking worker (`apps/worker`)
