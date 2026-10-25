@@ -47,7 +47,7 @@ describe('UsersService', () => {
   it('reads nothing set as nulls', async () => {
     await expect(setup().service.getSettings(USER)).resolves.toEqual({
       clan: null,
-      savedClans: [],
+      bookmarks: [],
       timezone: null,
     });
   });
@@ -70,20 +70,20 @@ describe('UsersService', () => {
   it('saves clans once each, keeps their order, and removes them', async () => {
     const { service, docs } = setup({ savedClans: [{ tag: '#2PP', name: 'Old name' }] });
     clashClan('#9GQ', 'Second');
-    await service.saveClan(USER, '#9gq');
-    const result = await service.saveClan(USER, '2pp');
-    expect(result.savedClans).toEqual([
+    await service.addBookmark(USER, '#9gq');
+    const result = await service.addBookmark(USER, '2pp');
+    expect(result.bookmarks).toEqual([
       { tag: '#2PP', name: 'The Order' },
       { tag: '#9GQ', name: 'Second' },
     ]);
 
-    await service.unsaveClan(USER, '2PP');
+    await service.removeBookmark(USER, '2PP');
     expect(docs[0].savedClans).toEqual([{ tag: '#9GQ', name: 'Second' }]);
   });
 
-  it('stops at 50 saved clans', async () => {
+  it('stops at 50 bookmarks', async () => {
     const savedClans = Array.from({ length: 50 }, (_, i) => ({ tag: `#X${i}`, name: `${i}` }));
-    await expect(setup({ savedClans }).service.saveClan(USER, '#2PP')).rejects.toThrow(
+    await expect(setup({ savedClans }).service.addBookmark(USER, '#2PP')).rejects.toThrow(
       BadRequestException,
     );
   });
