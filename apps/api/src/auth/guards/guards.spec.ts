@@ -10,7 +10,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 
 jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
-jest.mock('@sentry/nestjs', () => ({ logger: { warn: jest.fn(), info: jest.fn() } }));
+jest.mock('@sentry/nestjs', () => ({ logger: { warn: jest.fn() } }));
 
 const GUILD = '111111111111111111';
 
@@ -81,11 +81,8 @@ describe('JwtStrategy', () => {
       url: '/v1/x',
     }) as never;
   beforeEach(() => jest.clearAllMocks());
-  const strategy = (requireAudience = false) => {
-    const config = {
-      getOrThrow: () => 'secret',
-      get: () => (requireAudience ? '1' : undefined),
-    };
+  const strategy = () => {
+    const config = { getOrThrow: () => 'secret' };
     const auth = { revalidateJwtUser: (payload: JwtUser) => Promise.resolve(payload) };
     return new JwtStrategy(config as never, auth as never);
   };
@@ -108,23 +105,13 @@ describe('JwtStrategy', () => {
     );
   });
 
-  it('falls back to the version for tokens without an audience, and logs them', async () => {
-    await expect(strategy().validate(req(), user({ version: '1' }))).resolves.toMatchObject({
-      aud: TokenAudience.DASHBOARD,
-    });
-    await expect(strategy().validate(req(), user({ version: 'v2' }))).resolves.toMatchObject({
-      aud: TokenAudience.API,
-    });
-    expect(Sentry.logger.info).toHaveBeenCalledTimes(2);
-  });
-
-  it('refuses tokens without an audience once audiences are required', async () => {
-    await expect(strategy(true).validate(req(), user({ version: '1' }))).rejects.toThrow(
+  it('refuses tokens without an audience, whatever their version', async () => {
+    await expect(strategy().validate(req(), user({ version: '1' }))).rejects.toThrow(
       UnauthorizedException,
     );
-    await expect(strategy(true).validate(req(), api())).resolves.toMatchObject({
-      aud: TokenAudience.API,
-    });
+    await expect(strategy().validate(req(), user({ version: 'v2' }))).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('reports a dashboard session sent by a script, with its jti', async () => {

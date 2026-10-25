@@ -12,6 +12,9 @@ Decided by: Suvajit. The game API only reports a week's battle limit once the we
 ## 2026-10-25 — War stats count ended wars only
 Decided by: Suvajit. Member and player war totals only count wars that have ended, so a war in progress doesn't show unused attacks as missed or drag hit rates down mid-war. "Same or higher Town Hall" compares the defender's Town Hall in that war with the attacker's; an attack whose defender isn't in the stored lineup isn't counted there. CWL stats take whole seasons rather than a war count, since CWL is played and judged by season; a season played in two clans is two rows in a player's history, each with that clan's league.
 
+## 2026-10-25 — Every token must carry an audience
+Decided by: Suvajit. The no-audience fallback and `JWT_REQUIRE_AUDIENCE` are removed rather than left behind a flag, so a token without `aud` always gets 401. This ships after the dashboard signs `aud: "dashboard"` (clashperk-client#151); passkey API tokens issued before 2026-10-24 never expire and must be reissued, or their holders get 401.
+
 ## 2026-10-25 — The public docs list what API tokens can call
 Decided by: Suvajit. Admin routes and routes whose only role is `user` (dashboard sessions) aren't published until the dashboard API is opened up; the published document drops any operation whose `x-required-roles` are all `user` or `admin`, so new routes follow without per-route decorators. Tags come from `ApiTag` (`apps/api/src/api-tags.ts`), not class names, and ticket panels share the Guilds tag. The Discord category list moved to `/channel-categories` so `/categories` means clan categories only.
 

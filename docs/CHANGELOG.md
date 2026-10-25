@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-25 (token audience required)
+- **Breaking:** tokens without an `aud` claim get 401; the version-based fallback and `JWT_REQUIRE_AUDIENCE` are gone. API tokens from `generate-passkey` issued before 2026-10-24 must be reissued
+- Needs the dashboard signing its sessions with `aud: "dashboard"` (clashperk-client#151) deployed first
+
 ## 2026-10-25 (dashboard routes in the docs)
 - The public API docs list dashboard routes too (121 operations, up from 37): every route whose only role is `user` (Guilds, Rosters, Users and `PUT /links/:playerTag/default`) is published. API tokens still get 403 on them; only a dashboard session can call them
 - Admin routes and internal routes stay out of the public docs
