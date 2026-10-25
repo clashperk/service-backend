@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-10-25 — Read-only routes with a body use QUERY
+Decided by: Suvajit. Routes that only read but need a body (tag lists, filters) were POSTs because GET can't carry one. They now use the HTTP `QUERY` method, which is safe and repeatable by definition, so caches, retries and clients can treat them as reads. Each POST stays for a month as a thin deprecated wrapper (`@DeprecatedPost()`), logging its callers to Sentry so the bot, dashboard and API users can be moved before 2026-11-25. The OpenAPI document moved to 3.2, the first version with a `query` operation; on 3.0 Nest's Swagger module drops QUERY routes.
+
+## 2026-10-25 — NestJS 12, Sentry 11 and Vitest
+Decided by: Suvajit. `@QueryMethod()` needs NestJS 12. Nest 12 is ESM-only, so the CommonJS app loads it through `require(esm)` and the tests moved to Vitest with SWC, the runner Nest recommends for ESM packages, rather than running Jest under `--experimental-vm-modules`. Nest 12 needs Sentry 11, which streams spans: `ignoreSpans` drops every span outside `http.server` requests, replacing the `beforeSendTransaction` filter streaming no longer calls; profiling uses `profileSessionSampleRate` with the `trace` lifecycle.
+
 ## 2026-10-25 — Saved clans are called bookmarks
 Decided by: Suvajit. The API and dashboard say "bookmarks" for the clans a user keeps on their dashboard. The `Users` documents keep the field `savedClans`, so existing bookmarks need no migration; only the API reads or writes it.
 
