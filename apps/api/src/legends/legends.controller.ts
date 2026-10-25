@@ -1,5 +1,5 @@
 import { Season } from '@app/clash-client';
-import { Cache } from '@app/decorators';
+import { Cache, DeprecatedPost } from '@app/decorators';
 import {
   Body,
   Controller,
@@ -9,6 +9,7 @@ import {
   Param,
   Post,
   Query,
+  QueryMethod,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -45,11 +46,18 @@ export class LegendsController {
     return { live: { timestamp: new Date().toISOString(), thresholds: live }, eod, history };
   }
 
-  @Post('/attacks/query')
-  @HttpCode(200)
+  @QueryMethod('/attacks/query')
   @Cache(300)
   getLegendAttacks(@Body() body: GetLegendAttacksInputDto): Promise<LegendAttacksItemsDto> {
     return this.legendService.getLegendAttacks(body);
+  }
+
+  @Post('/attacks/query')
+  @HttpCode(200)
+  @Cache(300)
+  @DeprecatedPost()
+  getLegendAttacksViaPost(@Body() body: GetLegendAttacksInputDto): Promise<LegendAttacksItemsDto> {
+    return this.getLegendAttacks(body);
   }
 
   @Get('/:playerTag/attacks')

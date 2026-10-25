@@ -1,6 +1,16 @@
 import { ClanDto } from '@app/clash-client';
-import { Cache } from '@app/decorators';
-import { Body, Controller, Get, HttpCode, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Cache, DeprecatedPost } from '@app/decorators';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+  QueryMethod,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import { ClanActivityService } from './clan-activity.service';
@@ -29,11 +39,18 @@ export class ClansController {
     private clanActivityService: ClanActivityService,
   ) {}
 
-  @Post('/activity')
-  @HttpCode(200)
+  @QueryMethod('/activity')
   @Cache(300)
   async getActivity(@Body() body: ClanActivityInputDto): Promise<ClanActivityDto> {
     return this.clanActivityService.getActivity(body);
+  }
+
+  @Post('/activity')
+  @HttpCode(200)
+  @Cache(300)
+  @DeprecatedPost()
+  getActivityViaPost(@Body() body: ClanActivityInputDto): Promise<ClanActivityDto> {
+    return this.getActivity(body);
   }
 
   @Get('/:clanTag')

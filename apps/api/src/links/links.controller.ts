@@ -1,6 +1,17 @@
+import { DeprecatedPost } from '@app/decorators';
 import { ResultOkDto } from '@app/dto';
 import { codeBlock } from '@app/helpers';
-import { Body, Controller, Delete, HttpCode, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  Param,
+  Post,
+  Put,
+  QueryMethod,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, JwtAuthGuard, JwtUser, Roles, RolesGuard, UserRoles } from '../auth';
 import { CreateLinkInputDto, GetLinksInputDto, LinksDto } from './dto';
@@ -46,8 +57,7 @@ export class LinksController {
     return this.linksService.setDefaultLink({ playerTag, userId: user.userId });
   }
 
-  @Post('/query')
-  @HttpCode(200)
+  @QueryMethod('/query')
   @ApiOperation({
     summary: 'Get links by playerTags or userIds',
     description: codeBlock(
@@ -60,5 +70,13 @@ export class LinksController {
       return this.linksService.getLinksByPlayerTags(input.playerTags);
     }
     return this.linksService.getLinksByUserIds(input.userIds);
+  }
+
+  @Post('/query')
+  @HttpCode(200)
+  @DeprecatedPost('Get links by playerTags or userIds')
+  @Roles([UserRoles.USER, UserRoles.FETCH_LINKS, UserRoles.MANAGE_LINKS])
+  getLinksViaPost(@Body() input: GetLinksInputDto): Promise<LinksDto[]> {
+    return this.getLinks(input);
   }
 }

@@ -48,6 +48,7 @@ function filterOperations(
 /** The full document, and the published one: no internal or admin-only routes. */
 export function createDocuments(app: INestApplication) {
   const builder = new DocumentBuilder()
+    .setOpenAPIVersion('3.2.0')
     .setTitle('ClashPerk Discord Bot API')
     .setDescription(
       [

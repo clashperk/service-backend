@@ -1,3 +1,4 @@
+export * from './deprecated-route.interceptor';
 export * from './http-cache.interceptor';
 export * from './http-exceptions-filter';
 export * from './http-logging.middleware';
