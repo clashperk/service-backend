@@ -1,12 +1,19 @@
-import { clanGamesWindow, latestClanGamesSeason, upcomingEvents } from './game-calendar';
+import {
+  clanGamesWindow,
+  eventsBetween,
+  latestClanGamesSeason,
+  upcomingEvents,
+} from './game-calendar';
 
 jest.mock('@app/clash-client', () => ({
   Season: {
-    getLeagueSeason: () => ({
-      id: '2026-09-28',
-      startTime: new Date('2026-09-28T05:00:00Z'),
-      endTime: new Date('2026-10-26T05:00:00Z'),
-    }),
+    getLeagueSeason: (date = new Date('2026-10-18T00:00:00Z')) => {
+      // 28-day seasons from 2026-09-28 05:00 UTC.
+      const anchor = Date.parse('2026-09-28T05:00:00Z');
+      const length = 28 * 24 * 60 * 60 * 1000;
+      const start = anchor + Math.floor((date.getTime() - anchor) / length) * length;
+      return { id: '', startTime: new Date(start), endTime: new Date(start + length) };
+    },
   },
 }));
 
@@ -67,5 +74,28 @@ describe('game calendar', () => {
   it('orders events by their next start or end', () => {
     const types = upcomingEvents(at('2026-10-18T12:00:00Z')).map((event) => event.type);
     expect(types).toEqual(['raid_weekend', 'clan_games', 'season', 'cwl']);
+  });
+
+  it('lists every occurrence in a month, by start time', () => {
+    const events = eventsBetween(at('2026-10-01T00:00:00Z'), at('2026-11-01T00:00:00Z'));
+    const of = (type: string) =>
+      events.filter((event) => event.type === type).map((event) => event.startTime.toISOString());
+    expect(of('raid_weekend')).toEqual([
+      '2026-10-02T07:00:00.000Z',
+      '2026-10-09T07:00:00.000Z',
+      '2026-10-16T07:00:00.000Z',
+      '2026-10-23T07:00:00.000Z',
+      '2026-10-30T07:00:00.000Z',
+    ]);
+    expect(of('clan_games')).toEqual(['2026-10-22T08:00:00.000Z']);
+    expect(of('cwl')).toEqual(['2026-10-01T08:00:00.000Z']);
+    expect(of('season')).toEqual(['2026-09-28T05:00:00.000Z', '2026-10-26T05:00:00.000Z']);
+    const starts = events.map((event) => event.startTime.getTime());
+    expect(starts).toEqual([...starts].sort((a, b) => a - b));
+  });
+
+  it('keeps an event that started before the range but is still running', () => {
+    const events = eventsBetween(at('2026-10-05T00:00:00Z'), at('2026-10-06T00:00:00Z'));
+    expect(events.map((event) => event.type).sort()).toEqual(['cwl', 'raid_weekend', 'season']);
   });
 });
