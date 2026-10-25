@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-25 (events calendar)
+- `GET /events?from=&to=` lists every season, raid weekend, Clan Games and CWL overlapping a range of up to 100 days, by start time, each with its state (`ended`, `active` or `upcoming`), for calendar views
+- Game event `state` can be `ended`; `/events/upcoming` never returns it
+
 ## 2026-10-25 (game API failures)
 - Player, clan, CWL and player-verification lookups answer 503 when the Clash of Clans API times out, is in maintenance or rate-limits us; 404 now only means the game says the tag doesn't exist. Clients no longer show real players and clans as "not found" for a minute after an API restart
 

@@ -32,12 +32,8 @@ function currentOrNextClanGames(now: Date) {
 }
 
 /** CWL signup opens on the 1st at 08:00 UTC; signup lasts 2 days and the league 9. */
-function currentOrNextCwl(now: Date) {
-  const thisMonth = utc(now.getUTCFullYear(), now.getUTCMonth(), 1, 8);
-  const startTime =
-    now.getTime() < thisMonth.getTime() + 9 * DAY
-      ? thisMonth
-      : utc(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 8);
+function cwlWindow(year: number, month: number) {
+  const startTime = utc(year, month, 1, 8);
   return {
     startTime,
     signupEndTime: new Date(startTime.getTime() + 2 * DAY),
@@ -45,12 +41,25 @@ function currentOrNextCwl(now: Date) {
   };
 }
 
-/** Raid weekends run Friday 07:00 to Monday 07:00 UTC. */
-function currentOrNextRaidWeekend(now: Date) {
-  const friday = utc(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 7);
+function currentOrNextCwl(now: Date) {
+  const thisMonth = cwlWindow(now.getUTCFullYear(), now.getUTCMonth());
+  return now < thisMonth.endTime
+    ? thisMonth
+    : cwlWindow(now.getUTCFullYear(), now.getUTCMonth() + 1);
+}
+
+/** Raid weekends run Friday 07:00 to Monday 07:00 UTC; this is the one starting on or before `date`. */
+function raidWeekendFrom(date: Date) {
+  const friday = utc(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 7);
   friday.setUTCDate(friday.getUTCDate() - ((friday.getUTCDay() + 2) % 7));
-  if (now.getTime() >= friday.getTime() + 3 * DAY) friday.setUTCDate(friday.getUTCDate() + 7);
   return { startTime: friday, endTime: new Date(friday.getTime() + 3 * DAY) };
+}
+
+function currentOrNextRaidWeekend(now: Date) {
+  const weekend = raidWeekendFrom(now);
+  return now < weekend.endTime
+    ? weekend
+    : raidWeekendFrom(new Date(weekend.startTime.getTime() + 7 * DAY));
 }
 
 export type GameEventType = 'season' | 'raid_weekend' | 'clan_games' | 'cwl';
@@ -75,4 +84,39 @@ export function upcomingEvents(now: Date): GameEvent[] {
   const nextChange = (event: GameEvent) =>
     (now < event.startTime ? event.startTime : event.endTime).getTime();
   return events.sort((a, b) => nextChange(a) - nextChange(b));
+}
+
+/** Every event that overlaps `from`–`to`, by start time. */
+export function eventsBetween(from: Date, to: Date): GameEvent[] {
+  const events: GameEvent[] = [];
+  for (
+    let year = from.getUTCFullYear(), month = from.getUTCMonth() - 1;
+    utc(year, month, 1, 0) < to;
+    month++
+  ) {
+    const id = utc(year, month, 1, 0).toISOString().slice(0, 7);
+    events.push({ type: 'clan_games', ...clanGamesWindow(id) });
+    events.push({ type: 'cwl', ...cwlWindow(year, month) });
+  }
+  for (
+    let start = raidWeekendFrom(from).startTime;
+    start < to;
+    start = new Date(start.getTime() + 7 * DAY)
+  ) {
+    events.push({
+      type: 'raid_weekend',
+      startTime: start,
+      endTime: new Date(start.getTime() + 3 * DAY),
+    });
+  }
+  for (
+    let season = Season.getLeagueSeason(from);
+    season.startTime < to;
+    season = Season.getLeagueSeason(season.endTime)
+  ) {
+    events.push({ type: 'season', startTime: season.startTime, endTime: season.endTime });
+  }
+  return events
+    .filter((event) => event.endTime > from && event.startTime < to)
+    .sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
 }
