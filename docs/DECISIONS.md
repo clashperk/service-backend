@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-25 — Portal users are called developers
+Decided by: Suvajit. "Portal" described nothing these accounts do: a Discord user gets a passkey and roles to call the API, so the admin routes, DTOs and dashboard page say "developer". The MongoDB collection keeps the name `PortalUsers` (`Collections.PORTAL_USERS`), since renaming it would need a data migration and the bot and worker read it too.
+
 ## 2026-10-25 — Dashboard routes are published
 Decided by: Suvajit. Routes whose only role is `user` are now in the public docs, so the dashboard and, later, the bot generate clients and read their contract from the same document. Publishing doesn't open them up: `RolesGuard` still refuses API tokens there, and the Guilds, Rosters and Users tag descriptions say so. Only admin-only and `x-internal` routes stay unpublished. This replaces the rule below that kept `user` routes out.
 
