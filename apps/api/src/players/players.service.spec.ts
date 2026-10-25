@@ -2,7 +2,7 @@ import { Db } from 'mongodb';
 import { PlayersService } from './players.service';
 
 // clash-client pulls in JSON the test setup can't load; getSeasonStats never calls it.
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 const createService = (seasons: Record<string, unknown>[]) => {
   const cursor = {

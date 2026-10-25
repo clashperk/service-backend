@@ -1,6 +1,6 @@
 import { RankedService } from './ranked.service';
 
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 const member = (tag: string, trophies: number) => ({
   playerTag: tag,

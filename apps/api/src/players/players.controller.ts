@@ -1,7 +1,17 @@
 import { PlayerDto } from '@app/clash-client';
-import { Cache } from '@app/decorators';
+import { Cache, DeprecatedPost } from '@app/decorators';
 import { ResultOkDto } from '@app/dto';
-import { Body, Controller, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  QueryMethod,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard, Roles, RolesGuard, UserRoles } from '../auth';
 import {
@@ -72,12 +82,21 @@ export class PlayersController {
     return this.playersService.getPlayerBattleLogAggregate(playerTag);
   }
 
-  @Post('/battle-log/leaderboard')
+  @QueryMethod('/battle-log/leaderboard')
   @Cache(600)
   getBattleLogLeaderboard(
     @Body() body: BattleLogLeaderboardInputDto,
   ): Promise<BattleLogLeaderboardDto> {
     return this.playersService.getBattleLogLeaderboard(body);
+  }
+
+  @Post('/battle-log/leaderboard')
+  @Cache(600)
+  @DeprecatedPost()
+  getBattleLogLeaderboardViaPost(
+    @Body() body: BattleLogLeaderboardInputDto,
+  ): Promise<BattleLogLeaderboardDto> {
+    return this.getBattleLogLeaderboard(body);
   }
 
   @Get('/:playerTag/history')

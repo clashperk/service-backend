@@ -3,8 +3,8 @@ import { Db, ObjectId } from 'mongodb';
 import { Collections } from '../db';
 import { GuildClansService } from './guild-clans.service';
 
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClient: class {}, ClashClientService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111142';
 const OTHER_GUILD = '999999999999999999';
@@ -106,7 +106,7 @@ const setup = (
         ['1', '2', '3'].map((n) => ({ id: `44444444444444444${n}`, selectable: true })),
       ),
   };
-  const guilds = { getGuildClans: jest.fn().mockResolvedValue({ categories: [] }) };
+  const guilds = { getGuildClans: vi.fn().mockResolvedValue({ categories: [] }) };
   return new GuildClansService(
     { collection } as unknown as Db,
     clash as never,

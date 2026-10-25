@@ -1,9 +1,9 @@
 import { Db } from 'mongodb';
 import { LegendsService } from './legends.service';
 
-jest.mock('@app/clash-client', () => ({ Season: { leagueId: '2026-10-05' } }));
+vi.mock('@app/clash-client', () => ({ Season: { leagueId: '2026-10-05' } }));
 
-const aggregate = jest.fn(() => ({ toArray: () => Promise.resolve([]) }));
+const aggregate = vi.fn(() => ({ toArray: () => Promise.resolve([]) }));
 const db = { collection: () => ({ aggregate }) } as unknown as Db;
 const pipeline = () => (aggregate.mock.calls.at(-1) as unknown as [Record<string, unknown>[]])[0];
 

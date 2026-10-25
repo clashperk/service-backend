@@ -1,7 +1,7 @@
 import { Db } from 'mongodb';
 import { PlayerWarsService } from './player-wars.service';
 
-jest.mock('@app/clash-client', () => ({ getPreviousBestAttack: () => null }));
+vi.mock('@app/clash-client', () => ({ getPreviousBestAttack: () => null }));
 
 type Attack = { stars: number; destructionPercentage: number };
 type Side = {

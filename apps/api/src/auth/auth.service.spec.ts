@@ -6,9 +6,10 @@ import { Collections } from '../db';
 import { AuthService } from './auth.service';
 import { TokenAudience } from './dto';
 
-jest.mock('@app/discord-rest', () => ({
+vi.mock('@app/discord-rest', async (importOriginal) => ({
   DiscordRestService: class {},
-  BotNotInGuildException: jest.requireActual('@app/discord-rest').BotNotInGuildException,
+  BotNotInGuildException: (await importOriginal<typeof import('@app/discord-rest')>())
+    .BotNotInGuildException,
 }));
 
 const GUILD = '111111111111111111';
@@ -49,15 +50,15 @@ const setup = (
     }),
   });
   const discord = {
-    getUser: jest.fn().mockResolvedValue({ id: USER, username: 'pug', global_name: 'Pug' }),
-    getGuild: jest.fn().mockResolvedValue({
+    getUser: vi.fn().mockResolvedValue({ id: USER, username: 'pug', global_name: 'Pug' }),
+    getGuild: vi.fn().mockResolvedValue({
       owner_id: '888888888888888888',
       roles: [{ id: GUILD, permissions: '0' }],
       ...opts.guild,
     }),
-    getMember: jest.fn().mockResolvedValue(opts.member === undefined ? { roles: [] } : opts.member),
+    getMember: vi.fn().mockResolvedValue(opts.member === undefined ? { roles: [] } : opts.member),
   };
-  const redis = { set: jest.fn() };
+  const redis = { set: vi.fn() };
   const service = new AuthService(
     redis as never,
     { collection } as unknown as Db,

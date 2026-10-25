@@ -5,7 +5,7 @@ import { RolesGuard, UserRoles } from '../auth';
 import { PlayersController } from './players.controller';
 
 // clash-client pulls in JSON the test setup can't load; the controller's services are never called.
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 const contextFor = (handler: keyof PlayersController, roles: UserRoles[]) =>
   ({

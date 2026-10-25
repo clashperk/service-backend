@@ -9,7 +9,7 @@ import { Db } from 'mongodb';
 import { AddDeveloperInput } from './dto/developers.dto';
 import { DevelopersService } from './developers.service';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const USER = '111111111111111111';
 
@@ -18,7 +18,7 @@ type Doc = Record<string, unknown>;
 const setup = (existing: Doc[] = []) => {
   const docs = [...existing];
   const collection = {
-    find: jest.fn(() => ({ toArray: () => Promise.resolve(docs) })),
+    find: vi.fn(() => ({ toArray: () => Promise.resolve(docs) })),
     findOne: (filter: Doc) =>
       Promise.resolve(
         docs.find((d) => d.userId === filter.userId && d.deletedAt === filter.deletedAt) ?? null,
@@ -40,7 +40,7 @@ const setup = (existing: Doc[] = []) => {
     },
   };
   const discord = {
-    getUser: jest.fn().mockResolvedValue({ username: 'chief', global_name: 'Chief', bot: false }),
+    getUser: vi.fn().mockResolvedValue({ username: 'chief', global_name: 'Chief', bot: false }),
   };
   const service = new DevelopersService(
     { collection: () => collection } as unknown as Db,

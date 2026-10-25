@@ -3,9 +3,9 @@ import { Db } from 'mongodb';
 import { LinksService } from './links.service';
 
 // The service's clients are faked below; these modules pull in JSON the test setup can't load.
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
-jest.mock('@app/clash-client/discord-link.service', () => ({ DiscordLinkService: class {} }));
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client/discord-link.service', () => ({ DiscordLinkService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 type Link = { tag: string; userId: string; order?: number; verified?: boolean };
 

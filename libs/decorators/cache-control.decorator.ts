@@ -3,7 +3,7 @@ import { HttpCacheInterceptor } from '@app/interceptors/http-cache.interceptor';
 import { CacheTTL } from '@nestjs/cache-manager';
 import { applyDecorators, Header, UseInterceptors } from '@nestjs/common';
 import { ApiExtension } from '@nestjs/swagger';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 export function Cache(seconds: number): MethodDecorator {
   if (Config.IS_PROD) {

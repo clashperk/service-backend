@@ -1,8 +1,19 @@
-import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
+import { ApiExcludeRoute, ApiKeyAuth, DeprecatedPost } from '@app/decorators';
 import { paragraph } from '@app/helpers';
-import { Body, Controller, Get, HttpCode, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  QueryMethod,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiExtraModels, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
@@ -99,13 +110,30 @@ export class AuthController {
     return this.authService.createHandoffToken(body);
   }
 
+  @QueryMethod('/bot-guilds')
+  @ApiExcludeRoute()
+  @UseGuards(ApiKeyGuard)
+  @ApiKeyAuth()
+  async getBotGuilds(@Body() body: BotGuildsInputDto): Promise<BotGuildsDto> {
+    return this.authService.getBotGuilds(body.guildIds);
+  }
+
   @Post('/bot-guilds')
   @ApiExcludeRoute()
   @UseGuards(ApiKeyGuard)
   @ApiKeyAuth()
   @HttpCode(200)
-  async getBotGuilds(@Body() body: BotGuildsInputDto): Promise<BotGuildsDto> {
-    return this.authService.getBotGuilds(body.guildIds);
+  @DeprecatedPost()
+  getBotGuildsViaPost(@Body() body: BotGuildsInputDto): Promise<BotGuildsDto> {
+    return this.getBotGuilds(body);
+  }
+
+  @QueryMethod('/managed-guilds')
+  @ApiExcludeRoute()
+  @UseGuards(ApiKeyGuard)
+  @ApiKeyAuth()
+  async getManagedGuilds(@Body() body: ManagedGuildsInputDto): Promise<ManagedGuildsDto> {
+    return this.authService.getManagedGuilds(body.userId, body.guildIds);
   }
 
   @Post('/managed-guilds')
@@ -113,8 +141,17 @@ export class AuthController {
   @UseGuards(ApiKeyGuard)
   @ApiKeyAuth()
   @HttpCode(200)
-  async getManagedGuilds(@Body() body: ManagedGuildsInputDto): Promise<ManagedGuildsDto> {
-    return this.authService.getManagedGuilds(body.userId, body.guildIds);
+  @DeprecatedPost()
+  getManagedGuildsViaPost(@Body() body: ManagedGuildsInputDto): Promise<ManagedGuildsDto> {
+    return this.getManagedGuilds(body);
+  }
+
+  @QueryMethod('/guild-access')
+  @ApiExcludeRoute()
+  @UseGuards(ApiKeyGuard)
+  @ApiKeyAuth()
+  async getGuildAccess(@Body() body: GuildAccessInputDto): Promise<GuildAccessDto> {
+    return this.authService.getGuildAccess(body);
   }
 
   @Post('/guild-access')
@@ -122,7 +159,8 @@ export class AuthController {
   @UseGuards(ApiKeyGuard)
   @ApiKeyAuth()
   @HttpCode(200)
-  async getGuildAccess(@Body() body: GuildAccessInputDto): Promise<GuildAccessDto> {
-    return this.authService.getGuildAccess(body);
+  @DeprecatedPost()
+  getGuildAccessViaPost(@Body() body: GuildAccessInputDto): Promise<GuildAccessDto> {
+    return this.getGuildAccess(body);
   }
 }

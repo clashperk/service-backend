@@ -13,7 +13,7 @@ pnpm start:debug         # watch mode with --inspect
 pnpm build               # nest build (runs `prebuild` first — see Auto-generated index files)
 pnpm lint                # eslint --fix across {src,apps,libs,test}
 pnpm format              # prettier --write over apps/ and libs/
-pnpm test                # jest (unit, *.spec.ts)
+pnpm test                # vitest (unit, *.spec.ts)
 pnpm test:watch
 pnpm test:cov            # coverage
 ```
@@ -24,10 +24,14 @@ Run a single test file or pattern:
 
 ```bash
 pnpm test path/to/file.spec.ts
-pnpm test -- -t "describe or it name"
+pnpm test -t "describe or it name"
 ```
 
-Tests live next to source as `*.spec.ts`; jest `roots` are `libs/` and `apps/`. `@app/*` path aliases are mapped in the jest config (`moduleNameMapper`) — keep that map in sync with `tsconfig.json` `paths` when adding a new lib.
+Tests live next to source as `*.spec.ts` under `libs/` and `apps/` and run on Vitest with SWC, which emits the decorator metadata Nest needs (`vitest.config.mts`; `unit` and `e2e` projects). `@app/*` path aliases are mapped in its `alias` list — keep it in sync with `tsconfig.json` `paths` when adding a new lib. `vi.mock` factories must return every export the code under test imports.
+
+Nest 12 packages are ESM-only; this app stays CommonJS and loads them through `require(esm)` (Node 22.12+). Import Express types with `import type`, or SWC keeps a runtime `require('express')`, which isn't a direct dependency.
+
+Read-only routes that take a body use the HTTP `QUERY` method (`@QueryMethod()`), never POST; the docs are OpenAPI 3.2 so Swagger lists them.
 
 ## Architecture
 

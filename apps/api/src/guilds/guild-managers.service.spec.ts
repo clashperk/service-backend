@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { GuildManagersService } from './guild-managers.service';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const ROLE = (n: number) => `22222222222222222${n}`;
@@ -30,7 +30,7 @@ describe('GuildManagersService', () => {
   const setup = (settings?: Doc) => {
     const docs: Doc[] = settings ? [{ guildId: GUILD, ...settings }] : [];
     const discord = {
-      listRoles: jest.fn().mockResolvedValue([1, 2, 3].map((n) => ({ id: ROLE(n) }))),
+      listRoles: vi.fn().mockResolvedValue([1, 2, 3].map((n) => ({ id: ROLE(n) }))),
     };
     const db = { collection: () => settingsCollection(docs) } as unknown as Db;
     return { service: new GuildManagersService(db, discord as never), docs, discord };

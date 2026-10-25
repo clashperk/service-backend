@@ -5,7 +5,7 @@ import { ChannelStatus, ClanEmbedField, ClanLogInput, ClanLogType } from './dto'
 import { GuildLogsService } from './guild-logs.service';
 import { channelState } from '../../test/fakes';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const CHANNEL = '222222222222222222';
@@ -80,10 +80,10 @@ const setup = (
   };
   const db = { collection: (name: string) => collections[name] } as unknown as Db;
   const discord = {
-    checkChannel: jest.fn(),
-    checkRole: jest.fn(),
-    resolveWebhook: jest.fn().mockResolvedValue(null),
-    channelStatuses: jest.fn().mockResolvedValue(
+    checkChannel: vi.fn(),
+    checkRole: vi.fn(),
+    resolveWebhook: vi.fn().mockResolvedValue(null),
+    channelStatuses: vi.fn().mockResolvedValue(
       new Map([
         [CHANNEL, channelState('war-feed')],
         [OTHER_CHANNEL, channelState(null)],

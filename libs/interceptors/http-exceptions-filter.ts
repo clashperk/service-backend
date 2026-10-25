@@ -11,7 +11,7 @@ import {
 import * as Sentry from '@sentry/nestjs';
 import { SentryExceptionCaptured } from '@sentry/nestjs';
 import { createHash } from 'crypto';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import mapKeys from 'lodash/mapKeys';
 
 const ErrorCodesMap = Object.fromEntries(

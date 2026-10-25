@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-10-25 (QUERY method)
+- Eight read-only routes that take a request body now answer the HTTP `QUERY` method: `/links/query`, `/players/battle-log/leaderboard`, `/legends/attacks/query`, `/clans/activity`, `/rosters/:guildId/:rosterId/members/check`, and the internal `/auth/bot-guilds`, `/auth/managed-guilds` and `/auth/guild-access`. Same path, body, roles and response
+- Their POST versions are deprecated and will be removed on 2026-11-25. They still work, answer with `Deprecation` and `Sunset` headers, are marked deprecated in the docs (operation IDs end in `ViaPost`), and each call is logged to Sentry as `Deprecated route called`
+- The API docs are OpenAPI 3.2, which lists `QUERY` operations
+- Runs on NestJS 12 and Sentry 11; tests run on Vitest
+
 ## 2026-10-25 (bookmarks)
 - **Breaking:** saved clans are now bookmarks: `POST /users/me/saved-clans` moved to `POST /users/me/bookmarks` (`addBookmark`), `DELETE /users/me/saved-clans/:clanTag` to `DELETE /users/me/bookmarks/:clanTag` (`removeBookmark`), and `GET /users/me` returns `bookmarks` in place of `savedClans`. Existing saved clans carry over unchanged
 

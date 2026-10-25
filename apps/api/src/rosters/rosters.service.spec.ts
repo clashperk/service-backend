@@ -4,7 +4,7 @@ import { Collections } from '../db';
 import { RosterCategory, RosterSortBy } from './dto';
 import { RostersService } from './rosters.service';
 
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 const GUILD = '111111111111111111';
 const USER = '222222222222222222';

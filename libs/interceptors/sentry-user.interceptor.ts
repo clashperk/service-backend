@@ -1,6 +1,6 @@
 import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @Injectable()
 export class SentryUserInterceptor implements NestInterceptor {

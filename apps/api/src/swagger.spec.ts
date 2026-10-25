@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { API_TAG_DESCRIPTIONS, ApiTag } from './api-tags';
 import { createDocuments, documentFor } from './swagger';
 
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClient: class {}, ClashClientService: class {} }));
 
 const loadControllers = async () => {
   const files = (readdirSync(__dirname, { recursive: true }) as string[]).filter((file) =>

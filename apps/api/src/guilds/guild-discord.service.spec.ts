@@ -4,7 +4,7 @@ import { ChannelStatus } from './dto';
 import { GuildDiscordService } from './guild-discord.service';
 import { memoryCache } from '../../test/fakes';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const TEXT = { id: '1', name: 'clan-logs', type: ChannelType.GuildText, guild_id: GUILD };
@@ -19,11 +19,9 @@ const thread = (id: string, meta: { archived: boolean; locked: boolean }) => ({
 
 const setup = (lookups: Record<string, unknown>) => {
   const oauth = {
-    listChannels: jest.fn().mockResolvedValue([TEXT]),
-    listActiveThreads: jest
-      .fn()
-      .mockResolvedValue([thread('2', { archived: false, locked: false })]),
-    findChannel: jest.fn(({ channelId }: { channelId: string }) => {
+    listChannels: vi.fn().mockResolvedValue([TEXT]),
+    listActiveThreads: vi.fn().mockResolvedValue([thread('2', { archived: false, locked: false })]),
+    findChannel: vi.fn(({ channelId }: { channelId: string }) => {
       const result = lookups[channelId];
       return result instanceof Error ? Promise.reject(result) : Promise.resolve(result);
     }),

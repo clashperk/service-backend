@@ -1,3 +1,4 @@
+import { DeprecatedPost } from '@app/decorators';
 import {
   Body,
   Controller,
@@ -8,6 +9,7 @@ import {
   Patch,
   Post,
   Put,
+  QueryMethod,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -114,14 +116,24 @@ export class RostersController {
     return this.rostersService.cloneRoster(guildId, rosterId, body.name);
   }
 
-  @Post('/:guildId/:rosterId/members/check')
-  @HttpCode(200)
+  @QueryMethod('/:guildId/:rosterId/members/check')
   checkRosterMembers(
     @Param('guildId') guildId: string,
     @Param('rosterId') rosterId: string,
     @Body() body: RosterTagsInput,
   ): Promise<RosterPlayerCheckDto[]> {
     return this.rostersService.checkMembers({ guildId, rosterId, playerTags: body.playerTags });
+  }
+
+  @Post('/:guildId/:rosterId/members/check')
+  @HttpCode(200)
+  @DeprecatedPost()
+  checkRosterMembersViaPost(
+    @Param('guildId') guildId: string,
+    @Param('rosterId') rosterId: string,
+    @Body() body: RosterTagsInput,
+  ): Promise<RosterPlayerCheckDto[]> {
+    return this.checkRosterMembers(guildId, rosterId, body);
   }
 
   @Put('/:guildId/:rosterId/members')

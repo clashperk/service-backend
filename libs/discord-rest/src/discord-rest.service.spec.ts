@@ -10,7 +10,7 @@ describe('DiscordRestService on a server the bot is not in', () => {
   const service = new DiscordRestService({
     getOrThrow: () => 'bot-token',
   } as unknown as ConfigService);
-  const get = jest.spyOn(REST.prototype, 'get');
+  const get = vi.spyOn(REST.prototype, 'get');
 
   afterEach(() => get.mockReset());
 

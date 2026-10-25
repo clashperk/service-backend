@@ -2,7 +2,7 @@ import { Config } from '@app/constants';
 import { generateHash } from '@app/helpers';
 import { CACHE_TTL_METADATA, CacheInterceptor } from '@nestjs/cache-manager';
 import { CallHandler, ExecutionContext, Injectable, RawBodyRequest } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 
 @Injectable()
