@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-25 (internal POSTs removed)
+- **Breaking (internal):** `POST /auth/bot-guilds`, `POST /auth/managed-guilds` and `POST /auth/guild-access` are gone; send them as `QUERY`. The dashboard, their only caller, already does (clashperk-client#153)
+
 ## 2026-10-25 (QUERY over CORS)
 - Browsers on the dashboard's origins can send `QUERY` requests: CORS preflights now allow the method
 
