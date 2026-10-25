@@ -4,8 +4,8 @@ import { Collections } from '../db';
 import { FlagInput, FlagType } from './dto';
 import { GuildFlagsService } from './guild-flags.service';
 
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const USER = '222222222222222222';

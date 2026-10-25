@@ -2,7 +2,7 @@ import { Db } from 'mongodb';
 import { ClanActivityService } from './clan-activity.service';
 
 // clash-client pulls in JSON the test setup can't load; the service gets a stub instead.
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 const rows = [
   {
@@ -39,7 +39,7 @@ const collection = (docs: { tag: string; name: string }[]) =>
     collection: () => ({ find: () => ({ toArray: () => Promise.resolve(docs) }) }),
   }) as unknown as Db;
 
-const query = jest.fn(() => Promise.resolve({ json: () => Promise.resolve(rows) }));
+const query = vi.fn(() => Promise.resolve({ json: () => Promise.resolve(rows) }));
 
 const createService = () =>
   new ClanActivityService(

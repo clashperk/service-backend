@@ -4,7 +4,7 @@ import { Collections } from '../db';
 import { TicketExtraButtonKind } from './dto';
 import { GuildTicketsService } from './guild-tickets.service';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const ROLE = '222222222222222222';
@@ -69,9 +69,9 @@ const setup = (opts: { panels?: Doc[]; tickets?: Doc[] } = {}) => {
     };
   };
   const discord = {
-    checkChannel: jest.fn(),
-    listRoles: jest.fn().mockResolvedValue([{ id: ROLE }]),
-    listCategories: jest.fn().mockResolvedValue([{ id: CATEGORY, name: 'TICKETS' }]),
+    checkChannel: vi.fn(),
+    listRoles: vi.fn().mockResolvedValue([{ id: ROLE }]),
+    listCategories: vi.fn().mockResolvedValue([{ id: CATEGORY, name: 'TICKETS' }]),
   };
   const service = new GuildTicketsService({ collection } as unknown as Db, discord as never);
   return { service, discord, panels: data[Collections.TICKET_PANELS] };

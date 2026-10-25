@@ -9,16 +9,9 @@ Sentry.init({
 
   integrations: [nodeProfilingIntegration()],
   tracesSampleRate: 1.0,
-  profilesSampleRate: 1.0,
+  profileSessionSampleRate: 1.0,
+  profileLifecycle: 'trace',
 
+  // Only request traces are kept; a dropped root span drops its children with it.
   ignoreSpans: [{ op: /^(?!http\.server)/ }],
-
-  beforeSendTransaction(event) {
-    if (event.contexts?.trace?.op === 'http.server') {
-      return event;
-    }
-    return null;
-  },
-
-  enableLogs: true,
 });

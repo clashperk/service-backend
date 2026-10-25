@@ -1,7 +1,8 @@
 allowBuilds:
   '@nestjs/core': false
   '@scarf/scarf': false
-  '@sentry-internal/node-cpu-profiler': true
+  '@sentry/node-cpu-profiler': true
+  '@swc/core': false
   msgpackr-extract: false
   unrs-resolver: true
 minimumReleaseAgeExclude:

@@ -1,10 +1,10 @@
 import { Season } from './client';
 
-const at = (iso: string) => jest.useFakeTimers().setSystemTime(new Date(iso));
+const at = (iso: string) => vi.useFakeTimers().setSystemTime(new Date(iso));
 
 describe('Season ids', () => {
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('uses the league season start date', () => {

@@ -20,7 +20,7 @@ const record = {
 
 describe('SubscribersService', () => {
   it('lists subscriptions without contact details, active first', async () => {
-    const find = jest.fn().mockReturnValue({ toArray: () => Promise.resolve([record]) });
+    const find = vi.fn().mockReturnValue({ toArray: () => Promise.resolve([record]) });
     const service = new SubscribersService({ collection: () => ({ find }) } as unknown as Db);
 
     await expect(service.list()).resolves.toEqual({
@@ -54,7 +54,7 @@ describe('SubscribersService', () => {
 
   it('spreads a yearly charge over 12 months', async () => {
     const yearly = { ...record, rewardId: '3705318', entitledAmount: 3240 };
-    const find = jest.fn().mockReturnValue({ toArray: () => Promise.resolve([yearly]) });
+    const find = vi.fn().mockReturnValue({ toArray: () => Promise.resolve([yearly]) });
     const service = new SubscribersService({ collection: () => ({ find }) } as unknown as Db);
     const [subscriber] = (await service.list()).subscribers;
     expect(subscriber).toMatchObject({

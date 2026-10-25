@@ -6,8 +6,8 @@ import { GuildDiscordService } from './guild-discord.service';
 import { GuildRemindersService } from './guild-reminders.service';
 import { memoryCache } from '../../test/fakes';
 
-jest.mock('@app/clash-client', () => ({ ClashClient: class {} }));
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClient: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const CHANNEL = '222222222222222222';
@@ -75,7 +75,7 @@ const setup = (store: Store, webhook: { guild_id: string; channel_id: string } |
       ),
     getWebhook: () => Promise.resolve(webhook),
   };
-  const schedules = { reschedule: jest.fn(), clear: jest.fn() };
+  const schedules = { reschedule: vi.fn(), clear: vi.fn() };
   return {
     service: new GuildRemindersService(
       db,

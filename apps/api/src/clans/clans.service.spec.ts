@@ -2,7 +2,7 @@ import { Db } from 'mongodb';
 import { ClansService } from './clans.service';
 
 // clash-client pulls in JSON the test setup can't load; getClanGames never calls it.
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {}, Season: {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {}, Season: {} }));
 
 type Player = {
   name: string;

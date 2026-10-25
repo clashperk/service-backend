@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { GuildReminderPingsService } from './guild-reminder-pings.service';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const ROLE = (n: number) => `22222222222222222${n}`;
@@ -25,8 +25,8 @@ const setup = (settings?: Doc) => {
   };
   const holders: Record<string, string[]> = { [ROLE(1)]: [USER(1), USER(2)], [ROLE(2)]: [] };
   const discord = {
-    listRoles: jest.fn().mockResolvedValue([1, 2].map((n) => ({ id: ROLE(n) }))),
-    roleMembers: jest.fn((_g: string, _a: string | null, ids: string[]) =>
+    listRoles: vi.fn().mockResolvedValue([1, 2].map((n) => ({ id: ROLE(n) }))),
+    roleMembers: vi.fn((_g: string, _a: string | null, ids: string[]) =>
       Promise.resolve(new Map(ids.map((id) => [id, holders[id]]))),
     ),
   };

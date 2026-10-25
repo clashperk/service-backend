@@ -3,7 +3,7 @@ import { ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { AuthGuardStrategies } from '../app.constants';
 import { PUBLIC_METADATA } from '../decorators';
 import { fallbackUser } from '../dto';

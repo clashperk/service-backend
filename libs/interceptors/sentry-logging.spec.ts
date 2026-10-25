@@ -1,12 +1,13 @@
+import type { Mock } from 'vitest';
 import { ArgumentsHost, UnauthorizedException } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 import { EventEmitter } from 'events';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { HttpExceptionsFilter } from './http-exceptions-filter';
 import { HttpLoggingMiddleware } from './http-logging.middleware';
 
-jest.mock('@sentry/nestjs', () => ({
-  logger: { info: jest.fn(), error: jest.fn() },
+vi.mock('@sentry/nestjs', () => ({
+  logger: { info: vi.fn(), error: vi.fn() },
   SentryExceptionCaptured: () => () => undefined,
 }));
 
@@ -20,13 +21,13 @@ const loginRequest = () =>
     originalUrl: '/v1/auth/login',
     ip: '127.0.0.1',
     body: { passKey: PASSKEY },
-    headers: { 'authorization': TOKEN, 'x-access-token': TOKEN, 'user-agent': 'jest' },
+    headers: { 'authorization': TOKEN, 'x-access-token': TOKEN, 'user-agent': 'vitest' },
   }) as unknown as Request;
 
-const sentToSentry = (mock: jest.Mock) => JSON.stringify(mock.mock.calls);
+const sentToSentry = (mock: Mock) => JSON.stringify(mock.mock.calls);
 
 describe('Sentry request logs', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it('leave out the passkey of a successful login', () => {
     const res = Object.assign(new EventEmitter(), { statusCode: 200, getHeader: () => undefined });
@@ -34,7 +35,7 @@ describe('Sentry request logs', () => {
     res.emit('finish');
 
     expect(Sentry.logger.info).toHaveBeenCalled();
-    expect(sentToSentry(Sentry.logger.info as jest.Mock)).not.toContain(PASSKEY);
+    expect(sentToSentry(Sentry.logger.info as Mock)).not.toContain(PASSKEY);
   });
 
   it('leave out the passkey and auth headers of a failed request', () => {
@@ -44,7 +45,7 @@ describe('Sentry request logs', () => {
     } as unknown as ArgumentsHost;
     new HttpExceptionsFilter().catch(new UnauthorizedException(), host);
 
-    const sent = sentToSentry(Sentry.logger.error as jest.Mock);
+    const sent = sentToSentry(Sentry.logger.error as Mock);
     expect(Sentry.logger.error).toHaveBeenCalled();
     expect(sent).not.toContain(PASSKEY);
     expect(sent).not.toContain('eyJhbGciOiJIUzI1NiJ9');
@@ -61,7 +62,7 @@ describe('Sentry request logs', () => {
     } as unknown as ArgumentsHost;
     new HttpExceptionsFilter().catch(new UnauthorizedException(), host);
 
-    const [[, fields]] = (Sentry.logger.error as jest.Mock).mock.calls as [[string, object]];
+    const [[, fields]] = (Sentry.logger.error as Mock).mock.calls as [[string, object]];
     expect(fields).toMatchObject({
       'token.jti': 'jti-1',
       'token.user_id': '444444444444444444',

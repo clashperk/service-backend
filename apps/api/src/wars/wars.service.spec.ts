@@ -3,7 +3,7 @@ import { Db } from 'mongodb';
 import { WarsService } from './wars.service';
 
 // clash-client pulls in JSON the test setup can't load; getClanWar never calls it.
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 type War = {
   id: number;

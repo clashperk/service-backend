@@ -5,7 +5,7 @@ import {
   upcomingEvents,
 } from './game-calendar';
 
-jest.mock('@app/clash-client', () => ({
+vi.mock('@app/clash-client', () => ({
   Season: {
     getLeagueSeason: (date = new Date('2026-10-18T00:00:00Z')) => {
       // 28-day seasons from 2026-09-28 05:00 UTC.

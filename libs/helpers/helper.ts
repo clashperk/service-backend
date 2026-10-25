@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import type { Request } from 'express';
 import moment from 'moment';
 import cluster from 'node:cluster';
 import { createHash } from 'node:crypto';

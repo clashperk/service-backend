@@ -1,7 +1,7 @@
 import { ErrorCodes } from '@app/dto';
 import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { ROLES_METADATA } from '../decorators/roles.decorator';
 import { JwtUser } from '../dto/jwt-user.dto';
 import { UserRoles } from '../dto/user-roles.dto';

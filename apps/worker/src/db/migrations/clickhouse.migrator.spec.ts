@@ -7,7 +7,7 @@ const migrations: ClickhouseMigration[] = [
   { name: '0002_second', statements: ['CREATE TABLE second', 'ALTER TABLE second ADD COLUMN x'] },
 ];
 
-const stubLogger = { log: jest.fn(), warn: jest.fn() };
+const stubLogger = { log: vi.fn(), warn: vi.fn() };
 
 const createStub = (alreadyApplied: string[] = []) => {
   const commands: string[] = [];
@@ -32,7 +32,7 @@ const createStub = (alreadyApplied: string[] = []) => {
 };
 
 describe('ClickhouseMigrator', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
 
   it('creates the registry table and applies every pending migration in order', async () => {
     const { client, commands, recorded } = createStub();

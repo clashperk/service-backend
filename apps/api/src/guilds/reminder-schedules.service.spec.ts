@@ -1,7 +1,8 @@
+import type { Mock } from 'vitest';
 import { Db, ObjectId } from 'mongodb';
 import { clanGamesWindow, ReminderSchedulesService } from './reminder-schedules.service';
 
-jest.mock('@app/clash-client', () => ({ ClashClient: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClient: class {} }));
 
 const HOUR = 60 * 60 * 1000;
 // Clash API time format, e.g. 20261020T120000.000Z.
@@ -20,11 +21,11 @@ const war = (tag: string, opponent: string, endsIn: number, prepHours = 23) => {
   };
 };
 
-const setup = (client: Record<string, jest.Mock>) => {
+const setup = (client: Record<string, Mock>) => {
   const inserted: Record<string, unknown>[] = [];
   const collection = {
-    deleteMany: jest.fn().mockResolvedValue({}),
-    insertMany: jest.fn((docs: Record<string, unknown>[]) => inserted.push(...docs)),
+    deleteMany: vi.fn().mockResolvedValue({}),
+    insertMany: vi.fn((docs: Record<string, unknown>[]) => inserted.push(...docs)),
   };
   const db = { collection: () => collection } as unknown as Db;
   return { service: new ReminderSchedulesService(db, client as never), inserted, collection };
@@ -40,14 +41,14 @@ const reminder = (duration: number) => ({
 describe('ReminderSchedulesService', () => {
   it('schedules the regular war and the CWL round the clan is in', async () => {
     const { service, inserted } = setup({
-      getCurrentWar: jest
+      getCurrentWar: vi
         .fn()
         .mockResolvedValue({ res: { ok: true }, body: war('#A', '#B', 10 * HOUR) }),
-      getClanWarLeagueGroup: jest.fn().mockResolvedValue({
+      getClanWarLeagueGroup: vi.fn().mockResolvedValue({
         res: { ok: true },
         body: { state: 'inWar', rounds: [{ warTags: ['#W1', '#W2'] }, { warTags: ['#0'] }] },
       }),
-      getClanWarLeagueRound: jest.fn((warTag: string) =>
+      getClanWarLeagueRound: vi.fn((warTag: string) =>
         Promise.resolve({
           res: { ok: true },
           body: warTag === '#W2' ? war('#C', '#A', 5 * HOUR) : war('#D', '#E', 5 * HOUR),
@@ -70,10 +71,10 @@ describe('ReminderSchedulesService', () => {
 
   it('skips runs whose reminder time has passed and flags friendly wars', async () => {
     const { service, inserted } = setup({
-      getCurrentWar: jest
+      getCurrentWar: vi
         .fn()
         .mockResolvedValue({ res: { ok: true }, body: war('#A', '#B', 3 * HOUR, 2) }),
-      getClanWarLeagueGroup: jest.fn().mockResolvedValue({ res: { ok: false } }),
+      getClanWarLeagueGroup: vi.fn().mockResolvedValue({ res: { ok: false } }),
     });
 
     await service.reschedule('clanWars', reminder(4 * HOUR));

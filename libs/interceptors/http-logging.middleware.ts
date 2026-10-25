@@ -2,7 +2,7 @@ import { fallbackUser } from '@app/auth';
 import { getClientIp } from '@app/helpers';
 import { ConsoleLogger, Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
-import { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import mapKeys from 'lodash/mapKeys';
 import moment from 'moment';
 

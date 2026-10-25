@@ -5,7 +5,7 @@ import {
   NestInterceptor,
   RequestTimeoutException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { throwError, TimeoutError } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
 

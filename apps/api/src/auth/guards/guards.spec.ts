@@ -9,8 +9,8 @@ import { ApiKeyGuard } from './api-key.guard';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
-jest.mock('@sentry/nestjs', () => ({ logger: { warn: jest.fn() } }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@sentry/nestjs', () => ({ logger: { warn: vi.fn() } }));
 
 const GUILD = '111111111111111111';
 
@@ -80,7 +80,7 @@ describe('JwtStrategy', () => {
       method: 'GET',
       url: '/v1/x',
     }) as never;
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => vi.clearAllMocks());
   const strategy = () => {
     const config = { getOrThrow: () => 'secret' };
     const auth = { revalidateJwtUser: (payload: JwtUser) => Promise.resolve(payload) };
@@ -154,7 +154,7 @@ describe('JwtAuthGuard', () => {
       { getAllAndOverride: () => false } as unknown as Reflector,
       { getOrThrow: () => 'key' } as never,
     );
-    const jwtCheck = jest.spyOn(AuthGuard(AuthGuardStrategies.JWT).prototype, 'canActivate');
+    const jwtCheck = vi.spyOn(AuthGuard(AuthGuardStrategies.JWT).prototype, 'canActivate');
     jwtCheck.mockReturnValue(false);
     const req = { headers: {}, query: { apiKey: 'key' } };
 

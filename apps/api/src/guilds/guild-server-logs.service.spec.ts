@@ -4,7 +4,7 @@ import { Collections } from '../db';
 import { GuildServerLogsService } from './guild-server-logs.service';
 import { channelState } from '../../test/fakes';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const CHANNEL = (n: number) => `33333333333333333${n}`;
@@ -45,10 +45,10 @@ const setup = (opts: { settings?: Doc; flagAlert?: Doc } = {}) => {
     };
   };
   const discord = {
-    checkChannel: jest.fn(),
-    checkRole: jest.fn(),
-    resolveWebhook: jest.fn().mockResolvedValue(null),
-    channelStatuses: jest.fn((_g: string, _a: string | null, ids: string[]) =>
+    checkChannel: vi.fn(),
+    checkRole: vi.fn(),
+    resolveWebhook: vi.fn().mockResolvedValue(null),
+    channelStatuses: vi.fn((_g: string, _a: string | null, ids: string[]) =>
       Promise.resolve(new Map(ids.map((id) => [id, channelState(`channel-${id.slice(-1)}`)]))),
     ),
   };

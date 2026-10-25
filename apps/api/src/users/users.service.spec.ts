@@ -2,7 +2,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Db } from 'mongodb';
 import { UsersService } from './users.service';
 
-jest.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
+vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 const USER = '111111111111111111';
 
@@ -34,7 +34,7 @@ const setup = (user?: Doc) => {
     },
   };
   const clash = {
-    getClan: jest.fn((tag: string) => Promise.resolve(clans.get(tag) ?? null)),
+    getClan: vi.fn((tag: string) => Promise.resolve(clans.get(tag) ?? null)),
   };
   const service = new UsersService(
     { collection: () => collection } as unknown as Db,

@@ -6,7 +6,7 @@ import { GuildAutoRolesService } from './guild-auto-roles.service';
 import { GuildDiscordService } from './guild-discord.service';
 import { memoryCache } from '../../test/fakes';
 
-jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
+vi.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
 const GUILD = '111111111111111111';
 const TAG = '#2PC9YQL0Q';
@@ -52,7 +52,7 @@ const setup = (opts: { settings?: Doc; clans?: Doc[] } = {}) => {
       },
     };
   };
-  const discord = { checkAssignableRoles: jest.fn() };
+  const discord = { checkAssignableRoles: vi.fn() };
   const service = new GuildAutoRolesService({ collection } as unknown as Db, discord as never);
   return { service, discord, writes, settings, clans };
 };

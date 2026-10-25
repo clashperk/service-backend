@@ -2,7 +2,7 @@ import { ApiExcludeRoute, ApiKeyAuth } from '@app/decorators';
 import { paragraph } from '@app/helpers';
 import { Body, Controller, Get, HttpCode, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiExcludeEndpoint, ApiExtraModels, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   AuthUserDto,
