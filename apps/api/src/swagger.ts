@@ -17,14 +17,11 @@ const version = JSON.parse(readFileSync('./package.json', 'utf-8')).version;
 
 type Operation = { 'tags'?: string[]; 'x-required-roles'?: UserRoles[] } & Record<string, unknown>;
 
-/** API tokens can't call routes only dashboard sessions or admins may use, so those stay unpublished. */
-const NOT_FOR_API_TOKENS = [UserRoles.USER, UserRoles.ADMIN];
-
+/** Dashboard (`user`) routes are published for the dashboard and bot; admin-only ones aren't. */
 const isPublished = (operation: Operation) => {
   const roles = operation['x-required-roles'] ?? [];
   return (
-    !operation['x-internal'] &&
-    !(roles.length && roles.every((role) => NOT_FOR_API_TOKENS.includes(role)))
+    !operation['x-internal'] && !(roles.length && roles.every((role) => role === UserRoles.ADMIN))
   );
 };
 
@@ -48,7 +45,7 @@ function filterOperations(
   return { ...document, paths, tags: document.tags?.filter((tag) => used.has(tag.name)) };
 }
 
-/** The full document, and the published one: no internal routes, none API tokens can't call. */
+/** The full document, and the published one: no internal or admin-only routes. */
 export function createDocuments(app: INestApplication) {
   const builder = new DocumentBuilder()
     .setTitle('ClashPerk Discord Bot API')

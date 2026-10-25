@@ -47,22 +47,29 @@ describe('Swagger documents', () => {
     }
   });
 
-  it('publishes only routes an API token can call', () => {
+  it('publishes no internal or admin-only routes', () => {
     const published = operations(documents.published);
     expect(published.length).toBeGreaterThan(0);
     for (const operation of published) {
       expect(operation['x-internal']).toBeUndefined();
       const roles = operation['x-required-roles'] ?? [];
-      const apiRoles = roles.filter((role) => role !== UserRoles.USER && role !== UserRoles.ADMIN);
-      expect(roles.length === 0 || apiRoles.length > 0).toBe(true);
+      expect(roles.length === 0 || roles.some((role) => role !== UserRoles.ADMIN)).toBe(true);
     }
+  });
+
+  it('publishes dashboard-only routes', () => {
+    const userOnly = operations(documents.published).filter(
+      (operation) => operation['x-required-roles']?.join() === UserRoles.USER,
+    );
+    expect(userOnly.length).toBeGreaterThan(0);
   });
 
   it('lists only the tags it publishes, in order', () => {
     const tags = documents.published.tags?.map((tag) => tag.name);
     expect(tags).not.toContain(ApiTag.ADMIN);
     expect(tags).not.toContain(ApiTag.INTERNAL);
-    expect(tags).not.toContain(ApiTag.GUILDS);
+    expect(tags).toContain(ApiTag.GUILDS);
+    expect(tags).toContain(ApiTag.USERS);
     expect(tags?.slice(0, 2)).toEqual([ApiTag.AUTH, ApiTag.PLAYERS]);
   });
 
