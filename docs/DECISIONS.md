@@ -1,5 +1,11 @@
 # Decisions
 
+## 2026-10-25 — Portal users are called developers
+Decided by: Suvajit. "Portal" described nothing these accounts do: a Discord user gets a passkey and roles to call the API, so the admin routes, DTOs and dashboard page say "developer". The MongoDB collection keeps the name `PortalUsers` (`Collections.PORTAL_USERS`), since renaming it would need a data migration and the bot and worker read it too.
+
+## 2026-10-25 — Dashboard routes are published
+Decided by: Suvajit. Routes whose only role is `user` are now in the public docs, so the dashboard and, later, the bot generate clients and read their contract from the same document. Publishing doesn't open them up: `RolesGuard` still refuses API tokens there, and the Guilds, Rosters and Users tag descriptions say so. Only admin-only and `x-internal` routes stay unpublished. This replaces the rule below that kept `user` routes out.
+
 ## 2026-10-25 — Ranked league rules come from the asset CDN's game data
 Decided by: Suvajit. The game API only reports a week's battle limit once the week ends, and has no zone percentages, so the API reads `league_tiers` (`battle_count`, `promote_percentage`, `demote_percentage`) from `https://assets.clashperk.com/raw.min.json`, loaded once per process and retried after a failure. This replaces a hardcoded zone table that had drifted from the game. Without the data the week still loads, with no zones and a null `maxBattles`.
 

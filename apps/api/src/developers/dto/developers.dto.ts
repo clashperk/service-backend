@@ -6,7 +6,7 @@ import { ArrayMaxSize, ArrayMinSize, IsArray, IsIn, Matches } from 'class-valida
 /** Roles an admin can grant here; admin itself stays out of reach of the dashboard. */
 export const GRANTABLE_ROLES = Object.values(UserRoles).filter((role) => role !== UserRoles.ADMIN);
 
-export class EditPortalUserInput {
+export class EditDeveloperInput {
   @ApiProperty({ enum: UserRoles, enumName: 'UserRoles', isArray: true })
   @IsArray()
   @ArrayMinSize(1, { message: 'Pick at least one role.' })
@@ -18,13 +18,13 @@ export class EditPortalUserInput {
   roles: UserRoles[];
 }
 
-export class AddPortalUserInput extends EditPortalUserInput {
+export class AddDeveloperInput extends EditDeveloperInput {
   @Matches(/^\d{17,20}$/, { message: 'Enter a Discord user ID (17 to 20 digits).' })
   userId: string;
 }
 
-/** A portal account without its passkey. */
-export class PortalUserDto {
+/** A developer account without its passkey. */
+export class DeveloperDto {
   userId: string;
   username: string;
   displayName: string;
@@ -36,12 +36,12 @@ export class PortalUserDto {
   lastLoginAt: Date | null;
 }
 
-export class PortalUsersDto {
-  users: PortalUserDto[];
+export class DevelopersDto {
+  developers: DeveloperDto[];
 }
 
-export class AddedPortalUserDto {
-  user: PortalUserDto;
+export class AddedDeveloperDto {
+  developer: DeveloperDto;
   /** Shown once; the account signs in with it at /auth/login. */
   passKey: string;
 }

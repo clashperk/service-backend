@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-25 (dashboard routes in the docs)
+- The public API docs list dashboard routes too (121 operations, up from 37): every route whose only role is `user` (Guilds, Rosters, Users and `PUT /links/:playerTag/default`) is published. API tokens still get 403 on them; only a dashboard session can call them
+- Admin routes and internal routes stay out of the public docs
+- **Breaking:** portal users are now developers: `/admin/portal-users` moved to `/admin/developers` (`listDevelopers`, `addDeveloper`, `editDeveloper`, `revokeDeveloper`), and responses carry `developers` and `developer` in place of `users` and `user`
+
 ## 2026-10-25 (events calendar)
 - `GET /events?from=&to=` lists every season, raid weekend, Clan Games and CWL overlapping a range of up to 100 days, by start time, each with its state (`ended`, `active` or `upcoming`), for calendar views
 - Game event `state` can be `ended`; `/events/upcoming` never returns it

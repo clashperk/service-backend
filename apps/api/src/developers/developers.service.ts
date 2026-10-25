@@ -10,10 +10,10 @@ import { randomBytes } from 'crypto';
 import { Db, WithId } from 'mongodb';
 import { ApiUsersEntity } from '@app/collections';
 import { Collections, MONGODB_TOKEN } from '../db';
-import { AddedPortalUserDto, PortalUserDto, PortalUsersDto } from './dto/portal-users.dto';
+import { AddedDeveloperDto, DeveloperDto, DevelopersDto } from './dto/developers.dto';
 import { UserRoles } from '@app/dto';
 
-const toDto = (user: WithId<ApiUsersEntity>): PortalUserDto => ({
+const toDto = (user: WithId<ApiUsersEntity>): DeveloperDto => ({
   userId: user.userId,
   username: user.username,
   displayName: user.displayName,
@@ -24,28 +24,28 @@ const toDto = (user: WithId<ApiUsersEntity>): PortalUserDto => ({
 });
 
 @Injectable()
-export class PortalUsersService {
+export class DevelopersService {
   constructor(
     @Inject(MONGODB_TOKEN) private readonly db: Db,
     private readonly discordRest: DiscordRestService,
   ) {}
 
   /** Newest first, without passkeys. */
-  async list(): Promise<PortalUsersDto> {
-    const users = await this.users
+  async list(): Promise<DevelopersDto> {
+    const developers = await this.developers
       .find({ deletedAt: null }, { projection: { passKey: 0 }, sort: { createdAt: -1 } })
       .toArray();
-    return { users: users.map(toDto) };
+    return { developers: developers.map(toDto) };
   }
 
   /** Made as `/auth/generate-passkey` makes them, but never over an existing account. */
-  async add(input: { userId: string; roles: UserRoles[] }): Promise<AddedPortalUserDto> {
-    if (await this.users.findOne({ userId: input.userId, deletedAt: null })) {
-      throw new ConflictException('That Discord user already has a portal account.');
+  async add(input: { userId: string; roles: UserRoles[] }): Promise<AddedDeveloperDto> {
+    if (await this.developers.findOne({ userId: input.userId, deletedAt: null })) {
+      throw new ConflictException('That Discord user is already a developer.');
     }
     const discordUser = await this.discordRest.getUser(input.userId);
     const now = new Date();
-    const user = await this.users.findOneAndUpdate(
+    const user = await this.developers.findOneAndUpdate(
       { userId: input.userId },
       {
         $set: {
@@ -62,13 +62,13 @@ export class PortalUsersService {
       },
       { upsert: true, returnDocument: 'after' },
     );
-    return { user: toDto(user!), passKey: user!.passKey };
+    return { developer: toDto(user!), passKey: user!.passKey };
   }
 
   /** New roles apply the next time the account signs in. */
-  async edit(userId: string, roles: UserRoles[]): Promise<PortalUserDto> {
+  async edit(userId: string, roles: UserRoles[]): Promise<DeveloperDto> {
     await this.findEditable(userId);
-    const user = await this.users.findOneAndUpdate(
+    const user = await this.developers.findOneAndUpdate(
       { userId, deletedAt: null },
       { $set: { roles: [...new Set(roles)], updatedAt: new Date() } },
       { projection: { passKey: 0 }, returnDocument: 'after' },
@@ -79,7 +79,7 @@ export class PortalUsersService {
   /** The passkey stops working at once; a token it already got lasts until it expires. */
   async revoke(userId: string) {
     await this.findEditable(userId);
-    await this.users.updateOne(
+    await this.developers.updateOne(
       { userId, deletedAt: null },
       { $set: { deletedAt: new Date(), passKey: randomBytes(16).toString('hex') } },
     );
@@ -87,14 +87,14 @@ export class PortalUsersService {
   }
 
   private async findEditable(userId: string) {
-    const user = await this.users.findOne({ userId, deletedAt: null });
-    if (!user) throw new NotFoundException('No portal account for that user.');
+    const user = await this.developers.findOne({ userId, deletedAt: null });
+    if (!user) throw new NotFoundException('No developer account for that user.');
     if (user.roles.includes(UserRoles.ADMIN)) {
       throw new BadRequestException("Admin accounts can't be changed from the dashboard.");
     }
   }
 
-  private get users() {
+  private get developers() {
     return this.db.collection(Collections.PORTAL_USERS);
   }
 }

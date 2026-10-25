@@ -6,8 +6,8 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Db } from 'mongodb';
-import { AddPortalUserInput } from './dto/portal-users.dto';
-import { PortalUsersService } from './portal-users.service';
+import { AddDeveloperInput } from './dto/developers.dto';
+import { DevelopersService } from './developers.service';
 
 jest.mock('@app/discord-rest', () => ({ DiscordRestService: class {} }));
 
@@ -42,14 +42,14 @@ const setup = (existing: Doc[] = []) => {
   const discord = {
     getUser: jest.fn().mockResolvedValue({ username: 'chief', global_name: 'Chief', bot: false }),
   };
-  const service = new PortalUsersService(
+  const service = new DevelopersService(
     { collection: () => collection } as unknown as Db,
     discord as never,
   );
   return { service, docs, collection };
 };
 
-describe('PortalUsersService', () => {
+describe('DevelopersService', () => {
   it('lists accounts without passkeys', async () => {
     const { service, collection } = setup();
     await service.list();
@@ -66,7 +66,7 @@ describe('PortalUsersService', () => {
       roles: [UserRoles.FETCH_LINKS, UserRoles.FETCH_LINKS, UserRoles.VIEWER],
     });
     expect(result.passKey).toMatch(/^[0-9a-f]{32}$/);
-    expect(result.user).toMatchObject({
+    expect(result.developer).toMatchObject({
       userId: USER,
       username: 'chief',
       displayName: 'Chief',
@@ -74,7 +74,7 @@ describe('PortalUsersService', () => {
       roles: [UserRoles.FETCH_LINKS, UserRoles.VIEWER],
       lastLoginAt: null,
     });
-    expect(result.user).not.toHaveProperty('passKey');
+    expect(result.developer).not.toHaveProperty('passKey');
     expect(docs[0]).toMatchObject({ passKey: result.passKey, guildIds: [], deletedAt: null });
   });
 
@@ -88,7 +88,7 @@ describe('PortalUsersService', () => {
   it('refuses to grant admin', async () => {
     const pipe = new ValidationPipe({ transform: true, whitelist: true });
     const validate = (body: unknown) =>
-      pipe.transform(body, { type: 'body', metatype: AddPortalUserInput });
+      pipe.transform(body, { type: 'body', metatype: AddDeveloperInput });
     await expect(validate({ userId: USER, roles: ['fetch:links'] })).resolves.toBeDefined();
     await expect(validate({ userId: USER, roles: ['admin'] })).rejects.toThrow();
     await expect(validate({ userId: USER, roles: [] })).rejects.toThrow();
