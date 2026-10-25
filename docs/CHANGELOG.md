@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-25 (QUERY over CORS)
+- Browsers on the dashboard's origins can send `QUERY` requests: CORS preflights now allow the method
+
 ## 2026-10-25 (QUERY method)
 - Eight read-only routes that take a request body now answer the HTTP `QUERY` method: `/links/query`, `/players/battle-log/leaderboard`, `/legends/attacks/query`, `/clans/activity`, `/rosters/:guildId/:rosterId/members/check`, and the internal `/auth/bot-guilds`, `/auth/managed-guilds` and `/auth/guild-access`. Same path, body, roles and response
 - Their POST versions are deprecated and will be removed on 2026-11-25. They still work, answer with `Deprecation` and `Sunset` headers, are marked deprecated in the docs (operation IDs end in `ViaPost`), and each call is logged to Sentry as `Deprecated route called`
