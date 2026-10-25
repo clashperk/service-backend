@@ -32,17 +32,17 @@ export class UsersController {
     return this.usersService.clearDefaultClan(user.userId);
   }
 
-  @Post('/saved-clans')
-  saveClan(@CurrentUser() user: JwtUser, @Body() body: ClanTagInput): Promise<UserSettingsDto> {
-    return this.usersService.saveClan(user.userId, body.clanTag);
+  @Post('/bookmarks')
+  addBookmark(@CurrentUser() user: JwtUser, @Body() body: ClanTagInput): Promise<UserSettingsDto> {
+    return this.usersService.addBookmark(user.userId, body.clanTag);
   }
 
-  @Delete('/saved-clans/:clanTag')
-  unsaveClan(
+  @Delete('/bookmarks/:clanTag')
+  removeBookmark(
     @CurrentUser() user: JwtUser,
     @Param('clanTag') clanTag: string,
   ): Promise<UserSettingsDto> {
-    return this.usersService.unsaveClan(user.userId, clanTag);
+    return this.usersService.removeBookmark(user.userId, clanTag);
   }
 
   @Put('/timezone')

@@ -16,9 +16,9 @@ const timezoneName = (id: string, style: 'long' | 'longOffset') => {
   }
 };
 
-const MAX_SAVED_CLANS = 50;
+const MAX_BOOKMARKS = 50;
 
-/** The bot's per-user settings in `Users`: default clan, saved clans and timezone. */
+/** The bot's per-user settings in `Users`: default clan, bookmarked clans and timezone. */
 @Injectable()
 export class UsersService {
   constructor(
@@ -30,7 +30,7 @@ export class UsersService {
     const user = await this.users.findOne({ userId });
     return {
       clan: user?.clan ? { tag: user.clan.tag, name: user.clan.name ?? null } : null,
-      savedClans: (user?.savedClans ?? []).map((clan) => ({ tag: clan.tag, name: clan.name })),
+      bookmarks: (user?.savedClans ?? []).map((clan) => ({ tag: clan.tag, name: clan.name })),
       timezone: user?.timezone
         ? { id: user.timezone.id, name: user.timezone.name, location: user.timezone.location }
         : null,
@@ -48,20 +48,20 @@ export class UsersService {
     return this.getSettings(userId);
   }
 
-  /** Saving a clan again refreshes its name and keeps its place. */
-  async saveClan(userId: string, clanTag: string) {
+  /** Bookmarking a clan again refreshes its name and keeps its place. */
+  async addBookmark(userId: string, clanTag: string) {
     const clan = await this.findClan(clanTag);
-    const saved = (await this.users.findOne({ userId }))?.savedClans ?? [];
-    const index = saved.findIndex((entry) => entry.tag === clan.tag);
-    if (index < 0 && saved.length >= MAX_SAVED_CLANS) {
-      throw new BadRequestException(`You can save up to ${MAX_SAVED_CLANS} clans.`);
+    const bookmarks = (await this.users.findOne({ userId }))?.savedClans ?? [];
+    const index = bookmarks.findIndex((entry) => entry.tag === clan.tag);
+    if (index < 0 && bookmarks.length >= MAX_BOOKMARKS) {
+      throw new BadRequestException(`You can bookmark up to ${MAX_BOOKMARKS} clans.`);
     }
-    const next = index < 0 ? [...saved, clan] : saved.with(index, clan);
+    const next = index < 0 ? [...bookmarks, clan] : bookmarks.with(index, clan);
     await this.save(userId, { savedClans: next });
     return this.getSettings(userId);
   }
 
-  async unsaveClan(userId: string, clanTag: string) {
+  async removeBookmark(userId: string, clanTag: string) {
     await this.users.updateOne({ userId }, { $pull: { savedClans: { tag: fixTag(clanTag) } } });
     return this.getSettings(userId);
   }

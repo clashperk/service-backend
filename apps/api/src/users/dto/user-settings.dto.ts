@@ -26,8 +26,8 @@ export class TimezoneDto {
 export class UserSettingsDto {
   /** Used by bot commands run without a clan tag. */
   clan: ClanRefDto | null;
-  /** Clans the user keeps on their dashboard, on every device. */
-  savedClans: ClanRefDto[];
+  /** Clans the user bookmarked on the dashboard, on every device. */
+  bookmarks: ClanRefDto[];
   /** Used by /activity charts; null means UTC. */
   timezone: TimezoneDto | null;
 }

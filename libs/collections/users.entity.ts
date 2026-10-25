@@ -6,7 +6,7 @@ export class UsersEntity {
   discriminator?: string;
   /** Used by commands run without a clan tag. */
   clan?: { tag: string; name?: string };
-  /** Saved on the dashboard; the bot doesn't read it. */
+  /** Dashboard bookmarks (`bookmarks` in the API); the bot doesn't read it. */
   savedClans?: { tag: string; name: string }[];
   lastSearchedClanTag?: string;
   lastSearchedPlayerTag?: string;

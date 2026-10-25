@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-25 (bookmarks)
+- **Breaking:** saved clans are now bookmarks: `POST /users/me/saved-clans` moved to `POST /users/me/bookmarks` (`addBookmark`), `DELETE /users/me/saved-clans/:clanTag` to `DELETE /users/me/bookmarks/:clanTag` (`removeBookmark`), and `GET /users/me` returns `bookmarks` in place of `savedClans`. Existing saved clans carry over unchanged
+
 ## 2026-10-25 (token audience required)
 - **Breaking:** tokens without an `aud` claim get 401; the version-based fallback and `JWT_REQUIRE_AUDIENCE` are gone. API tokens from `generate-passkey` issued before 2026-10-24 must be reissued
 - Needs the dashboard signing its sessions with `aud: "dashboard"` (clashperk-client#151) deployed first

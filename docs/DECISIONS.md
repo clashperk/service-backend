@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-25 — Saved clans are called bookmarks
+Decided by: Suvajit. The API and dashboard say "bookmarks" for the clans a user keeps on their dashboard. The `Users` documents keep the field `savedClans`, so existing bookmarks need no migration; only the API reads or writes it.
+
 ## 2026-10-25 — Portal users are called developers
 Decided by: Suvajit. "Portal" described nothing these accounts do: a Discord user gets a passkey and roles to call the API, so the admin routes, DTOs and dashboard page say "developer". The MongoDB collection keeps the name `PortalUsers` (`Collections.PORTAL_USERS`), since renaming it would need a data migration and the bot and worker read it too.
 
