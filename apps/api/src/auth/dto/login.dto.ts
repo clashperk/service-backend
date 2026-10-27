@@ -141,7 +141,7 @@ export class GuildAccessInputDto {
   @Matches(/^\d{17,20}$/)
   guildId: string;
 
-  /** The custom bot the session came from, if any. */
+  /** The custom bot the session uses; without it, the API picks the server's bot. */
   @IsOptional()
   @Matches(/^\d{17,20}$/)
   applicationId?: string | null;
@@ -153,6 +153,9 @@ export class GuildAccessDto {
 
   /** Owner, Administrator, Manage Server or the bot manager role. */
   canManage: boolean;
+
+  /** The bot to act through in the server: a custom bot's ID, or null for ClashPerk. */
+  applicationId: string | null;
 }
 
 export class ManagedGuildsDto {

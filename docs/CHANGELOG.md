@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27 (custom bot servers)
+- `QUERY /auth/guild-access` without `applicationId` picks the server's bot (its live custom bot, else ClashPerk) and returns it as `applicationId`, so a server with only a custom bot no longer reads as "bot not in this server"
+- `QUERY /auth/managed-guilds` finds manager-role members through a server's custom bot when ClashPerk isn't in the server
+
 ## 2026-10-25 (internal POSTs removed)
 - **Breaking (internal):** `POST /auth/bot-guilds`, `POST /auth/managed-guilds` and `POST /auth/guild-access` are gone; send them as `QUERY`. The dashboard, their only caller, already does (clashperk-client#153)
 

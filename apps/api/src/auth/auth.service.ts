@@ -269,21 +269,44 @@ export class AuthService {
   }
 
   /**
-   * Whether the bot is in the server and the user can manage it (owner, Administrator, Manage
-   * Server or the bot manager role). The dashboard asks when a server is picked and on renewals.
+   * The bot the dashboard acts through in the server, whether it's there, and whether the user can
+   * manage the server. Without `applicationId`, the server's live custom bot comes first, as the
+   * bot itself does, then ClashPerk. The dashboard asks when a server is picked and on renewals.
    */
   async getGuildAccess(input: { userId: string; guildId: string; applicationId?: string | null }) {
-    try {
-      const canManage = await this.canManageGuild(
-        input.guildId,
-        input.userId,
-        input.applicationId ?? null,
-      );
-      return { hasBot: true, canManage };
-    } catch (error) {
-      if (error instanceof BotNotInGuildException) return { hasBot: false, canManage: false };
-      throw error;
+    const bots = input.applicationId
+      ? [input.applicationId]
+      : [...(await this.liveCustomBots(input.guildId)).map((bot) => bot.serviceId), null];
+    for (const applicationId of bots) {
+      try {
+        const canManage = await this.canManageGuild(input.guildId, input.userId, applicationId);
+        return { hasBot: true, canManage, applicationId };
+      } catch (error) {
+        if (!(error instanceof BotNotInGuildException)) throw error;
+      }
     }
+    return { hasBot: false, canManage: false, applicationId: input.applicationId ?? null };
+  }
+
+  private memberVia(guildId: string, userId: string, token: string | null) {
+    return this.discordRest.getMember({ guildId, userId, token }).catch(() => null);
+  }
+
+  /** For servers that have only a custom bot, which ClashPerk can't see into. */
+  private async memberViaCustomBot(guildId: string, userId: string) {
+    for (const bot of await this.liveCustomBots(guildId)) {
+      const member = await this.memberVia(guildId, userId, bot.token);
+      if (member) return member;
+    }
+    return null;
+  }
+
+  /** Custom bots running in the server; the bot hands the server over to them. */
+  private liveCustomBots(guildId: string) {
+    return this.db
+      .collection(Collections.CUSTOM_BOTS)
+      .find({ guildIds: guildId, isLive: true }, { projection: { serviceId: 1, token: 1 } })
+      .toArray();
   }
 
   async canManageGuild(guildId: string, userId: string, applicationId: string | null) {
@@ -327,9 +350,9 @@ export class AuthService {
       settings.map(async ({ guildId, managerRole }) => {
         const roleIds = toRoleIds(managerRole);
         if (!roleIds.length) return null;
-        const member = await this.discordRest
-          .getMember({ guildId, userId, token: null })
-          .catch(() => null);
+        const member =
+          (await this.memberVia(guildId, userId, null)) ??
+          (await this.memberViaCustomBot(guildId, userId));
         return member?.roles.some((id) => roleIds.includes(id)) ? guildId : null;
       }),
     );
