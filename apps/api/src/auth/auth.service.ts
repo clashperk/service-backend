@@ -276,7 +276,7 @@ export class AuthService {
   async getGuildAccess(input: { userId: string; guildId: string; applicationId?: string | null }) {
     const bots = input.applicationId
       ? [input.applicationId]
-      : [...(await this.liveCustomBots(input.guildId)).map((bot) => bot.serviceId), null];
+      : (await this.botsFor(input.guildId)).map((bot) => bot.serviceId);
     for (const applicationId of bots) {
       try {
         const canManage = await this.canManageGuild(input.guildId, input.userId, applicationId);
@@ -294,19 +294,33 @@ export class AuthService {
 
   /** For servers that have only a custom bot, which ClashPerk can't see into. */
   private async memberViaCustomBot(guildId: string, userId: string) {
-    for (const bot of await this.liveCustomBots(guildId)) {
+    for (const bot of await this.customBots(guildId)) {
       const member = await this.memberVia(guildId, userId, bot.token);
       if (member) return member;
     }
     return null;
   }
 
-  /** Custom bots running in the server; the bot hands the server over to them. */
-  private liveCustomBots(guildId: string) {
-    return this.db
+  /** Custom bots added to the server, live ones (which the bot hands the server over to) first. */
+  private async customBots(guildId: string) {
+    const bots = await this.db
       .collection(Collections.CUSTOM_BOTS)
-      .find({ guildIds: guildId, isLive: true }, { projection: { serviceId: 1, token: 1 } })
+      .find({ guildIds: guildId }, { projection: { serviceId: 1, token: 1, isLive: 1 } })
       .toArray();
+    return bots.sort((a, b) => Number(b.isLive) - Number(a.isLive));
+  }
+
+  /**
+   * The bots to try in the server, in the bot's own order: live custom bots, then ClashPerk
+   * (`serviceId: null`), then custom bots not yet live, for servers that only have one of those.
+   */
+  private async botsFor(guildId: string) {
+    const custom = await this.customBots(guildId);
+    return [
+      ...custom.filter((bot) => bot.isLive),
+      { serviceId: null },
+      ...custom.filter((bot) => !bot.isLive),
+    ];
   }
 
   async canManageGuild(guildId: string, userId: string, applicationId: string | null) {

@@ -226,6 +226,34 @@ describe('AuthService.getGuildAccess', () => {
     });
   });
 
+  it('uses a custom bot that is not live yet when it is the only bot in the server', async () => {
+    const { service, discord } = setup({
+      customBots: [{ serviceId: BOT, token: 'idle', isLive: false, guildIds: [GUILD] }],
+    });
+    discord.getGuild.mockImplementation(({ token }: { token: string | null }) =>
+      token === 'idle'
+        ? Promise.resolve({ owner_id: USER, roles: [] })
+        : Promise.reject(new BotNotInGuildException()),
+    );
+    await expect(access(service)).resolves.toEqual({
+      hasBot: true,
+      canManage: true,
+      applicationId: BOT,
+    });
+  });
+
+  it('prefers ClashPerk over a custom bot that is not live yet', async () => {
+    const { service } = setup({
+      guild: { owner_id: USER },
+      customBots: [{ serviceId: BOT, token: 'idle', isLive: false, guildIds: [GUILD] }],
+    });
+    await expect(access(service)).resolves.toEqual({
+      hasBot: true,
+      canManage: true,
+      applicationId: null,
+    });
+  });
+
   it('falls back to ClashPerk when the custom bot left the server', async () => {
     const { service, discord } = setup({
       guild: { owner_id: USER },

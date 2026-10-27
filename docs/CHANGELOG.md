@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-27 (idle custom bots)
+- `QUERY /auth/guild-access` and `QUERY /auth/managed-guilds` also use a custom bot that isn't live yet, after ClashPerk, so a server where that's the only bot opens in the dashboard
+
 ## 2026-10-27 (custom bot servers)
 - `QUERY /auth/guild-access` without `applicationId` picks the server's bot (its live custom bot, else ClashPerk) and returns it as `applicationId`, so a server with only a custom bot no longer reads as "bot not in this server"
 - `QUERY /auth/managed-guilds` finds manager-role members through a server's custom bot when ClashPerk isn't in the server
