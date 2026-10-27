@@ -208,7 +208,7 @@ describe('AuthService.getGuildAccess', () => {
     });
   });
 
-  it('acts through the live custom bot when ClashPerk is not in the server', async () => {
+  it('acts through a running custom bot when ClashPerk is not in the server', async () => {
     const { service, discord } = setup({
       guild: { owner_id: USER },
       customBots: [
@@ -228,7 +228,7 @@ describe('AuthService.getGuildAccess', () => {
     });
   });
 
-  it('skips a custom bot that is suspended or not yet in production', async () => {
+  it('skips a suspended custom bot, whose container is stopped', async () => {
     const { service, discord } = setup({
       customBots: [
         {
@@ -236,15 +236,6 @@ describe('AuthService.getGuildAccess', () => {
           token: 'suspended',
           isLive: true,
           isRunning: false,
-          isProd: true,
-          guildIds: [GUILD],
-        },
-        {
-          serviceId: OTHER_BOT,
-          token: 'setup',
-          isLive: false,
-          isRunning: true,
-          isProd: false,
           guildIds: [GUILD],
         },
       ],
@@ -257,6 +248,24 @@ describe('AuthService.getGuildAccess', () => {
     });
     expect(discord.getGuild).toHaveBeenCalledTimes(1);
     expect(discord.getGuild).toHaveBeenCalledWith(expect.objectContaining({ token: null }));
+  });
+
+  it('uses a running custom bot that has not finished setup', async () => {
+    const { service, discord } = setup({
+      customBots: [
+        { serviceId: BOT, token: 'setup', isRunning: true, isProd: false, guildIds: [GUILD] },
+      ],
+    });
+    discord.getGuild.mockImplementation(({ token }: { token: string | null }) =>
+      token === 'setup'
+        ? Promise.resolve({ owner_id: USER, roles: [] })
+        : Promise.reject(new BotNotInGuildException()),
+    );
+    await expect(access(service)).resolves.toEqual({
+      hasBot: true,
+      canManage: true,
+      applicationId: BOT,
+    });
   });
 
   it('falls back to ClashPerk when the custom bot left the server', async () => {
