@@ -15,6 +15,8 @@ vi.mock('@app/discord-rest', async (importOriginal) => ({
 const GUILD = '111111111111111111';
 const OTHER = '111111111111111112';
 const USER = '999999999999999999';
+const BOT = '333333333333333333';
+const OTHER_BOT = '333333333333333334';
 const ROLE = (n: number) => `22222222222222222${n}`;
 const MANAGE_GUILD = String(1 << 5);
 const ADMINISTRATOR = String(1 << 3);
@@ -40,6 +42,7 @@ const setup = (
         if ('$in' in cond) return (cond.$in as unknown[]).includes(doc[key]);
         if ('$exists' in cond) return key in doc === cond.$exists;
       }
+      if (Array.isArray(doc[key])) return (doc[key] as unknown[]).includes(cond);
       return doc[key] === cond;
     });
   const collection = (name: string) => ({
@@ -161,6 +164,17 @@ describe('AuthService.getManagedGuilds', () => {
     // A server with no manager role set needs no Discord lookup.
     expect(discord.getMember).toHaveBeenCalledTimes(2);
   });
+
+  it('looks the member up through the custom bot when ClashPerk is not in the server', async () => {
+    const { service, discord } = setup({
+      settings: [{ guildId: GUILD, managerRole: [ROLE(1)] }],
+      customBots: [{ serviceId: BOT, token: 'custom', isLive: true, guildIds: [GUILD] }],
+    });
+    discord.getMember.mockImplementation(({ token }: { token: string | null }) =>
+      Promise.resolve(token === 'custom' ? { roles: [ROLE(1)] } : null),
+    );
+    await expect(service.getManagedGuilds(USER, [GUILD])).resolves.toEqual({ guildIds: [GUILD] });
+  });
 });
 
 describe('AuthService.getGuildAccess', () => {
@@ -168,16 +182,65 @@ describe('AuthService.getGuildAccess', () => {
 
   it('says yes for a manager and no once they lose it', async () => {
     const manager = setup({ guild: { owner_id: USER } });
-    await expect(access(manager.service)).resolves.toEqual({ hasBot: true, canManage: true });
+    await expect(access(manager.service)).resolves.toEqual({
+      hasBot: true,
+      canManage: true,
+      applicationId: null,
+    });
 
     const member = setup({ member: { roles: [ROLE(3)] } });
-    await expect(access(member.service)).resolves.toEqual({ hasBot: true, canManage: false });
+    await expect(access(member.service)).resolves.toEqual({
+      hasBot: true,
+      canManage: false,
+      applicationId: null,
+    });
   });
 
   it('says no when the bot is gone from the server', async () => {
     const { service, discord } = setup();
     discord.getGuild.mockRejectedValueOnce(new BotNotInGuildException());
-    await expect(access(service)).resolves.toEqual({ hasBot: false, canManage: false });
+    await expect(access(service)).resolves.toEqual({
+      hasBot: false,
+      canManage: false,
+      applicationId: null,
+    });
+  });
+
+  it('acts through the live custom bot when ClashPerk is not in the server', async () => {
+    const { service, discord } = setup({
+      guild: { owner_id: USER },
+      customBots: [
+        { serviceId: BOT, token: 'custom', isLive: true, guildIds: [GUILD] },
+        { serviceId: OTHER_BOT, token: 'idle', isLive: false, guildIds: [GUILD] },
+      ],
+    });
+    discord.getGuild.mockImplementation(({ token }: { token: string | null }) =>
+      token === 'custom'
+        ? Promise.resolve({ owner_id: USER, roles: [] })
+        : Promise.reject(new BotNotInGuildException()),
+    );
+    await expect(access(service)).resolves.toEqual({
+      hasBot: true,
+      canManage: true,
+      applicationId: BOT,
+    });
+  });
+
+  it('falls back to ClashPerk when the custom bot left the server', async () => {
+    const { service, discord } = setup({
+      guild: { owner_id: USER },
+      customBots: [{ serviceId: BOT, token: 'custom', isLive: true, guildIds: [GUILD] }],
+    });
+    discord.getGuild.mockImplementation(({ token }: { token: string | null }) =>
+      token === 'custom'
+        ? Promise.reject(new BotNotInGuildException())
+        : Promise.resolve({ owner_id: USER, roles: [] }),
+    );
+    await expect(access(service)).resolves.toEqual({
+      hasBot: true,
+      canManage: true,
+      applicationId: null,
+    });
   });
 
   it('fails on other Discord errors, so the dashboard can keep the server for now', async () => {
