@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-27 (rankings)
+- New `/rankings` routes: `GET /rankings/locations` (worldwide and every country), `GET /rankings/seasons` (saved seasons, newest first), `GET /rankings/:countryCode/:board` (a live board, or a saved one with `?season=`; boards are players, clans, capital, builder-base-players and builder-base-clans), `QUERY /rankings/standings` (this season's ranks of up to 50 player and 50 clan tags), `GET /rankings/clans/:clanTag` (live ranks, rank-200 cutoff and the last 6 season-end ranks in its country) and `GET /rankings/players/:playerTag` (every saved top 200 finish)
+- Every entry carries its rank at the end of the last saved season, so movement is "since last season" everywhere
+
 ## 2026-10-27 (custom bots still in setup)
 - `QUERY /auth/guild-access` and `QUERY /auth/managed-guilds` use any custom bot whose container is running (`isRunning`), not only production ones, so a server with a custom bot still finishing setup opens in the dashboard
 

@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-27 — Rankings read live boards from the Clash API and history from the saved boards
+Decided by: Suvajit. Live boards come from the Clash API's location rankings; past seasons come from PlayerRanks, ClanRanks and CapitalRanks, which the worker rewrites every 5 minutes with the top 200 per country and worldwide for the running league season. `previousRank` on live and saved boards is the rank in the last saved season, not the API's `previousRank` (empty for capital boards), so every "since last season" agrees. Builder base boards aren't saved: they're live only, keep the API's `previousRank`, and asking for one with `season` is a 400. Seasons are listed from ClanRanks, the board every country has, leaving out the running season. Locations are countries only (`isCountry`), since regions have no saved boards.
+
 ## 2026-10-27 — The API picks which bot the dashboard acts through
 Decided by: Suvajit. A server can have ClashPerk, a custom bot, or both. Without an `applicationId`, `getGuildAccess` tries the custom bots running the server (`CustomBots` with the server in `guildIds`) and then ClashPerk, and returns the one that can see the server; the dashboard puts it in the session, so every later call reads through that bot. A custom bot counts while its container is running (`isRunning`, set by the service that runs the bot containers), set up or not: `isLive` stays true when a bot is suspended, so it can't decide. Those come first because the bot itself hands a server's logs and roles to them. Manager-role lookups fall back to a custom bot only when ClashPerk can't see the member.
 
