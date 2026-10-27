@@ -270,13 +270,13 @@ export class AuthService {
 
   /**
    * The bot the dashboard acts through in the server, whether it's there, and whether the user can
-   * manage the server. Without `applicationId`, the server's live custom bot comes first, as the
+   * manage the server. Without `applicationId`, a custom bot running the server comes first, as the
    * bot itself does, then ClashPerk. The dashboard asks when a server is picked and on renewals.
    */
   async getGuildAccess(input: { userId: string; guildId: string; applicationId?: string | null }) {
     const bots = input.applicationId
       ? [input.applicationId]
-      : (await this.botsFor(input.guildId)).map((bot) => bot.serviceId);
+      : [...(await this.runningCustomBots(input.guildId)).map((bot) => bot.serviceId), null];
     for (const applicationId of bots) {
       try {
         const canManage = await this.canManageGuild(input.guildId, input.userId, applicationId);
@@ -294,33 +294,25 @@ export class AuthService {
 
   /** For servers that have only a custom bot, which ClashPerk can't see into. */
   private async memberViaCustomBot(guildId: string, userId: string) {
-    for (const bot of await this.customBots(guildId)) {
+    for (const bot of await this.runningCustomBots(guildId)) {
       const member = await this.memberVia(guildId, userId, bot.token);
       if (member) return member;
     }
     return null;
   }
 
-  /** Custom bots added to the server, live ones (which the bot hands the server over to) first. */
-  private async customBots(guildId: string) {
-    const bots = await this.db
-      .collection(Collections.CUSTOM_BOTS)
-      .find({ guildIds: guildId }, { projection: { serviceId: 1, token: 1, isLive: 1 } })
-      .toArray();
-    return bots.sort((a, b) => Number(b.isLive) - Number(a.isLive));
-  }
-
   /**
-   * The bots to try in the server, in the bot's own order: live custom bots, then ClashPerk
-   * (`serviceId: null`), then custom bots not yet live, for servers that only have one of those.
+   * Custom bots running the server in production, which the bot hands the server over to.
+   * `isLive` stays true on suspended bots, so the container's own state decides.
    */
-  private async botsFor(guildId: string) {
-    const custom = await this.customBots(guildId);
-    return [
-      ...custom.filter((bot) => bot.isLive),
-      { serviceId: null },
-      ...custom.filter((bot) => !bot.isLive),
-    ];
+  private runningCustomBots(guildId: string) {
+    return this.db
+      .collection(Collections.CUSTOM_BOTS)
+      .find(
+        { guildIds: guildId, isRunning: true, isProd: true },
+        { projection: { serviceId: 1, token: 1 } },
+      )
+      .toArray();
   }
 
   async canManageGuild(guildId: string, userId: string, applicationId: string | null) {

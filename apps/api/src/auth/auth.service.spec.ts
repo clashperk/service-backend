@@ -168,7 +168,9 @@ describe('AuthService.getManagedGuilds', () => {
   it('looks the member up through the custom bot when ClashPerk is not in the server', async () => {
     const { service, discord } = setup({
       settings: [{ guildId: GUILD, managerRole: [ROLE(1)] }],
-      customBots: [{ serviceId: BOT, token: 'custom', isLive: true, guildIds: [GUILD] }],
+      customBots: [
+        { serviceId: BOT, token: 'custom', isRunning: true, isProd: true, guildIds: [GUILD] },
+      ],
     });
     discord.getMember.mockImplementation(({ token }: { token: string | null }) =>
       Promise.resolve(token === 'custom' ? { roles: [ROLE(1)] } : null),
@@ -210,8 +212,8 @@ describe('AuthService.getGuildAccess', () => {
     const { service, discord } = setup({
       guild: { owner_id: USER },
       customBots: [
-        { serviceId: BOT, token: 'custom', isLive: true, guildIds: [GUILD] },
-        { serviceId: OTHER_BOT, token: 'idle', isLive: false, guildIds: [GUILD] },
+        { serviceId: BOT, token: 'custom', isRunning: true, isProd: true, guildIds: [GUILD] },
+        { serviceId: OTHER_BOT, token: 'idle', isRunning: true, isProd: false, guildIds: [GUILD] },
       ],
     });
     discord.getGuild.mockImplementation(({ token }: { token: string | null }) =>
@@ -226,38 +228,43 @@ describe('AuthService.getGuildAccess', () => {
     });
   });
 
-  it('uses a custom bot that is not live yet when it is the only bot in the server', async () => {
+  it('skips a custom bot that is suspended or not yet in production', async () => {
     const { service, discord } = setup({
-      customBots: [{ serviceId: BOT, token: 'idle', isLive: false, guildIds: [GUILD] }],
+      customBots: [
+        {
+          serviceId: BOT,
+          token: 'suspended',
+          isLive: true,
+          isRunning: false,
+          isProd: true,
+          guildIds: [GUILD],
+        },
+        {
+          serviceId: OTHER_BOT,
+          token: 'setup',
+          isLive: false,
+          isRunning: true,
+          isProd: false,
+          guildIds: [GUILD],
+        },
+      ],
     });
-    discord.getGuild.mockImplementation(({ token }: { token: string | null }) =>
-      token === 'idle'
-        ? Promise.resolve({ owner_id: USER, roles: [] })
-        : Promise.reject(new BotNotInGuildException()),
-    );
+    discord.getGuild.mockRejectedValue(new BotNotInGuildException());
     await expect(access(service)).resolves.toEqual({
-      hasBot: true,
-      canManage: true,
-      applicationId: BOT,
-    });
-  });
-
-  it('prefers ClashPerk over a custom bot that is not live yet', async () => {
-    const { service } = setup({
-      guild: { owner_id: USER },
-      customBots: [{ serviceId: BOT, token: 'idle', isLive: false, guildIds: [GUILD] }],
-    });
-    await expect(access(service)).resolves.toEqual({
-      hasBot: true,
-      canManage: true,
+      hasBot: false,
+      canManage: false,
       applicationId: null,
     });
+    expect(discord.getGuild).toHaveBeenCalledTimes(1);
+    expect(discord.getGuild).toHaveBeenCalledWith(expect.objectContaining({ token: null }));
   });
 
   it('falls back to ClashPerk when the custom bot left the server', async () => {
     const { service, discord } = setup({
       guild: { owner_id: USER },
-      customBots: [{ serviceId: BOT, token: 'custom', isLive: true, guildIds: [GUILD] }],
+      customBots: [
+        { serviceId: BOT, token: 'custom', isRunning: true, isProd: true, guildIds: [GUILD] },
+      ],
     });
     discord.getGuild.mockImplementation(({ token }: { token: string | null }) =>
       token === 'custom'
