@@ -30,6 +30,9 @@ import {
   UsersEntity,
   PlayerSeasonsEntity,
   PlayersEntity,
+  PlayerRanksEntity,
+  ClanRanksEntity,
+  CapitalRanksEntity,
   ReminderSchedulesEntity,
   RosterGroupsEntity,
   RostersEntity,
@@ -54,6 +57,10 @@ export enum Collections {
 
   PLAYERS = 'Players',
   PLAYER_SEASONS = 'PlayerSeasons',
+
+  PLAYER_RANKS = 'PlayerRanks',
+  CLAN_RANKS = 'ClanRanks',
+  CAPITAL_RANKS = 'CapitalRanks',
 
   GOOGLE_SHEETS = 'GoogleSheets',
 
@@ -96,6 +103,9 @@ interface CollectionRecords {
   [Collections.CLAN_WARS]: ClanWarsEntity;
   [Collections.PLAYERS]: PlayersEntity;
   [Collections.PLAYER_SEASONS]: PlayerSeasonsEntity;
+  [Collections.PLAYER_RANKS]: PlayerRanksEntity;
+  [Collections.CLAN_RANKS]: ClanRanksEntity;
+  [Collections.CAPITAL_RANKS]: CapitalRanksEntity;
   [Collections.CLAN_GAMES_POINTS]: ClanGamesPointsEntity;
 
   [Collections.GLOBAL_CLANS]: GlobalClanEntity;

@@ -27,6 +27,7 @@ import { LegendsModule } from './legends/legends.module';
 import { LinksModule } from './links/links.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { PlayersModule } from './players/players.module';
+import { RankingsModule } from './rankings/rankings.module';
 import { RostersModule } from './rosters/rosters.module';
 import { TasksModule } from './tasks/tasks.module';
 import { UsersModule } from './users/users.module';
@@ -65,6 +66,7 @@ import { WebhookModule } from './webhook/webhook.module';
     ClansModule,
     PlayersModule,
     LegendsModule,
+    RankingsModule,
     WarsModule,
     EventsModule,
     RostersModule,

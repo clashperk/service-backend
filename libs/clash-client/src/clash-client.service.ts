@@ -4,6 +4,7 @@ import {
   APIClan,
   APIClanWarLeagueRound,
   APILeagueTier,
+  APILocation,
   APIPlayer,
   getWarResult,
   SearchOptions,
@@ -18,6 +19,13 @@ type AssetLeagueTier = {
   promote_percentage: number | null;
   demote_percentage: number | null;
 };
+
+export type RankingsBoard =
+  | 'players'
+  | 'clans'
+  | 'capital'
+  | 'builder-base-players'
+  | 'builder-base-clans';
 
 export type LeagueTierRules = {
   /** Null for a tier without weekly battles (Unranked). */
@@ -140,6 +148,37 @@ export class ClashClientService {
   async getLeagueHistory(playerTag: string) {
     const { body, res } = await this.clashClient.getLeagueHistory(playerTag);
     return res.ok ? body.items : [];
+  }
+
+  private countries: Promise<APILocation[]> | null = null;
+
+  /** The countries the game ranks players and clans in; fetched once. */
+  getCountries() {
+    this.countries ??= this.clashClient
+      .getLocations()
+      .then(({ res, body }) => {
+        if (!res.ok) throw new Error('Locations unavailable');
+        return body.items.filter((location) => location.isCountry && location.countryCode);
+      })
+      .catch((error: Error) => {
+        this.countries = null;
+        throw error;
+      });
+    return this.countries;
+  }
+
+  /** A location's live top 200 on one board; `global` for worldwide. */
+  async getRankings(locationId: number | 'global', board: RankingsBoard) {
+    const request = {
+      'players': () => this.clashClient.getPlayerRanks(locationId),
+      'clans': () => this.clashClient.getClanRanks(locationId),
+      'capital': () => this.clashClient.getClanCapitalRanks(locationId),
+      'builder-base-players': () => this.clashClient.getBuilderBasePlayerRanks(locationId),
+      'builder-base-clans': () => this.clashClient.getBuilderBaseClanRanks(locationId),
+    }[board];
+    const { res, body } = await request();
+    if (!res.ok) throw failure(res.status, 'Location not found.');
+    return body.items;
   }
 
   private leagueTiers: Promise<Map<number, APILeagueTier>> | null = null;

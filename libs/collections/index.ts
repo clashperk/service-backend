@@ -13,6 +13,7 @@ export * from './legend-attacks.entity';
 export * from './player-links.entity';
 export * from './player-seasons.entity';
 export * from './players.entity';
+export * from './ranks.entity';
 export * from './reminders.entity';
 export * from './roster-groups.entity';
 export * from './rosters.entity';

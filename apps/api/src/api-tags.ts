@@ -4,6 +4,7 @@ export enum ApiTag {
   CLANS = 'Clans',
   WARS = 'Wars',
   LEGENDS = 'Legends',
+  RANKINGS = 'Rankings',
   LINKS = 'Links',
   EVENTS = 'Events',
   GUILDS = 'Guilds',
@@ -20,6 +21,8 @@ export const API_TAG_DESCRIPTIONS: Record<ApiTag, string> = {
   [ApiTag.CLANS]: 'Clan details, member activity, links, capital raids and clan games.',
   [ApiTag.WARS]: 'Current and past wars, and Clan War Leagues.',
   [ApiTag.LEGENDS]: 'Legend League attacks, seasons and rank estimates.',
+  [ApiTag.RANKINGS]:
+    'Top 200 players and clans by country and worldwide: live, and saved at the end of each season.',
   [ApiTag.LINKS]: 'Links between player tags and Discord users.',
   [ApiTag.EVENTS]: 'Upcoming in-game events.',
   [ApiTag.GUILDS]:
