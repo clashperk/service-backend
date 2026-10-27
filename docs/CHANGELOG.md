@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-27 (custom bots still in setup)
+- `QUERY /auth/guild-access` and `QUERY /auth/managed-guilds` use any custom bot whose container is running (`isRunning`), not only production ones, so a server with a custom bot still finishing setup opens in the dashboard
+
 ## 2026-10-27 (running custom bots)
 - `QUERY /auth/guild-access` and `QUERY /auth/managed-guilds` use a custom bot only while it runs in production (`isRunning` and `isProd`), not by `isLive`, which stays true on the 18 suspended bots
 

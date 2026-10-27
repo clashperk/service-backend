@@ -302,16 +302,13 @@ export class AuthService {
   }
 
   /**
-   * Custom bots running the server in production, which the bot hands the server over to.
-   * `isLive` stays true on suspended bots, so the container's own state decides.
+   * Custom bots whose container is running, which the bot hands the server over to. `isLive`
+   * stays true on suspended bots, so the container's own state decides.
    */
   private runningCustomBots(guildId: string) {
     return this.db
       .collection(Collections.CUSTOM_BOTS)
-      .find(
-        { guildIds: guildId, isRunning: true, isProd: true },
-        { projection: { serviceId: 1, token: 1 } },
-      )
+      .find({ guildIds: guildId, isRunning: true }, { projection: { serviceId: 1, token: 1 } })
       .toArray();
   }
 
