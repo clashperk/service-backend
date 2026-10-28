@@ -1,5 +1,8 @@
 # Decisions
 
+## 2026-10-28 — The API compresses its own responses
+Decided by: Suvajit. Cloudflare already compresses responses on `api.clashperk.com`, but the bot calls the API on its private URL, which skips Cloudflare. `compression()` in `main.ts` covers those calls. It uses the package defaults (1 KB threshold, level 6); Cloudflare passes origin-compressed responses through or re-encodes them, so public traffic is unchanged. The API has no streaming or SSE routes that buffering would break.
+
 ## 2026-10-27 — Rankings read live boards from the Clash API and history from the saved boards
 Decided by: Suvajit. Live boards come from the Clash API's location rankings; past seasons come from PlayerRanks, ClanRanks and CapitalRanks, which the worker rewrites every 5 minutes with the top 200 per country and worldwide for the running league season. `previousRank` on live and saved boards is the rank in the last saved season, not the API's `previousRank` (empty for capital boards), so every "since last season" agrees. Builder base boards aren't saved: they're live only, keep the API's `previousRank`, and asking for one with `season` is a 400. Seasons are listed from ClanRanks, the board every country has, leaving out the running season. Locations are countries only (`isCountry`), since regions have no saved boards.
 
