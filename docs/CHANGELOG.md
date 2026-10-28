@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-28 (compression)
+- Responses over 1 KB are gzip/deflate/br-compressed when the caller sends `Accept-Encoding`, including calls on the private network that skip Cloudflare
+
 ## 2026-10-27 (rankings)
 - New `/rankings` routes: `GET /rankings/locations` (worldwide and every country), `GET /rankings/seasons` (saved seasons, newest first), `GET /rankings/:countryCode/:board` (a live board, or a saved one with `?season=`; boards are players, clans, capital, builder-base-players and builder-base-clans), `QUERY /rankings/standings` (this season's ranks of up to 50 player and 50 clan tags), `GET /rankings/clans/:clanTag` (live ranks, rank-200 cutoff and the last 6 season-end ranks in its country) and `GET /rankings/players/:playerTag` (every saved top 200 finish)
 - Every entry carries its rank at the end of the last saved season, so movement is "since last season" everywhere

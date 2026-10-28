@@ -6,6 +6,7 @@ import { Logger, ValidationPipe, VersioningType } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 
 import { Config } from '@app/constants';
@@ -29,6 +30,8 @@ async function bootstrap() {
     // The cors default leaves out QUERY, so browsers' preflights for it would fail.
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'QUERY'],
   });
+  // Cloudflare compresses public traffic; this covers callers on the private network (the bot).
+  app.use(compression());
   app.use(cookieParser(config.getOrThrow('COOKIE_SECRET')));
   app.set('trust proxy', true);
   app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true }));
