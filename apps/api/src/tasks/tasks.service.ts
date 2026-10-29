@@ -24,10 +24,9 @@ export class TasksService {
 
     const lastIdHex = await this.redis.get('player_update_progress');
     let lastId: ObjectId | null = lastIdHex ? new ObjectId(lastIdHex) : null;
-    let hasMore = true;
     let cycle = 0;
 
-    while (hasMore) {
+    while (true) {
       const query = lastId ? { _id: { $gt: lastId } } : {};
 
       const docs = await this.db
@@ -37,10 +36,7 @@ export class TasksService {
         .limit(BATCH_SIZE)
         .toArray();
 
-      if (docs.length === 0) {
-        hasMore = false;
-        break;
-      }
+      if (docs.length === 0) break;
 
       cycle += 1;
       this.logger.log(`Cycle ${cycle}: Processing batch of ${docs.length} players...`);

@@ -9,6 +9,7 @@ vi.mock('@app/clash-client', () => ({ ClashClientService: class {} }));
 
 const contextFor = (handler: keyof PlayersController, roles: UserRoles[]) =>
   ({
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- the guard only reads its metadata
     getHandler: () => PlayersController.prototype[handler],
     getClass: () => PlayersController,
     switchToHttp: () => ({

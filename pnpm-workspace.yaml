@@ -6,4 +6,4 @@ allowBuilds:
   msgpackr-extract: false
   unrs-resolver: true
 minimumReleaseAgeExclude:
-  - clashofclans.js@5.0.1 || 5.1.0
+  - clashofclans.js@5.1.2
