@@ -148,9 +148,7 @@ export class PlayersService {
   }
 
   private async activity(player: APIPlayer, payload: APIPlayerTransformed) {
-    const cached = (await this.redisService.getPlayer(
-      player.tag,
-    )) as unknown as APIPlayerTransformed | null;
+    const cached = await this.redisService.getPlayer(player.tag);
 
     if (cached && cached.monthId === payload.monthId) {
       payload.initialClanGamesPoints = cached.initialClanGamesPoints;

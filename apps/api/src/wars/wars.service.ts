@@ -393,7 +393,7 @@ export class WarsService {
       wars: wars.length,
       seasons: [
         ...new Set(
-          wars.filter((war) => war.warType === (WarTypes.CWL as number)).map((war) => war.season),
+          wars.filter((war) => war.warType === Number(WarTypes.CWL)).map((war) => war.season),
         ),
       ],
       members: memberTotals([...wars].reverse(), clanTag),
