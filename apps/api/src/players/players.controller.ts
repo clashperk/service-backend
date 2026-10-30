@@ -83,7 +83,7 @@ export class PlayersController {
   }
 
   @QueryMethod('/battle-log/leaderboard')
-  @Cache(600)
+  @Cache(600, { unorderedBody: true })
   getBattleLogLeaderboard(
     @Body() body: BattleLogLeaderboardInputDto,
   ): Promise<BattleLogLeaderboardDto> {
@@ -91,7 +91,7 @@ export class PlayersController {
   }
 
   @Post('/battle-log/leaderboard')
-  @Cache(600)
+  @Cache(600, { unorderedBody: true })
   @DeprecatedPost()
   getBattleLogLeaderboardViaPost(
     @Body() body: BattleLogLeaderboardInputDto,
